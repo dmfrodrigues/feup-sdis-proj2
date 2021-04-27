@@ -1,8 +1,10 @@
 # SDIS Project
 
-SDIS Project for group T&lt;n&gt;G&lt;p&gt;&lt;q&gt;.
+SDIS Project for group T7G21.
 
 Group members:
 
-1. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
-2. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
+1. Breno Pimentel  (up201800170@edu.fe.up.pt)
+2. Diogo Rodrigues (up201806429@edu.fe.up.pt)
+3. João Sousa      (up201806613@edu.fe.up.pt)
+4. Rafael Ribeiro  (up201806330@edu.fe.up.pt)
