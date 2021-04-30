@@ -1,0 +1,8 @@
+out/
+.idea/
+*.class
+*.iml
+bin/
+*.pdf
+# !report.pdf
+build/
