@@ -1,13 +1,15 @@
 package sdis;
 
 import sdis.Messages.*;
-import sdis.Callables.*;
+import sdis.Protocols.*;
+import sdis.Protocols.Main.BackupFileProtocol;
+import sdis.Protocols.Main.DeleteFileProtocol;
+import sdis.Protocols.Main.RestoreFileProtocol;
 import sdis.Storage.ChunkStorageManager;
 import sdis.Storage.FileChunkIterator;
 import sdis.Storage.FileTable;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.*;
 import java.nio.file.NoSuchFileException;
@@ -189,8 +191,8 @@ public class Peer implements PeerInterface {
             return;
         }
         getFileTable().insert(file.getName(), fileChunkIterator.getFileId(), fileChunkIterator.length());
-        BackupFileRunnable backupFileRunnable = new BackupFileRunnable(this, fileChunkIterator, replicationDegree);
-        CompletableFuture.runAsync(backupFileRunnable);
+        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(this, fileChunkIterator, replicationDegree);
+        CompletableFuture.runAsync(backupFileProtocol);
     }
 
     /**
@@ -201,7 +203,7 @@ public class Peer implements PeerInterface {
      * @param pathname  Pathname of file to be restored
      */
     public void restore(String pathname) throws IOException {
-        RestoreFileRunnable callable = new RestoreFileRunnable(this, pathname);
+        RestoreFileProtocol callable = new RestoreFileProtocol(this, pathname);
         executor.submit(callable);
     }
 
@@ -211,7 +213,7 @@ public class Peer implements PeerInterface {
      * @param pathname  Pathname of file to be deleted over all peers
      */
     public void delete(String pathname) {
-        DeleteFileRunnable callable = new DeleteFileRunnable(this, pathname);
+        DeleteFileProtocol callable = new DeleteFileProtocol(this, pathname);
         executor.submit(callable);
     }
 

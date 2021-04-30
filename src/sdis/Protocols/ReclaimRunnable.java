@@ -1,4 +1,4 @@
-package sdis.Callables;
+package sdis.Protocols;
 
 import sdis.Messages.RemovedMessage;
 import sdis.Peer;

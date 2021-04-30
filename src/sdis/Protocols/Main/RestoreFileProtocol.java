@@ -1,7 +1,9 @@
-package sdis.Callables;
+package sdis.Protocols.Main;
 
 import sdis.Messages.GetchunkMessage;
 import sdis.Peer;
+import sdis.Protocols.ProtocolRunnable;
+import sdis.Protocols.DataStorage.GetProtocol;
 import sdis.Storage.FileChunkOutput;
 import sdis.Utils.Pair;
 
@@ -11,13 +13,12 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
  * @brief Runnable to restore a file.
  */
-public class RestoreFileRunnable extends ProtocolRunnable {
+public class RestoreFileProtocol extends ProtocolRunnable {
     /**
      * Maximum amount of chunk backup futures that can be running at a given time.
      *
@@ -40,7 +41,7 @@ public class RestoreFileRunnable extends ProtocolRunnable {
      * @param filename  File name of the file to be restored
      * @throws FileNotFoundException    If file is not found
      */
-    public RestoreFileRunnable(Peer peer, String filename) throws IOException {
+    public RestoreFileProtocol(Peer peer, String filename) throws IOException {
         this.peer = peer;
         this.filename = filename;
         fileChunkOutput = new FileChunkOutput(new File(filename));
@@ -66,7 +67,7 @@ public class RestoreFileRunnable extends ProtocolRunnable {
             }
             // Add new future
             GetchunkMessage message = new GetchunkMessage(peer.getId(), fileId, i, peer.getControlAddress());
-            RestoreChunkSupplier restoreChunkCallable = new RestoreChunkSupplier(peer, message);
+            GetProtocol restoreChunkCallable = new GetProtocol(peer, message);
             futureList.add(CompletableFuture.supplyAsync(restoreChunkCallable, Peer.getExecutor()));
         }
         // Empty the futures list

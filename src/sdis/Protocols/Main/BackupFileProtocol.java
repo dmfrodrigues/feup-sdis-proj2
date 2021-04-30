@@ -1,7 +1,9 @@
-package sdis.Callables;
+package sdis.Protocols.Main;
 
 import sdis.Messages.PutchunkMessage;
 import sdis.Peer;
+import sdis.Protocols.DataStorage.PutProtocol;
+import sdis.Protocols.ProtocolRunnable;
 import sdis.Storage.FileChunkIterator;
 
 import java.io.IOException;
@@ -10,7 +12,7 @@ import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-public class BackupFileRunnable extends ProtocolRunnable {
+public class BackupFileProtocol extends ProtocolRunnable {
     /**
      * Maximum amount of chunk backup futures that can be running at a given time.
      *
@@ -24,7 +26,7 @@ public class BackupFileRunnable extends ProtocolRunnable {
     private final FileChunkIterator fileChunkIterator;
     private final int replicationDegree;
 
-    public BackupFileRunnable(Peer peer, FileChunkIterator fileChunkIterator, int replicationDegree){
+    public BackupFileProtocol(Peer peer, FileChunkIterator fileChunkIterator, int replicationDegree){
         this.peer = peer;
         this.fileChunkIterator = fileChunkIterator;
         this.replicationDegree = replicationDegree;
@@ -59,7 +61,7 @@ public class BackupFileRunnable extends ProtocolRunnable {
                 fileChunkIterator.next()
                 .thenApplyAsync(chunk -> {
                     PutchunkMessage message = new PutchunkMessage(peer.getId(), fileChunkIterator.getFileId(), finalI, replicationDegree, chunk, peer.getDataBroadcastAddress());
-                    BackupChunkSupplier backupChunkCallable = new BackupChunkSupplier(peer, message, replicationDegree);
+                    PutProtocol backupChunkCallable = new PutProtocol(peer, message, replicationDegree);
                     backupChunkCallable.get();
                     return null;
                 }, Peer.getExecutor())

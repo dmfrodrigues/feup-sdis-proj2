@@ -1,9 +1,10 @@
-package sdis.Callables;
+package sdis.Protocols.DataStorage;
 
 import sdis.Exceptions.BackupProtocolException;
 import sdis.Messages.PutchunkMessage;
 import sdis.Messages.UnstoreMessage;
 import sdis.Peer;
+import sdis.Protocols.ProtocolSupplier;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -12,7 +13,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class BackupChunkSupplier extends ProtocolSupplier<Void> {
+public class PutProtocol extends ProtocolSupplier<Void> {
     /**
      * Time to wait before resending a backup request, in milliseconds.
      */
@@ -26,7 +27,7 @@ public class BackupChunkSupplier extends ProtocolSupplier<Void> {
     private final PutchunkMessage message;
     private final int replicationDegree;
 
-    public BackupChunkSupplier(Peer peer, PutchunkMessage message, int replicationDegree){
+    public PutProtocol(Peer peer, PutchunkMessage message, int replicationDegree){
 
         this.peer = peer;
         this.message = message;

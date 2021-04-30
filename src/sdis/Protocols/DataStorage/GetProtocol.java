@@ -1,9 +1,10 @@
-package sdis.Callables;
+package sdis.Protocols.DataStorage;
 
 import sdis.Exceptions.RestoreProtocolException;
 import sdis.Messages.GetchunkMessage;
 import sdis.Messages.GetchunkTCPMessage;
 import sdis.Peer;
+import sdis.Protocols.ProtocolSupplier;
 import sdis.Utils.Pair;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
 
-public class RestoreChunkSupplier extends ProtocolSupplier<Pair<Integer,byte[]>> {
+public class GetProtocol extends ProtocolSupplier<Pair<Integer,byte[]>> {
     /**
      * Timeout of waiting for a CHUNK response to a GETCHUNK message, in milliseconds.
      */
@@ -30,7 +31,7 @@ public class RestoreChunkSupplier extends ProtocolSupplier<Pair<Integer,byte[]>>
     private final Peer peer;
     private final GetchunkMessage message;
 
-    public RestoreChunkSupplier(Peer peer, GetchunkMessage message) {
+    public GetProtocol(Peer peer, GetchunkMessage message) {
         this.peer = peer;
         this.message = message;
     }
