@@ -1,7 +1,7 @@
 package sdis;
 
 import sdis.Messages.*;
-import sdis.Protocols.*;
+import sdis.Protocols.DataStorage.ReclaimProtocol;
 import sdis.Protocols.Main.BackupFileProtocol;
 import sdis.Protocols.Main.DeleteFileProtocol;
 import sdis.Protocols.Main.RestoreFileProtocol;
@@ -223,17 +223,8 @@ public class Peer implements PeerInterface {
      * @param space_kb  Amount of space, in kilobytes (KB, K=1000)
      */
     public void reclaim(int space_kb) {
-        ReclaimRunnable callable = new ReclaimRunnable(this, space_kb);
+        ReclaimProtocol callable = new ReclaimProtocol(this, space_kb);
         executor.submit(callable);
-    }
-
-    /**
-     * Get state information on the peer.
-     */
-    public String state() {
-        StateRunnable stateRunnable = new StateRunnable(this, storageManager);
-        stateRunnable.run();
-        return stateRunnable.getStatus();
     }
 
     public void send(Message message) throws IOException {
