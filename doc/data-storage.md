@@ -1,6 +1,8 @@
-# Data storage module
+## Data storage module
 
-## Put protocol
+This is a very simple data storage protocol, which is tasked with storing, retrieving and deleting datapieces in a specific node, taking into account storage limits of each node. Does not guarantee that a datapiece is accessible if the node storing it is not shutdown in an orderly fashion.
+
+### Put protocol
 
 - **Arguments:** a node key, datafile key, data
 - **Returns:** -
@@ -34,7 +36,7 @@ where NodeKey is the node key the protocol was called with
 
 Upon receiving a `PUT` message, the node first checks if the node key is the same as itself, in which case it responds with failure; otherwise, the node should start the Put protocol locally using the node key it got from the `PUT` message (not its own key), and answer the `PUT` message according to what the Put protocol returns.
 
-## Delete protocol
+### Delete protocol
 
 - **Arguments:** UUID
 - **Returns:** -
@@ -68,7 +70,7 @@ We also have to take into account the scenario where a node is down; say a node 
 - If the node ran the chord leaving protocol, then on shutdown it contains no replicas at all, and all the replicas it had were transferred to another node; in this case we do not have to worry, as all replicas of a chunk are active in the system at all times, and upon running the Delete protocol it is guaranteed that all replicas will be deleted.
 - If the node did not run the chord leaving protocol, then the node that failed to contact another node and ask it to be deleted must remember that, so that it can retry to delete when the node rejoins the system.
 
-## Get protocol
+### Get protocol
 
 - **Arguments:** UUID
 - **Returns:** data

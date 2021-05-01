@@ -1,16 +1,14 @@
-# Chord module
+## Chord module
 
-The *successor* of a key $k$ ($successor(k)$) is the peer with the least key that is larger than or equal to $k$.
+This module provides very basic interfaces to use the chord protocol. It allows one to:
 
-The *predecessor* of a key $k$ ($predecessor(k)$) is the peer with the greatest key that is smaller than $k$.
+- Ask for the socket address and key of the successor of a key
+- Ask for the predecessor of a node for which we know the socket address
+- Set the predecessor of the current node to a new value
+- Inform all nodes that need to know that a new node was added to system and they should update their fingers tables
+- Inform all nodes that need to know that a node was removed from the system and they should update their fingers tables
 
-A node $r$ is responsible for all keys for which their successor is $r$.
-
-Let the key be a binary unsigned number with $m$ bits. This means there are $2^m$ different keys, from $0$ to $2^M-1$ inclusive. Let $M = 2^m$ be the modulus we are operating with (i.e., given a key $k$, because we are working with a circumference with perimeter $M$ we can say $k \equiv k + i \cdot M, \forall i \in \mathbb{Z}$).
-
-The *distance* between nodes $a$ and $b$ is defined as the number of increments to $a$ that we need to arrive to $b$ in the modulus-$M$ space. That is, $distance(a, b) = (b-a+M) \mod M$.
-
-## GetSuccessor protocol
+### GetSuccessor protocol
 
 - **Arguments:** UUID
 - **Returns:** UUID successor's socket address and key
@@ -36,7 +34,7 @@ On receiving a `GETSUCCESSOR` message, $r'$ triggers the GetSuccessor protocol f
 
 If a new node joins the network, it can simply send a `GETSUCCESSOR` to its gateway node without starting the GetSuccessor protocol locally; it would serve no purpose for the joining node to run the GetSuccessor protocol, as it has not yet built its fingers table.
 
-## GetPredecessor protocol
+### GetPredecessor protocol
 
 - **Arguments:** node we are asking to
 - **Returns:** predecessor of said node
@@ -49,7 +47,7 @@ GETPREDECESSOR
 
 to which $s$ answers in format `<Key> <IP>:<Port>`, containing the key and socket address of the predecessor of $s$.
 
-## UpdatePredecessor protocol
+### UpdatePredecessor protocol
 
 - **Arguments:** key, node socket
 - **Returns:** -
@@ -62,7 +60,7 @@ UPDATEPREDECESSOR <SenderId> <IP>:<Port>
 
 message to the current node's successor, containing a key and socket address, and the node receiving this message has to update its predecessor to correspond to the received key and socket address.
 
-## FingersAdd protocol
+### FingersAdd protocol
 
 - **Arguments:** -
 - **Returns:** -
@@ -75,7 +73,7 @@ FINGERADD <key> <IP>:<port> <fingerIdx>
 
 which instructs the node $s$ that receives this message to check if $r$ is the new $i$-finger of $s$. The node $s$ checks if $r$ is its new $i$-finger by testing if $distance(s, r) < distance(s, s.finger[i]$; if it's false, just ignore; if it's true, it updates $s.finger[i]$ and all indices before $i$ if necessary, and forwards the `FINGERADD` message to its predecessor without changing it.
 
-## FingersRemove protocol
+### FingersRemove protocol
 
 - **Arguments:** -
 - **Returns:** -
