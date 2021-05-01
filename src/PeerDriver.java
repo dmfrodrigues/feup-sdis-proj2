@@ -13,14 +13,11 @@ public class PeerDriver {
             return;
         }
 
-        String serviceAccessPoint = args[2];
+        String serviceAccessPoint = args[1];
 
         Peer peer = new Peer(
-                args[0],
-                Integer.parseInt(args[1]),
-                new InetSocketAddress(InetAddress.getByName(args[3]), Integer.parseInt(args[4])),
-                new InetSocketAddress(InetAddress.getByName(args[5]), Integer.parseInt(args[6])),
-                new InetSocketAddress(InetAddress.getByName(args[7]), Integer.parseInt(args[8]))
+            Long.parseLong(args[0]),
+            new InetSocketAddress(args[2], Integer.parseInt(args[3]))
         );
 
         peer.bindAsRemoteObject(serviceAccessPoint);

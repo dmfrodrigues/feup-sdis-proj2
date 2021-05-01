@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 
 public class UpdateFingersProtocol extends ProtocolSupplier<Void> {
 
-    private Chord chord;
+    private final Chord chord;
 
     public UpdateFingersProtocol(Chord chord){
         this.chord = chord;

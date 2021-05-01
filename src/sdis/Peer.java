@@ -27,9 +27,10 @@ public class Peer implements PeerInterface {
      */
     private static final int INITIAL_STORAGE_SIZE = 1000000000;
 
-    private final int id;
+    private final long id;
 
     private final InetSocketAddress address;
+    private final ServerSocket serverSocket;
 
     private final FileTable fileTable;
     private final ChunkStorageManager storageManager;
@@ -37,18 +38,21 @@ public class Peer implements PeerInterface {
     private final Random random = new Random(System.currentTimeMillis());
 
     private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(100);
-    private Chord chord;
+    private final Chord chord;
 
     public Peer(
-            String version,
-            int id,
-            InetSocketAddress address
+        long id,
+        InetSocketAddress address
     ) throws IOException {
         // Store arguments
         this.id = id;
-        System.out.println("Starting peer " + this.id + ", version " + version);
-
         this.address = address;
+        System.out.println(
+            "Starting peer " + this.id +
+            " with address " + this.address.getAddress().getHostAddress() + ":" + this.address.getPort()
+        );
+
+        serverSocket = new ServerSocket(address.getPort());
 
         // Initialize storage space
         String storagePath = id + "/storage/chunks";
@@ -100,7 +104,7 @@ public class Peer implements PeerInterface {
         return executor;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 

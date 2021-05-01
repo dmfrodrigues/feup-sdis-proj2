@@ -1,19 +1,17 @@
 package sdis.Protocols.Chord;
 
 import sdis.Chord;
-import sdis.Peer;
 import sdis.PeerInfo;
 import sdis.Protocols.ProtocolSupplier;
 import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketAddress;
 
 public class GetSuccessorProtocol extends ProtocolSupplier<PeerInfo> {
 
-    private Chord chord;
-    private long key;
+    private final Chord chord;
+    private final long key;
 
     public GetSuccessorProtocol(Chord chord, long key){
         this.chord = chord;

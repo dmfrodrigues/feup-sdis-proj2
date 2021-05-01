@@ -9,7 +9,7 @@ import java.net.Socket;
 
 public class UpdatePredecessorProtocol extends ProtocolSupplier<Void> {
 
-    private Chord chord;
+    private final Chord chord;
 
     public UpdatePredecessorProtocol(Chord chord){
         this.chord = chord;

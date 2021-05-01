@@ -10,10 +10,10 @@ import java.util.concurrent.ScheduledExecutorService;
 public class Chord {
     private static final ScheduledExecutorService executor = Peer.getExecutor();
 
-    private Peer peer;
+    private final Peer peer;
     private final int m;
     private final long key;
-    private final PeerInfo fingers[];
+    private final PeerInfo[] fingers;
     private PeerInfo predecessor;
 
     public Chord(Peer peer, int m, long key){
@@ -35,7 +35,7 @@ public class Chord {
         return fingers[i];
     }
 
-    void setFinger(int i, PeerInfo peer){
+    public void setFinger(int i, PeerInfo peer){
         fingers[i] = peer;
     }
 
@@ -43,7 +43,7 @@ public class Chord {
         return predecessor;
     }
 
-    void setPredecessor(PeerInfo peer){
+    public void setPredecessor(PeerInfo peer){
         predecessor = peer;
     }
 
