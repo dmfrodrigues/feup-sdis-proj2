@@ -51,18 +51,18 @@ to which $s$ answers in format `<Key> <IP>:<Port>`, containing the key and socke
 
 ## UpdatePredecessor protocol
 
-- **Arguments:** -
+- **Arguments:** key, node socket
 - **Returns:** -
 
-While $r$ is joining the system, the only node that needs to update its predecessor is the successor of the joining node $r$. After building its fingers table, $r$ sends an
+Every node $r$ with a fingers table can run the UpdatePredecessor protocol. It sends a
 
 ```
 UPDATEPREDECESSOR <SenderId> <IP>:<Port>
 ```
 
-message to its successor, containing $r$ and its socket address, and the node receiving this message has to update its predecessor to correspond to $r$.
+message to the current node's successor, containing a key and socket address, and the node receiving this message has to update its predecessor to correspond to the received key and socket address.
 
-## UpdateFingers protocol
+## FingersAdd protocol
 
 - **Arguments:** -
 - **Returns:** -
@@ -70,7 +70,22 @@ message to its successor, containing $r$ and its socket address, and the node re
 The joining node $r$ must deduce which nodes need to update their fingers tables. To do that, it will find each predecessor of $r - 2^i$ for $0 ≤ i < m$, and send to each of those nodes a message with format
 
 ```
-UPDATEFINGER <key> <IP>:<port> <fingerIdx>
+FINGERADD <key> <IP>:<port> <fingerIdx>
 ```
 
-which instructs the node $s$ that receives this message to check if $r$ is the new $i$-finger of $s$. The node $s$ checks if $r$ is its new $i$-finger by testing if $distance(s, r) < distance(s, s.finger[i]$; if it's false, just ignore; if it's true, it updates $s.finger[i]$ and all indices before $i$ if necessary, and forwards the `UPDATEFINGER` message to its predecessor without changing it.
+which instructs the node $s$ that receives this message to check if $r$ is the new $i$-finger of $s$. The node $s$ checks if $r$ is its new $i$-finger by testing if $distance(s, r) < distance(s, s.finger[i]$; if it's false, just ignore; if it's true, it updates $s.finger[i]$ and all indices before $i$ if necessary, and forwards the `FINGERADD` message to its predecessor without changing it.
+
+## FingersRemove protocol
+
+- **Arguments:** -
+- **Returns:** -
+
+The leaving node $r$ must deduce which nodes need to update their fingers tables. To do that, it will find each predecessor of $r - 2^i$ for $0 ≤ i < m$, and send to each of those nodes a message with format
+
+```
+FINGERREMOVE <oldKey> <oldIP>:<oldPort> <newKey> <newIP>:<newPort> <fingerIdx>
+```
+
+where `<oldKey>` and `<oldIP>:<oldPort>` are the key and socket address of $r$, `<oldKey>` and `<oldIP>:<oldPort>` are the key and socket address of the successor of $r$ which is $r'$, and `<fingerIdx>` is $i$.
+
+This message instructs the node $s$ that receives this message to check if $r$ is the old $i$-finger of $s$. The node $s$ checks if $r$ is its old $i$-finger by testing if $s.finger[i] = r$; if it's false, just ignore; if it's true, it updates $s.finger[i]$ and all indices before $i$ if necessary to becode $r'$, and forwards the `FINGERREMOVE` message to its predecessor without changing it.

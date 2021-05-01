@@ -3,7 +3,7 @@ package sdis.Protocols.Chord;
 import sdis.Chord;
 import sdis.PeerInfo;
 import sdis.Protocols.Chord.Messages.GetPredecessorMessage;
-import sdis.Protocols.Chord.Messages.UpdateFingerMessage;
+import sdis.Protocols.Chord.Messages.FingerAddMessage;
 import sdis.Protocols.ProtocolSupplier;
 
 import java.io.IOException;
@@ -12,11 +12,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
-public class UpdateFingersProtocol extends ProtocolSupplier<Void> {
+public class FingersAddProtocol extends ProtocolSupplier<Void> {
 
     private final Chord chord;
 
-    public UpdateFingersProtocol(Chord chord){
+    public FingersAddProtocol(Chord chord){
         this.chord = chord;
     }
 
@@ -42,7 +42,7 @@ public class UpdateFingersProtocol extends ProtocolSupplier<Void> {
             })
             .thenApplyAsync(predecessor -> {
                 try {
-                    Socket socket = chord.send(predecessor, new UpdateFingerMessage(chord.getPeerInfo(), finalK));
+                    Socket socket = chord.send(predecessor, new FingerAddMessage(chord.getPeerInfo(), finalK));
                     socket.shutdownOutput();
                     byte[] response = socket.getInputStream().readAllBytes();
                     return new PeerInfo(response);

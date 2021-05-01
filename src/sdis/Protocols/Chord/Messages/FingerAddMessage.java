@@ -8,17 +8,17 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class UpdateFingerMessage extends ChordMessage {
+public class FingerAddMessage extends ChordMessage {
 
     private final PeerInfo peerInfo;
     private final int fingerIndex;
 
-    public UpdateFingerMessage(PeerInfo peerInfo, int fingerIdx){
+    public FingerAddMessage(PeerInfo peerInfo, int fingerIdx){
         this.peerInfo = peerInfo;
         this.fingerIndex = fingerIdx;
     }
 
-    public UpdateFingerMessage(byte[] data){
+    public FingerAddMessage(byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         String[] splitAddress = splitString[2].split(":");
@@ -36,13 +36,13 @@ public class UpdateFingerMessage extends ChordMessage {
 
     @Override
     public String toString() {
-        return "UPDATEFINGER " + peerInfo + " " + getFingerIndex();
+        return "FINGERADD " + peerInfo + " " + getFingerIndex();
     }
 
     private static class UpdateFingerProcessor extends ChordMessage.Processor {
-        UpdateFingerMessage message;
+        FingerAddMessage message;
 
-        public UpdateFingerProcessor(Chord chord, Socket socket, UpdateFingerMessage message){
+        public UpdateFingerProcessor(Chord chord, Socket socket, FingerAddMessage message){
             super(chord, socket);
             this.message = message;
         }
