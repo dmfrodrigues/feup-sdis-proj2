@@ -21,7 +21,7 @@ public class UpdatePredecessorMessage extends ChordMessage {
 
     @Override
     public String toString() {
-        return "UPPREDECESSOR " + getPredecessor();
+        return "UPDATEPREDECESSOR " + getPredecessor();
     }
 
     private static class UpdatePredecessorProcessor extends ChordMessage.Processor {

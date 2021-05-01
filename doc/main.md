@@ -1,6 +1,8 @@
-## Main module
+# Main module
 
-### Authentication protocol
+A chunk with a certain ID $i$ and replication degree $D$ is replicated $D$ times; each replication of that chunk is called a *replica*.
+
+## Authentication protocol
 
 The system allows an account-based interaction, where each user has a username and a password.
 
@@ -24,7 +26,7 @@ When starting a peer, you must either register or login. Upon registering, you m
 
 One can also delete an account, by entering the right credentials; all files for that user are deleted from the system.
 
-### Backup protocol
+## Backup protocol
 
 Divides a file into several chunks, calculates each chunk replica's UUID using the chunk ID and the replication index $d \in [0, D)$, and runs the PutChunk protocol for each replica.
 
@@ -34,14 +36,14 @@ This table is created when the peer joins the chord, and updated by other peers 
 
 The peer responsible for a key is its *successor*, where $successor(i)$ is the successor of peer $i$.
 
-### DeleteFile protocol
+## DeleteFile protocol
 
 By knowing the file ID, the number of chunks and the replication degree of the file, the initiator peer can calculate all UUIDs of the replicas of all chunks; it executes the Delete protocol for each of those replicas.
 
-### Restore protocol
+## Restore protocol
 
 To locate a chunk with ID $i$, we use the user metadata, and iterate over the list of peers that have reported to be replicating that chunk, until we find one that is online. If no replica is found, the protocol aborts.
 
-### Reclaim protocol
+## Reclaim protocol
 
 TODO

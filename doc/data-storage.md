@@ -1,129 +1,92 @@
-## Data storage module
+# Data storage module
 
-### Join protocol
+## Put protocol
 
-- **Arguments:** current peer, another peer
+- **Arguments:** a node key, datafile key, data
 - **Returns:** -
 
-The Join protocol allows a fresh peer to join the system.
+When the Put protocol is called without a node key, it defaults to the own node's key (because this node key corresponds to the original caller of the Put protocol; if the request wraps around the whole system and comes back to the node that initially called the Put protocol, the node must signal the error); when the Put protocol is called, said node has to save the datapiece using the specified key, using its successors if necessary.
 
-On joining, the fresh peer must perform three steps:
+Upon starting this protocol, a node $r$ should perform the following actions:
 
-1. Initialize fingers table and predecessor
-2. Update the predecessors and fingers tables of other peers
-3. Transfer objects from its successor to itself
-
-The fresh peer needs to know at least one other peer's IP address that is already in the chord; we will call it the gateway peer, as it is the fresh peer's gateway into the chord while the fresh peer knows nothing about that.
-
-#### Initialize fingers table and predecessor
-
-To initialize its fingers table, the fresh peer asynchronously makes the required queries to the gateway peer.
-
-To find its predecessor, it must run its Locate protocol for IDs that are more and more farther away before the fresh peer; i.e., it must run
-
-```java
-for(int i = 0; i <= m && p.id != id; ++i){
-  int s = (r - 2^i) % (2^m);
-  p = chord(s);
-}
+1. If $r$ has not stored that datapiece and does not have space for another piece:
+     1. It registers locally that the datapiece is being stored in its successor.
+     2. It sends to its successor $s = successor(r)$ a message with format
 ```
+PUT <NodeKey> <DataKey><LF><Body>
+```
+where NodeKey is the node key the protocol was called with
+     4. If $s$'s answer fails, $r$ removes its local registry saying that the datapiece was stored in its successor.
+     5. $r$ returns according to the answer it got from $s$.
+2. If $r$ has already stored that datapiece:
+     1. It returns with success.
+3. If $r$ has not stored that chunk but has a pointer to its successor reporting that it might have stored:
+     1. If it has space for that chunk:
+       1. It stores the chunk locally.
+       2. It asynchronously sends to its successor $s = successor(r)$ a `DELETE` message to delete that chunk.
+       3. It returns successfully
+     2. If it does not have space for that chunk:
+       4. It redirects the message to its successor $s = successor(r)$.
+       5. It replies to the original message with whatever $s$ replied.
+4. If $r$ has not yet stored that chunk and has available space:
+     1. It stores that chunk;
+     2. It returns with success.
 
-The fresh peer can asynchronously make all `LOCATE` requests to the gateway peer, but that yields $O(m \log N)$ time complexity, while Stoica et al. (2001) states that, if requests are made sequentially, some trivial tests can be made to skip asking about some fingers.
+Upon receiving a `PUT` message, the node first checks if the node key is the same as itself, in which case it responds with failure; otherwise, the node should start the Put protocol locally using the node key it got from the `PUT` message (not its own key), and answer the `PUT` message according to what the Put protocol returns.
 
-TODO | what's better: full asynchronous, or sequential questioning and tests, with less network usage but probably slower?
+## Delete protocol
 
-### MoveKeys protocol
-
-- **Arguments:** current peer
+- **Arguments:** UUID
 - **Returns:** -
 
-To move the keys to the fresh peer, it sends a message to its successor (which has keys that the fresh peer must now store itself instead of its successor), with format
+When the Delete protocol is called for a certain node, said node assumes it has that datapiece, and tries to delete it.
 
+Upon starting this protocol, a node $r$ should perform the following actions:
+
+1. If $r$ has not stored that datapiece and has no pointer saying its successor stored it,
+     1. It replies with an error
+2. If $r$ has stored that datapiece:
+     1. It deletes the datapiece.
+     2. It replies with success.
+3. If $r$ has not stored that datapiece but has a pointer to its successor reporting that it might have stored:
+     1. It sends to its successor $s = successor(r)$ a message with format
 ```
-MOVEKEYS <SenderId> <IP>:<Port><CRLF>
+DELETE <Key>
 ```
+with the key of the file it intends to delete.
 
-This message indicates that there is a new peer in the system, and as such the peer that receives this message must do the following for each chunk it is storing with ID less than or equal to `<SenderId>`:
+     1. It replies to the original message according to what $s$ replied.
+1. If $r$ has not stored that datapiece:
+     1. It replies with success.
 
-1. Load the chunk from secondary memory.
-2. Start the `Delete` protocol for that chunk, directed at itself.
-3. Start the `Put` protocol for that chunk, directed at the peer that sent the `MVKEYS` message, with that same chunk.
+Upon receiving a `DELETE` message with a certain key, a node starts the Delete protocol for itself in order to delete the datapiece with the mentioned key.
 
-### Put protocol
+TODO:
 
-- **Arguments:** current peer, UUID, data
-- **Returns:** -
+We also have to take into account the scenario where a node is down; say a node is down and it was storing a certain replica, and afterwards it is requested for that chunk to be deleted:
 
-```
-PUT <SenderId> <UUID><LF><Body>
-```
+- If the node ran the chord leaving protocol, then on shutdown it contains no replicas at all, and all the replicas it had were transferred to another node; in this case we do not have to worry, as all replicas of a chunk are active in the system at all times, and upon running the Delete protocol it is guaranteed that all replicas will be deleted.
+- If the node did not run the chord leaving protocol, then the node that failed to contact another node and ask it to be deleted must remember that, so that it can retry to delete when the node rejoins the system.
 
-Instructs a peer receiving it that it should store a chunk with a certain UUID, using its successors if necessary. Upon receiving this message, it should respond with a single integer: 0 if it was successful, another number otherwise (with 1 referring to a generic error).
+## Get protocol
 
-If a peer receives this message with its ID in the `<PeerId>` field, it fails.
-
-Upon receiving this message, a peer $p$ should perform the following actions:
-
-1. If $p$ has not stored that chunk and does not have space for another chunk:
-   1. It registers locally that the chunk is being stored in its successor.
-   2. It redirects the message to its successor $q = successor(p)$.
-   3. If $q$'s answer fails, $p$ removes its local registry saying that the chunk was stored in its successor.
-   4. $p$ answers the original message with the exact content of the response it got from $q$.
-2. If $p$ has already stored that chunk:
-   1. It succeeds.
-3. If $p$ has not stored that chunk but has a pointer to its successor reporting that it might have stored:
-   1. If it has space for that chunk:
-      1. It stores the chunk locally.
-      2. It asynchronously sends to its successor $q = successor(p)$ a `DELETE` message to delete that chunk.
-      3. It replies successfully
-   2. If it does not have space for that chunk:
-      1. It redirects the message to its successor $q = successor(p)$.
-      2. It replies to the original message with whatever $q$ replied.
-4. If $p$ has not yet stored that chunk and has available space:
-   1. It stores that chunk;
-   2. It succeeds.
-
-### Delete protocol
-
-- **Arguments:** current peer
-- **Returns:** -
-
-We locate all replicas of chunks of said file, and start the DeleteData protocol for those replicas.
-
-We also have to take into account the scenario where a peer is down; say a peer is shutdown and it was storing a certain replica, and afterwards it is requested for that chunk to be deleted:
-- If the peer ran the chord leaving protocol, then on shutdown it contains no replicas at all, and all the replicas it had were transferred to another peer; in this case we do not have to worry, as all replicas of a chunk are active in the system at all times, and upon sending a DELETE message it is guaranteed that all replicas will be deleted.
-- If the peer did not run the chord leaving protocol, then the user metadata file must place that file in a special **trash** category, listing all replicas that have not yet been deleted.
-
-### Hello protocol
-
-- **Arguments:** current peer, successor
-- **Returns:** -
-
-The Hello protocol allows a peer to notify all nodes in the network that it just joined the network. This is particularly useful if said node exited the chord without notifying other peers and without moving its keys to its predecessor; the network can still answer queries because several replicas are probably stored in different peers (they might also end up in the same peer that is shutdown, although it is highly unlikely), but when the shutdown peer comes back online it might have issues with not having deleted files that were deleted while it was offline.
-
-When called, the HELLO protocol creates a HELLO message with format
-
-```
-HELLO <SenderId>
-```
-
-and sends it to the current node's successor, and closes the socket.
-
-When a peer receives a HELLO message it should:
-- Close the incoming socket
-- Open a new socket to its successor
-- Forward the message to its successor
-- Close the socket to the successor.
-
-When a peer receives a HELLO message with its own `<SenderId>` it ignores the message.
-
-### Get protocol
-
-- **Arguments:** current peer, UUID
+- **Arguments:** UUID
 - **Returns:** data
 
-The Get protocol allows a peer to get 
+The Get protocol allows a peer to get a certain datapiece by its key, assuming it has the datapiece or that one of its successors has it.
 
-### Leave protocol
+Upon calling the Get protocol locally, node $r$ does the following:
 
-TODO
+1. If it has stored the datapiece
+     1. It returns the datapiece
+2. If it has not stored the datapiece but knows its successor has
+     1. It sends a message to its successor $s = successor(r)$ with format
+```
+GET <UUID>
+```
+
+     2. It returns according to the response from $s$.
+3. If it has not stored the datapiece nor points to its successor for further information
+     1. It fails
+
+Upon receiving a `GET` message, a peer starts the Get protocol locally, and responds to the message according to whatever the Get protocol returns.
