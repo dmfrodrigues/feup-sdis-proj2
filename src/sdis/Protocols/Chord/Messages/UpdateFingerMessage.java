@@ -1,4 +1,4 @@
-package sdis.Protocols.Chord;
+package sdis.Protocols.Chord.Messages;
 
 import sdis.Chord;
 import sdis.PeerInfo;

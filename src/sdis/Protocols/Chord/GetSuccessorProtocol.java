@@ -2,6 +2,7 @@ package sdis.Protocols.Chord;
 
 import sdis.Chord;
 import sdis.PeerInfo;
+import sdis.Protocols.Chord.Messages.GetSuccessorMessage;
 import sdis.Protocols.ProtocolSupplier;
 import sdis.Utils.Utils;
 

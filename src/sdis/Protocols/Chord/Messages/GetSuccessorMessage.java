@@ -1,7 +1,8 @@
-package sdis.Protocols.Chord;
+package sdis.Protocols.Chord.Messages;
 
 import sdis.Chord;
 import sdis.PeerInfo;
+import sdis.Protocols.Chord.GetSuccessorProtocol;
 
 import java.io.IOException;
 import java.net.Socket;

@@ -2,6 +2,7 @@ package sdis.Protocols.Chord;
 
 import sdis.Chord;
 import sdis.PeerInfo;
+import sdis.Protocols.Chord.Messages.UpdatePredecessorMessage;
 import sdis.Protocols.ProtocolSupplier;
 
 import java.io.IOException;

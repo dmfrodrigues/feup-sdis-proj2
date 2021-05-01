@@ -1,6 +1,6 @@
 package sdis;
 
-import sdis.Protocols.Chord.ChordMessage;
+import sdis.Protocols.Chord.Messages.ChordMessage;
 
 import java.io.IOException;
 import java.io.OutputStream;

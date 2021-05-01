@@ -19,7 +19,7 @@ output: pdf_document
 <!--
 To compile the report, run:
 
-pandoc report-config.md report.md -o report.pdf
+pandoc report-config.md report.md chord.md data-storage.md main.md -o report.pdf
 -->
 
 \newpage
