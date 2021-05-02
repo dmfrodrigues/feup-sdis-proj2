@@ -1,4 +1,4 @@
-package sdis.Callables;
+package sdis.Protocols;
 
 /**
  * Protocol runnable.

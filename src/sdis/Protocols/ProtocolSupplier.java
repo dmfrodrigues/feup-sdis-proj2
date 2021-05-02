@@ -1,4 +1,4 @@
-package sdis.Callables;
+package sdis.Protocols;
 
 import java.util.function.Supplier;
 

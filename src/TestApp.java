@@ -32,10 +32,6 @@ public class TestApp {
                 case "RECLAIM":
                     stub.reclaim(max_size);
                     break;
-                case "STATE":
-                    String response = stub.state();
-                    System.out.println(response);
-                    break;
                 default:
                     break;
             }

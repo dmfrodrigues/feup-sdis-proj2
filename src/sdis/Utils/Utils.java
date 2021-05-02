@@ -33,4 +33,8 @@ public class Utils {
         }
         return hexString.toString();
     }
+
+    public static int log2(long n) {
+        return 63 - Long.numberOfLeadingZeros(n);
+    }
 }

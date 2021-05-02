@@ -1,18 +1,19 @@
-package sdis.Callables;
+package sdis.Protocols.Main;
 
 import sdis.Messages.DeleteMessage;
 import sdis.Peer;
+import sdis.Protocols.ProtocolRunnable;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class DeleteFileRunnable extends ProtocolRunnable {
+public class DeleteFileProtocol extends ProtocolRunnable {
 
     private final Peer peer;
     private final String pathname;
 
-    public DeleteFileRunnable(Peer peer, String pathname){
+    public DeleteFileProtocol(Peer peer, String pathname){
         this.peer = peer;
         this.pathname = pathname;
     }

@@ -1,18 +1,19 @@
-package sdis.Callables;
+package sdis.Protocols.DataStorage;
 
 import sdis.Messages.RemovedMessage;
 import sdis.Peer;
+import sdis.Protocols.ProtocolRunnable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class ReclaimRunnable extends ProtocolRunnable {
+public class ReclaimProtocol extends ProtocolRunnable {
 
     private final Peer peer;
     private final int space_kb;
 
-    public ReclaimRunnable(Peer peer, int space_kb) {
+    public ReclaimProtocol(Peer peer, int space_kb) {
         this.peer = peer;
         this.space_kb = space_kb;
     }
