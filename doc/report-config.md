@@ -1,7 +1,5 @@
 ---
-documentclass: report
-geometry: margin=2.0cm
-fontsize: 11pt
+documentclass: sdisreport
 
 title: |
     Distributed Backup Service for Internet\
@@ -21,9 +19,10 @@ authorshort: Class 7, group 21
 
 date: 21st of May, 2021
 
-header-includes: |
-    \usepackage{newunicodechar}
-    \newunicodechar{≤}{\ensuremath{\leq}}
+header-includes:
+    - \usepackage{newunicodechar}
+    - \newunicodechar{≤}{\ensuremath{\leq}}
+    - \usepackage{multicol}
 
 toc: 1
 csl: apa.csl
