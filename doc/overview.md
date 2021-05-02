@@ -31,6 +31,7 @@ The operation is optional (running the command does nothing, except if the accou
     \texttt{RESTORE <Origin> <Destination>                } \\ Restore remote file \texttt{<Origin>} and store it locally to path \texttt{<Destination>}                    \\ \hline
     \texttt{DELETE <Origin>                               } \\ Delete remote file \texttt{<Origin>}                                                                         \\ \hline
     \texttt{DELETEACCOUNT                                 } \\ Delete account                                                                                               \\ \hline
+    \texttt{LEAVE                                         } \\ Causes peer to leave the system in an orderly fashion; the peer process is ended as well                     \\ \hline
 \end{tabular}
 
 This means a local file can be remotely stored under any name the user wishes, allowing for great flexibility.

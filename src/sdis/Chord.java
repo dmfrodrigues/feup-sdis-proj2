@@ -55,10 +55,6 @@ public class Chord {
         return m;
     }
 
-    public PeerInfo asPeerInfo() {
-        return new PeerInfo(getKey(), peer.getSocketAddress());
-    }
-
     public Socket send(PeerInfo to, ChordMessage m) throws IOException {
         Socket socket = new Socket(to.address.getAddress(), to.address.getPort());
         OutputStream os = socket.getOutputStream();
@@ -69,5 +65,10 @@ public class Chord {
 
     public PeerInfo getPeerInfo() {
         return new PeerInfo(key, peer.getSocketAddress());
+    }
+
+    public long distance(long a, long b) {
+        long MOD = 1L << getKeySize();
+        return (b - a + MOD) % MOD;
     }
 }

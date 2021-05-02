@@ -22,4 +22,8 @@ public class PeerInfo {
     public String toString() {
         return key + " " + address.getAddress().getHostAddress() + ":" + address.getPort();
     }
+
+    public boolean equals(PeerInfo obj){
+        return (key == obj.key && address.equals(obj.address));
+    }
 }

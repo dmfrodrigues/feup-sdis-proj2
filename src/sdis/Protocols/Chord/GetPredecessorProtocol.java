@@ -2,6 +2,7 @@ package sdis.Protocols.Chord;
 
 import sdis.Chord;
 import sdis.PeerInfo;
+import sdis.Protocols.Chord.Messages.GetPredecessorMessage;
 import sdis.Protocols.Chord.Messages.GetSuccessorMessage;
 import sdis.Protocols.ProtocolSupplier;
 import sdis.Utils.Utils;
@@ -9,28 +10,23 @@ import sdis.Utils.Utils;
 import java.io.IOException;
 import java.net.Socket;
 
-public class GetSuccessorProtocol extends ProtocolSupplier<PeerInfo> {
+public class GetPredecessorProtocol extends ProtocolSupplier<PeerInfo> {
 
     private final Chord chord;
     private final long key;
 
-    public GetSuccessorProtocol(Chord chord, long key){
+    public GetPredecessorProtocol(Chord chord, long key){
         this.chord = chord;
         this.key = key;
     }
 
     @Override
     public PeerInfo get() {
-        if(chord.getPredecessor().key < key && key <= chord.getKey())
-            return chord.getPeerInfo();
-
-        long MOD = 1L << chord.getKeySize();
-        long d = chord.distance(chord.getKey(), key);
-        int i = Utils.log2(d);
-        PeerInfo r_ = chord.getFinger(i);
+        GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(chord, key);
+        PeerInfo s = getSuccessorProtocol.get();
 
         try {
-            Socket socket = chord.send(r_, new GetSuccessorMessage(key));
+            Socket socket = chord.send(s, new GetPredecessorMessage());
             socket.shutdownOutput();
 
             byte[] response = socket.getInputStream().readAllBytes();

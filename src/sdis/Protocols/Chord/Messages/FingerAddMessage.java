@@ -39,10 +39,10 @@ public class FingerAddMessage extends ChordMessage {
         return "FINGERADD " + peerInfo + " " + getFingerIndex();
     }
 
-    private static class UpdateFingerProcessor extends ChordMessage.Processor {
+    private static class FingerAddProcessor extends ChordMessage.Processor {
         FingerAddMessage message;
 
-        public UpdateFingerProcessor(Chord chord, Socket socket, FingerAddMessage message){
+        public FingerAddProcessor(Chord chord, Socket socket, FingerAddMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -50,16 +50,17 @@ public class FingerAddMessage extends ChordMessage {
         @Override
         public Void get() {
             try {
-                PeerInfo peerInfo = message.getPeerInfo();
+                PeerInfo s = getChord().getPeerInfo();
+                PeerInfo r = message.getPeerInfo();
                 // Update fingers if necessary
-                int k = message.getFingerIndex();
+                int i = message.getFingerIndex();
                 boolean updatedFingers = false;
                 while(
-                    k >= 0 &&
-                    getChord().getKey() < peerInfo.key && peerInfo.key < getChord().getFinger(k).key
+                    i >= 0 &&
+                    getChord().distance(s.key, r.key) < getChord().distance(s.key, getChord().getFinger(i).key)
                 ){
                     updatedFingers = true;
-                    getChord().setFinger(k--, peerInfo);
+                    getChord().setFinger(i--, r);
                 }
                 // If at least one finger was updated, redirect to predecessor
                 if(updatedFingers){
@@ -74,7 +75,7 @@ public class FingerAddMessage extends ChordMessage {
     }
 
     @Override
-    public UpdateFingerProcessor getProcessor(Chord chord, Socket socket) {
-        return new UpdateFingerProcessor(chord, socket, this);
+    public FingerAddProcessor getProcessor(Chord chord, Socket socket) {
+        return new FingerAddProcessor(chord, socket, this);
     }
 }

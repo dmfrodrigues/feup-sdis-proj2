@@ -84,6 +84,6 @@ The leaving node $r$ must deduce which nodes need to update their fingers tables
 FINGERREMOVE <oldKey> <oldIP>:<oldPort> <newKey> <newIP>:<newPort> <fingerIdx>
 ```
 
-where `<oldKey>` and `<oldIP>:<oldPort>` are the key and socket address of $r$, `<oldKey>` and `<oldIP>:<oldPort>` are the key and socket address of the successor of $r$ which is $r'$, and `<fingerIdx>` is $i$.
+where `<oldKey>` and `<oldIP>:<oldPort>` are the key and socket address of $r$, `<newKey>` and `<newIP>:<newPort>` are the key and socket address of the successor of $r$ which is $r'$, and `<fingerIdx>` is $i$.
 
-This message instructs the node $s$ that receives this message to check if $r$ is the old $i$-finger of $s$. The node $s$ checks if $r$ is its old $i$-finger by testing if $s.finger[i] = r$; if it's false, just ignore; if it's true, it updates $s.finger[i]$ and all indices before $i$ if necessary to becode $r'$, and forwards the `FINGERREMOVE` message to its predecessor without changing it.
+This message instructs the node $s$ that receives this message to check if $r$ is the old $i$-finger of $s$. The node $s$ checks if $r$ is its old $i$-finger by testing if $s.finger[i] = r$; if it's false, just ignore; if it's true, it updates $s.finger[i]$ and all indices before $i$ if necessary to become $r'$, and forwards the `FINGERREMOVE` message to its predecessor without changing it.
