@@ -23,12 +23,15 @@ The peer is allowed to directly use the following protocols:
 
 ## Definitions
 
-The *successor* of a key $k$ ($successor(k)$) is the peer with the least key that is larger than or equal to $k$.
+Each chunk/datapiece has a key, which is a binary unsigned number with $m$ bits. This means there are $2^m$ different keys, from $0$ to $2^m-1$ inclusive. Let $M = 2^m$ be the modulus we are operating with.
 
-The *predecessor* of a key $k$ ($predecessor(k)$) is the peer with the greatest key that is smaller than $k$.
+The key space can be imagined as a circle of perimeter $M$, where 0 is in the intersection between the circle and the $yy$-positive axis, and keys increase in clockwise direction. Given a key $k$, we can thus say $k \equiv k + i \cdot M, \forall i \in \mathbb{Z}$).
+
+The *distance* between nodes $a$ and $b$ is defined as the number of increments to $a$ that we need to arrive to $b$ in the modulus-$M$ space. That is, $distance(a, b) = (b-a+M) \mod M$. This distance can be interpreted as the distance from $a$ to $b$ in clockwise direction.
+
+The *successor* of a key $k$ ($successor(k)$) is the next node after or at $k$; technically, $s = successor(k)$ is the node that minimizes $distance(k, s)$.
+
+The *predecessor* of a key $k$ ($predecessor(k)$) is the previous node relative to $k$; technically, $p = precedessor(k)$ is the node that minimizes $distance(p, k)$.
 
 A node $r$ is responsible for all keys for which their successor is $r$.
 
-Let the key be a binary unsigned number with $m$ bits. This means there are $2^m$ different keys, from $0$ to $2^M-1$ inclusive. Let $M = 2^m$ be the modulus we are operating with (i.e., given a key $k$, because we are working with a circumference with perimeter $M$ we can say $k \equiv k + i \cdot M, \forall i \in \mathbb{Z}$).
-
-The *distance* between nodes $a$ and $b$ is defined as the number of increments to $a$ that we need to arrive to $b$ in the modulus-$M$ space. That is, $distance(a, b) = (b-a+M) \mod M$.
