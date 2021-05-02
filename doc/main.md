@@ -1,6 +1,12 @@
 ## Main module
 
-A chunk with a certain ID $i$ and replication degree $D$ is replicated $D$ times; each replication of that chunk is called a *replica*. A replica in the main module always corresponds to a datapiece in lower-level protocols.
+Each file has a replication degree $D$. A file has an ID $f$ calculated from its file contents and with the "f/" prefix ($f = concatenate("f/", h(filecontents))$, where hashing function $h$ needs not be the same as in lower-level protocols).
+
+The ID of the $n$-th chunk of a file with ID $f$ is $c = concatenate(f, "-", n)$.
+
+Each replication of a chunk with ID $c$ is called a *replica*, and each replica is numbered with a replication index $d$ ($0 ≤ d < D$); a replica has ID $r = concatenate(c, "-", d)$.
+
+A replica in the main module always corresponds to a datapiece in lower-level protocols, and the key $k$ corresponding to a certain replica ID $r$ is $k = h(r)$.
 
 This module allows the main operations a peer needs to perform:
 
@@ -9,46 +15,119 @@ This module allows the main operations a peer needs to perform:
 - Delete a file (including all replicas of each chunk)
 - Restore a file
 
-TODO: review whole file, expected to require significant changes
-
 ### Authentication protocol
+
+- **Arguments:** username, password
+- **Returns:** -
 
 The system allows an account-based interaction, where each user has a username and a password.
 
-For each user with username $u$, the system stores a file with ID $"user/".u$ with all the metadata about that user:
+For each user with username $u$, the system stores a file with ID $concatenate("u/", u)$ with all the metadata about that user:
+
 - Username
-- Password
+- Password (hashed with some hash function)
 - A table with the complete list of all files backed-up by that user (the ID of that table is the file path), having for each file its:
   - Path
-  - ID (determined from the hash of whole file contents)
+  - ID
+  - Number of chunks
   - Replication degree
-  - List of chunks, for each chunk having its:
-    - Chunk number
-    - List of peers that have reported to be replicating that chunk
-- A table with the list of all files that were requested to be deleted, but the system perceived it could not delete all replicas of chunks of that file, because at least one node was offline; each entry has:
-  - The ID of the infringing peer
-  - The list of chunks it has not yet deleted
 
-This allows all system data to be fully distributed. This file is stored at $successor(h(u))$ with a replication degree of 10.
+This allows all system data to be fully distributed. This file is stored, loaded, edited and deleted using the BackupFile, DeleteFile and RestoreFile protocols with a replication degree of 10; this means the user metadata file also benefits from redundancy and does not need to use lower-level protocols, including having to calculate the key from its ID. Ideally, this information would be stored in a distributed database, but to limit complexity we decided to use the same file backup system to store user metadata.
 
-When starting a peer, you must either register or login. Upon registering, you must pick a unique username. Upon login, the password will be checked, and the fresh peer will only start successfully if the peer that has the user information confirms the password is valid, and sends the user metadata file to the fresh peer.
+Both when registering or logging-in, the peer calls the same Authenticate protocol, where the new peer sends to a known peer that is part of the system (the gateway peer) a message with format
 
-One can also delete an account, by entering the right credentials; all files for that user are deleted from the system.
+```
+AUTHENTICATE <Username> <Password>
+```
+
+where `<Password>` is in plaintext.
+
+Upon receiving this message, a peer calls the RestoreFile protocol for the corresponding user's metadata file:
+
+1. If the RestoreFile protocol fails
+   1. A new user metadata file is created for that user
+   2. The peer responds in format `CREATED<LF><Body>` where `<Body>` contains the user metadata file's contents
+2. If the RestoreFile protocol succeeds
+   1. If the stored hashed password is equal to the hash of the password in the `AUTHENTICATE` message
+      1. The peer responds in format `OK<LF><Body>` where `<Body>` contains the user metadata file's contents
+   2. If the stored hashed password is different from the hash of the password in the `AUTHENTICATE` message
+      1. The peer responds with `UNAUTHORIZED`
 
 ### BackupFile protocol
 
-Divides a file into several chunks, calculates each chunk replica's UUID using the chunk ID and the replication index $d \in [0, D)$, and runs the PutChunk protocol for each replica.
+- **Arguments:** file path
+- **Returns:** -
 
-We will use the chord protocol, where the network is represented as a circle, in which a consistent hash with $m$ bits is used, and a peer at position $r$ knows its predecessor, and contains a *fingers table* of indices $m$ where for each $0 ≤ k < m$ it knows the successor of $r+2^k$ (including its own next peer, which is in table index $k=0$).
+If a file with the same user and path is already being stored in the system, it is deleted using the DeleteFile protocol.
 
-This table is created when the peer joins the chord, and updated by other peers when another peer joins or leaves the chord.
+The peer first notifies the node that is storing the user metadata file to add said filename to the user metadata, using the message
 
-The peer responsible for a key is its *successor*, where $successor(i)$ is the successor of peer $i$.
+```
+ENLISTFILE <Username> <FilePath> <FileID> <NumChunks> <ReplicationDeg>
+```
+
+to tell said node to add it to the list of files the user backed-up.
+
+Then the BackupFile protocol divides the file into several chunks, each with at most 64KB (64000B), calculates each chunk replica's UUID using the chunk ID and the replication index $d \in [0, D)$, and runs the PutChunk protocol for each replica.
 
 ### DeleteFile protocol
 
-By knowing the file ID, the number of chunks and the replication degree of the file, the initiator peer can calculate all UUIDs of the replicas of all chunks; it executes the Delete protocol for each of those replicas.
+- **Arguments:** file path
+- **Returns:** -
+
+To delete a file, the peer first informs the node storing the user metadata file to remove said filename from the user metadata, using the message
+
+```
+DELISTFILE <Username> <FilePath>
+```
+
+to tell said node to remove it from the list of files the user backed-up.
+
+Then the DeleteFile protocol goes through each chunk, and each replica, and calls the DeleteSystem protocol for every replica of every chunk of that file.
 
 ### RestoreFile protocol
 
-To locate a chunk with ID $i$, we use the user metadata, and iterate over the list of peers that have reported to be replicating that chunk, until we find one that is online. If no replica is found, the protocol aborts.
+- **Arguments:** file path
+- **Returns:** -
+
+The peer consults the user metadata file, and finds how many chunks the file is divided into and the replication degree $D$; then:
+
+1. For each chunk $c$:
+   1. Initialize a list of not-found replicas $L$
+   2. For each replication index $d$ ($0 ≤ d < D$)
+      1. If the GetSystem protocol succeeds
+         1. Store it
+         2. Continue
+      2. Store the replica ID $r = concatenate(c,"-",d)$ in list $L$
+   3. If a replica was not found:
+      1. Exit with error
+   4. For each replica not found:
+      1. Run the PutSystem protocol for that replica, using another replica's contents
+
+In the end, we just need to assemble the chunks.
+
+### DeleteAccount protocol
+
+- **Arguments:** -
+- **Returns:** -
+
+The DeleteAccount protocol allows a peer to delete its account, including all files tracked by that account. The account to be deleted is assumed to be the one the user logged-in.
+
+When calling the DeleteAccount protocol, the peer calls the BlockAccount protocol to avoid any further operations on the account, and waits to get the final version of the user metadata file.
+
+The peer then starts by asynchronously calling DeleteFile protocols for each of the deleted files. After they all succeed, the peer calls a DeleteFile protocol to delete all the 10 replicas.
+
+### BlockAccount protocol
+
+- **Arguments:** -
+- **Returns:** -
+
+This protocol serves the purpose of blocking an account, meaning no more files can be manually added, removed or restored from this account. It mostly serves the purpose of stabilizing the user metadata file before deleting all files of the account.
+
+When calling the BlockAccount protocol, the peer finds the node that is storing the user metadata file, and sends it a message with contents:
+
+```
+BLOCKACCOUNT <Username>
+```
+
+On receiving a `BLOCKACCOUNT` message, if the account does not exist then it returns `NOTFOUND`. If the account exists and is already blocked, then some other peer is already deleting the account so it sends a `NOTFOUND` as well. If the account exists and is not blocked, the peer sets the account as blocked and returns in format `BLOCKED<LF><Body>` where `<Body>` is the contents of the user metadata file.

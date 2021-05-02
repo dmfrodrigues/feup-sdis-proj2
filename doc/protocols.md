@@ -4,7 +4,6 @@ We have devised a system with a significant amount of different protocols; this 
 
 The peer is allowed to directly use the following protocols:
 
-\vspace{-0.1em}
 \begin{multicols}{3}
     \begin{itemize}
         \itemsep0em
