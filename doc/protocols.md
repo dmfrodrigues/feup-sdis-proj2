@@ -2,16 +2,24 @@
 
 We have devised a system with a significant amount of different protocols; this was so we could reuse as much code as possible, and had the additional advantage that each protocol is quire easy to implement and easy to reason on, as each protocol aims at performing a very concrete (and often simple) task, and it is easy to understand which protocols will use which protocols. It has the inconvenience that the diagram depicting relations between protocols is quite dense.
 
-![](protocols.svg)
-
 The peer is allowed to directly use the following protocols:
 
-- Authenticate
-- Join
-- BackupFile
-- RestoreFile
-- DeleteFile
-- Leave
+\vspace{-0.1em}
+\begin{multicols}{3}
+    \begin{itemize}
+        \itemsep0em
+        \item Authenticate
+        \item Join
+        \item BackupFile
+        \item RestoreFile
+        \item DeleteFile
+        \item Leave
+    \end{itemize}
+\end{multicols}
+
+![Protocols diagram](protocols.svg)
+
+\newpage
 
 ## Definitions
 

@@ -10,8 +10,8 @@ This module provides very basic interfaces to use the chord protocol. It allows 
 
 ### GetSuccessor protocol
 
-- **Arguments:** UUID
-- **Returns:** UUID successor's socket address and key
+- **Arguments:** key
+- **Returns:** key and socket address of the successor of that key
 
 The GetSuccessor protocol allows to find the successor of a certain key $k$.
 

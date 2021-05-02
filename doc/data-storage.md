@@ -38,7 +38,7 @@ Upon receiving a `PUT` message, the node first checks if the node key is the sam
 
 ### Delete protocol
 
-- **Arguments:** UUID
+- **Arguments:** key
 - **Returns:** -
 
 When the Delete protocol is called for a certain node, said node assumes it has that datapiece, and tries to delete it.
@@ -72,10 +72,10 @@ We also have to take into account the scenario where a node is down; say a node 
 
 ### Get protocol
 
-- **Arguments:** UUID
+- **Arguments:** key
 - **Returns:** data
 
-The Get protocol allows a peer to get a certain datapiece by its key, assuming it has the datapiece or that one of its successors has it.
+The Get protocol allows a node to get a certain datapiece by its key, assuming it has the datapiece or that one of its successors has it.
 
 Upon calling the Get protocol locally, node $r$ does the following:
 
@@ -91,4 +91,4 @@ GET <UUID>
 3. If it has not stored the datapiece nor points to its successor for further information
      1. It fails
 
-Upon receiving a `GET` message, a peer starts the Get protocol locally, and responds to the message according to whatever the Get protocol returns.
+Upon receiving a `GET` message, a node starts the Get protocol locally, and responds to the message according to whatever the Get protocol returns.
