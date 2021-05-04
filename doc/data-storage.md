@@ -11,7 +11,8 @@ When the Put protocol is called without a node key, it defaults to the own node'
 
 Upon starting this protocol, a node $r$ should perform the following actions:
 
-1. If $r$ has not stored that datapiece and does not have space for another piece:
+1. If the original key is equal to the successor of $r$, then it fails.
+2. If $r$ has not stored that datapiece and does not have space for another piece:
      1. It registers locally that the datapiece is being stored in its successor.
      2. It sends to its successor $s = successor(r)$ a message with format
 ```
@@ -20,21 +21,21 @@ PUT <NodeKey> <DataKey><LF><Body>
 where NodeKey is the node key the protocol was called with
      4. If $s$'s answer fails, $r$ removes its local registry saying that the datapiece was stored in its successor.
      5. $r$ returns according to the answer it got from $s$.
-2. If $r$ has already stored that datapiece:
+3. If $r$ has already stored that datapiece:
      1. It returns with success.
-3. If $r$ has not stored that chunk but has a pointer to its successor reporting that it might have stored:
+4. If $r$ has not stored that chunk but has a pointer to its successor reporting that it might have stored:
      1. If it has space for that chunk:
-       1. It stores the chunk locally.
-       2. It asynchronously sends to its successor $s = successor(r)$ a `DELETE` message to delete that chunk.
-       3. It returns successfully
+          1. It stores the chunk locally.
+          2. It asynchronously sends to its successor $s = successor(r)$ a `DELETE` message to delete that chunk.
+          3. It returns successfully
      2. If it does not have space for that chunk:
-       4. It redirects the message to its successor $s = successor(r)$.
-       5. It replies to the original message with whatever $s$ replied.
-4. If $r$ has not yet stored that chunk and has available space:
+          1. It sends a `PUT` message to its successor $s = successor(r)$.
+          2. It replies to the original message with whatever $s$ replied.
+5. If $r$ has not yet stored that chunk and has available space:
      1. It stores that chunk;
      2. It returns with success.
 
-Upon receiving a `PUT` message, the node first checks if the node key is the same as itself, in which case it responds with failure; otherwise, the node should start the Put protocol locally using the node key it got from the `PUT` message (not its own key), and answer the `PUT` message according to what the Put protocol returns.
+Upon receiving a `PUT` message, the node should start the Put protocol locally using the node key it got from the `PUT` message (not its own key), and answer the `PUT` message according to what the Put protocol returns.
 
 ### Delete protocol
 
@@ -46,7 +47,7 @@ When the Delete protocol is called for a certain node, said node assumes it has 
 Upon starting this protocol, a node $r$ should perform the following actions:
 
 1. If $r$ has not stored that datapiece and has no pointer saying its successor stored it,
-     1. It replies with an error
+     1. It replies with success.
 2. If $r$ has stored that datapiece:
      1. It deletes the datapiece.
      2. It replies with success.
@@ -57,9 +58,7 @@ DELETE <Key>
 ```
 with the key of the file it intends to delete.
 
-     1. It replies to the original message according to what $s$ replied.
-1. If $r$ has not stored that datapiece:
-     1. It replies with success.
+     2. It replies to the original message according to what $s$ replied.
 
 Upon receiving a `DELETE` message with a certain key, a node starts the Delete protocol for itself in order to delete the datapiece with the mentioned key.
 

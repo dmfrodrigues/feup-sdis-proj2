@@ -3,6 +3,7 @@ package sdis.Protocols.Chord;
 import sdis.Chord;
 import sdis.PeerInfo;
 import sdis.Protocols.Chord.Messages.FingerAddMessage;
+import sdis.Protocols.Chord.Messages.FingerRemoveMessage;
 import sdis.Protocols.ProtocolSupplier;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class FingersRemoveProtocol extends ProtocolSupplier<Void> {
                 Chord.getExecutor()
             );
             CompletableFuture<PeerInfo> f = CompletableFuture.allOf(sFuture, r_Future)
-            .thenApplyAsync(() -> {
+            .thenApplyAsync((ignored) -> {
                 try {
                     PeerInfo s = sFuture.get();
                     PeerInfo r_ = r_Future.get();
