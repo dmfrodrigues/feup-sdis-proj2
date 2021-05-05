@@ -21,13 +21,13 @@ import java.util.concurrent.Future;
  *
  * There should be at most one instance of this class.
  */
-public class ChunkStorageManager {
+public class DataPieceStorageManager {
     private static final int BUFFER_SIZE = 80000;
 
     private int max_size;
     private final String path;
 
-    public ChunkStorageManager(String path, int max_size){
+    public DataPieceStorageManager(String path, int max_size){
         this.path = path;
         this.max_size = max_size;
         createStorage();
@@ -51,8 +51,8 @@ public class ChunkStorageManager {
         return Arrays.asList(Objects.requireNonNull(storage.listFiles()));
     }
 
-    public boolean hasChunk(String chunkID){
-        File file = new File(path + "/" + chunkID);
+    public boolean hasDataPiece(long id){
+        File file = new File(path + "/" + id);
         return file.canRead();
     }
 
@@ -103,12 +103,12 @@ public class ChunkStorageManager {
      * @brief Saves a chunk in the backup directory.
      *
      * @param id Chunk identifier.
-     * @param chunk Byte array of the chunk to be stored.
+     * @param data Byte array of the chunk to be stored.
      * @return true if successful, false otherwise.
      **/
-    public boolean saveChunk(String id, byte[] chunk) throws IOException {
-        if(getMemoryUsed() + chunk.length > max_size) return false;
-        ByteBuffer buffer = ByteBuffer.wrap(chunk);
+    public boolean saveDataPiece(long id, byte[] data) throws IOException {
+        if(getMemoryUsed() + data.length > max_size) return false;
+        ByteBuffer buffer = ByteBuffer.wrap(data);
         AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(path + "/" + id), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         try {
             os.write(buffer, 0).get();

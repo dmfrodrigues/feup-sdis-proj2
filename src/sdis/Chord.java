@@ -71,4 +71,22 @@ public class Chord {
         long MOD = 1L << getKeySize();
         return (b - a + MOD) % MOD;
     }
+
+    public boolean hasStored(long id){
+        return peer.getStorageManager().hasDataPiece(id);
+    }
+
+    public boolean hasSpace(byte[] data){
+        return peer.getStorageManager().getCapacity()
+                >= (peer.getStorageManager().getMemoryUsed() + data.length);
+    }
+
+    public void store(long id, byte[] data){
+        try {
+            peer.getStorageManager().saveDataPiece(id, data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

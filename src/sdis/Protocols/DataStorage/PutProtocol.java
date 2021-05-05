@@ -33,8 +33,9 @@ public class PutProtocol extends ProtocolSupplier<Integer> {
         PeerInfo s = chord.getSuccessor();
         if(s.key == originalNodeKey) return 1;
 
-        boolean hasStored = false; // TODO: Fix boolean
-        boolean hasSpace = true; // TODO: Fix boolean
+        boolean hasStored = chord.hasStored(key);
+        boolean hasSpace = chord.hasSpace(data);
+
         // If r has not stored that datapiece and does not have space for another piece
         if(!hasStored && !hasSpace){
             // TODO: Register locally that the datapiece is being stored in its successor s
@@ -59,7 +60,7 @@ public class PutProtocol extends ProtocolSupplier<Integer> {
         if(!hasStored && pointsToSuccessor){
             // If it has space for that chunk
             if(hasSpace){
-                // TODO: Store the datapiece locally
+                chord.store(key, data);
                 try {
                     Socket socket = chord.send(s, new DeleteMessage(key));
                     socket.close();
