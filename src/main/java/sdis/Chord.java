@@ -72,6 +72,8 @@ public class Chord {
         return new PeerInfo(key, peer.getSocketAddress());
     }
 
+    public Peer getPeer(){ return peer; }
+
     public long distance(long a, long b) {
         long MOD = 1L << getKeySize();
         return (b - a + MOD) % MOD;

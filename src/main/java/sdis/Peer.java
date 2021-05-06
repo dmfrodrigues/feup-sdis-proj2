@@ -6,14 +6,11 @@ import sdis.Protocols.Main.BackupFileProtocol;
 import sdis.Protocols.Main.DeleteFileProtocol;
 import sdis.Protocols.Main.RestoreFileProtocol;
 */
-import sdis.Storage.ChunkStorageManager;
-import sdis.Storage.FileChunkIterator;
+import sdis.Storage.DatapieceStorageManager;
 import sdis.Storage.FileTable;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.*;
-import java.nio.file.NoSuchFileException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -35,7 +32,7 @@ public class Peer implements PeerInterface {
     private final ServerSocket serverSocket;
 
     private final FileTable fileTable;
-    private final ChunkStorageManager storageManager;
+    private final DatapieceStorageManager storageManager;
 
     private final Random random = new Random(System.currentTimeMillis());
 
@@ -57,8 +54,8 @@ public class Peer implements PeerInterface {
         serverSocket = new ServerSocket(address.getPort());
 
         // Initialize storage space
-        String storagePath = id + "/storage/chunks";
-        storageManager = new ChunkStorageManager(storagePath, INITIAL_STORAGE_SIZE);
+        String storagePath = id + "/storage/data";
+        storageManager = new DatapieceStorageManager(this, storagePath, INITIAL_STORAGE_SIZE);
 
         fileTable = new FileTable("../build/"+id);
         fileTable.load();
@@ -114,7 +111,7 @@ public class Peer implements PeerInterface {
         return address;
     }
 
-    public ChunkStorageManager getStorageManager() {
+    public DatapieceStorageManager getStorageManager() {
         return storageManager;
     }
 
