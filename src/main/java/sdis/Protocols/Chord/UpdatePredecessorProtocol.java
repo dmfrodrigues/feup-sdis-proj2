@@ -11,16 +11,18 @@ import java.net.Socket;
 public class UpdatePredecessorProtocol extends ProtocolSupplier<Void> {
 
     private final Chord chord;
+    private final PeerInfo peerInfo;
 
-    public UpdatePredecessorProtocol(Chord chord){
+    public UpdatePredecessorProtocol(Chord chord, PeerInfo peerInfo){
         this.chord = chord;
+        this.peerInfo = peerInfo;
     }
 
     @Override
     public Void get() {
         PeerInfo successor = chord.getSuccessor();
         try {
-            Socket socket = chord.send(successor, new UpdatePredecessorMessage(chord.getPeerInfo()));
+            Socket socket = chord.send(successor, new UpdatePredecessorMessage(peerInfo));
             socket.shutdownOutput();
         } catch (IOException e) {
             e.printStackTrace();

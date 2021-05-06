@@ -4,6 +4,7 @@ import sdis.Protocols.Chord.Messages.ChordMessage;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -55,12 +56,16 @@ public class Chord {
         return m;
     }
 
-    public Socket send(PeerInfo to, ChordMessage m) throws IOException {
-        Socket socket = new Socket(to.address.getAddress(), to.address.getPort());
+    public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {
+        Socket socket = new Socket(to.getAddress(), to.getPort());
         OutputStream os = socket.getOutputStream();
         os.write(m.toString().getBytes());
         os.flush();
         return socket;
+    }
+
+    public Socket send(PeerInfo to, ChordMessage m) throws IOException {
+        return send(to.address, m);
     }
 
     public PeerInfo getPeerInfo() {

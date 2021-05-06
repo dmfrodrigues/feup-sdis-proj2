@@ -57,7 +57,7 @@ The joining node needs to know the socket address of at least one node that is a
 
 ##### Build fingers table
 
-To build its fingers table, $r$ asks to $g$ what is the successor of $r' = r + 2^k$, for all values of $0 ≤ k < m$, using several `GETSUCCESSOR` messages directed at $g$.
+To build its fingers table, $r$ asks to $g$ what is the successor of $k = r + 2^i$, for all values of $0 ≤ i < m$, using several `GETSUCCESSOR` messages directed at $g$.
 
 The joining node can asynchronously make all `GETSUCCESSOR` requests to $g$, but that yields $O(m \log N)$ time complexity, while [@stoica2001] states that, if requests are made sequentially, some trivial tests can be made to skip asking about some fingers.
 
