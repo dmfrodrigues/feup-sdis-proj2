@@ -6,3 +6,8 @@ bin/
 *.pdf
 # !report.pdf
 build/
+
+gradle/
+.gradle/
+gradlew
+gradlew.bat

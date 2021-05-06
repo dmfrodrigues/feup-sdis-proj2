@@ -1,10 +1,12 @@
 package sdis;
 
+/*
 import sdis.Protocols.DataStorage.ReclaimProtocol;
 import sdis.Protocols.Main.BackupFileProtocol;
 import sdis.Protocols.Main.DeleteFileProtocol;
 import sdis.Protocols.Main.RestoreFileProtocol;
 import sdis.Storage.ChunkStorageManager;
+*/
 import sdis.Storage.FileChunkIterator;
 import sdis.Storage.FileTable;
 
@@ -33,7 +35,7 @@ public class Peer implements PeerInterface {
     private final ServerSocket serverSocket;
 
     private final FileTable fileTable;
-    private final ChunkStorageManager storageManager;
+//    private final ChunkStorageManager storageManager;
 
     private final Random random = new Random(System.currentTimeMillis());
 
@@ -56,7 +58,7 @@ public class Peer implements PeerInterface {
 
         // Initialize storage space
         String storagePath = id + "/storage/chunks";
-        storageManager = new ChunkStorageManager(storagePath, INITIAL_STORAGE_SIZE);
+//        storageManager = new ChunkStorageManager(storagePath, INITIAL_STORAGE_SIZE);
 
         fileTable = new FileTable("../build/"+id);
         fileTable.load();
@@ -112,9 +114,11 @@ public class Peer implements PeerInterface {
         return address;
     }
 
+/*
     public ChunkStorageManager getStorageManager() {
         return storageManager;
     }
+*/
 
     public FileTable getFileTable() {
         return fileTable;
@@ -127,6 +131,7 @@ public class Peer implements PeerInterface {
      * @param replicationDegree Replication degree (number of copies of each file chunk over all machines in the network)
      */
     public void backup(String pathname, int replicationDegree) throws IOException {
+        /*
         File file = new File(pathname);
         FileChunkIterator fileChunkIterator;
         try {
@@ -138,6 +143,7 @@ public class Peer implements PeerInterface {
         getFileTable().insert(file.getName(), fileChunkIterator.getFileId(), fileChunkIterator.length());
         BackupFileProtocol backupFileProtocol = new BackupFileProtocol(this, fileChunkIterator, replicationDegree);
         CompletableFuture.runAsync(backupFileProtocol);
+         */
     }
 
     /**
@@ -148,8 +154,10 @@ public class Peer implements PeerInterface {
      * @param pathname  Pathname of file to be restored
      */
     public void restore(String pathname) throws IOException {
+        /*
         RestoreFileProtocol callable = new RestoreFileProtocol(this, pathname);
         executor.submit(callable);
+         */
     }
 
     /**
@@ -158,8 +166,10 @@ public class Peer implements PeerInterface {
      * @param pathname  Pathname of file to be deleted over all peers
      */
     public void delete(String pathname) {
+        /*
         DeleteFileProtocol callable = new DeleteFileProtocol(this, pathname);
         executor.submit(callable);
+         */
     }
 
     /**
@@ -168,7 +178,9 @@ public class Peer implements PeerInterface {
      * @param space_kb  Amount of space, in kilobytes (KB, K=1000)
      */
     public void reclaim(int space_kb) {
+        /*
         ReclaimProtocol callable = new ReclaimProtocol(this, space_kb);
         executor.submit(callable);
+         */
     }
 }
