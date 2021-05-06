@@ -1,13 +1,9 @@
 package sdis.Protocols.DataStorage.Messages;
 
 import sdis.Chord;
-import sdis.PeerInfo;
-import sdis.Protocols.Chord.GetSuccessorProtocol;
 import sdis.Protocols.DataStorage.PutProtocol;
 
-import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.CompletionException;
 
 public class PutMessage extends DataSystemMessage {
 

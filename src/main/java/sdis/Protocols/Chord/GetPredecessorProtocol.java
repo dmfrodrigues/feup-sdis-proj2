@@ -3,9 +3,7 @@ package sdis.Protocols.Chord;
 import sdis.Chord;
 import sdis.PeerInfo;
 import sdis.Protocols.Chord.Messages.GetPredecessorMessage;
-import sdis.Protocols.Chord.Messages.GetSuccessorMessage;
 import sdis.Protocols.ProtocolSupplier;
-import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.net.Socket;
