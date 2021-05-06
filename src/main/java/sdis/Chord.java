@@ -73,5 +73,4 @@ public class Chord {
         long MOD = 1L << getKeySize();
         return (b - a + MOD) % MOD;
     }
-
 }

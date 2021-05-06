@@ -22,7 +22,6 @@ public class FileTable implements Serializable {
     private static Map<Long, PeerInfo> successorStored = new ConcurrentHashMap<>();
     private static String table_path;
 
-
     public static Map<String, Integer> actualRepDegree = new ConcurrentHashMap<>();
     public static Map<String, Integer> chunkDesiredRepDegree = new ConcurrentHashMap<>();
     public static Map<String, Integer> fileDesiredRepDegree = new ConcurrentHashMap<>();

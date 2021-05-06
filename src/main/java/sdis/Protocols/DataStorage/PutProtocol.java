@@ -41,7 +41,7 @@ public class PutProtocol extends ProtocolSupplier<Integer> {
 
         if(s.key == originalNodeKey) return 1;
 
-        boolean hasStored = peer.getStorageManager().hasDataPiece(fileID);
+        boolean hasStored = peer.getStorageManager().hasDatapiece(fileID);
         boolean hasSpace = peer.getStorageManager().getCapacity()
                 >= (peer.getStorageManager().getMemoryUsed() + data.length);
 
@@ -71,7 +71,7 @@ public class PutProtocol extends ProtocolSupplier<Integer> {
             // If it has space for that chunk
             if(hasSpace){
                 try {
-                    peer.getStorageManager().saveDataPiece(fileID, data);
+                    peer.getStorageManager().saveDatapiece(fileID, data);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
