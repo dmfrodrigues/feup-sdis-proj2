@@ -1,5 +1,6 @@
 package sdis.Storage;
 
+import sdis.PeerInfo;
 import sdis.Utils.Pair;
 
 import java.io.*;
@@ -8,8 +9,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FileTable implements Serializable {
 
-    private static Map<String, Pair<String, Integer>> table = new HashMap<>();
+    /**
+     *  Key: filename
+     *  Pair: fileID, number of chunks
+     */
+    private static Map<String, Pair<String, Integer>> table = new ConcurrentHashMap<>();
+    private static Map<Long, String> keyToId = new ConcurrentHashMap<>();
+    /**
+     *  Key: key
+     *  PeerInfo: successor that stored
+     */
+    private static Map<Long, PeerInfo> successorStored = new ConcurrentHashMap<>();
     private static String table_path;
+
 
     public static Map<String, Integer> actualRepDegree = new ConcurrentHashMap<>();
     public static Map<String, Integer> chunkDesiredRepDegree = new ConcurrentHashMap<>();
@@ -43,6 +55,20 @@ public class FileTable implements Serializable {
     public synchronized void insert(String filename, String fileID, Integer numberChunks) {
         table.put(filename, new Pair<>(fileID, numberChunks));
         save();
+    }
+
+    public synchronized void registerSuccessorStored(long key, PeerInfo successor){
+        successorStored.put(key, successor);
+        save();
+    }
+
+    public synchronized void unregisterSuccessorStored(long key){
+        successorStored.remove(key);
+        save();
+    }
+
+    public synchronized boolean successorHasStored(long key){
+        return successorStored.containsKey(key);
     }
 
     public synchronized void incrementActualRepDegree(String chunkID){
@@ -87,6 +113,7 @@ public class FileTable implements Serializable {
     public String  getFileID      (String filename) {
         return table.get(filename).first;
     }
+    public String  getFileID      (long key) { return keyToId.get(key);}
     public Integer getNumberChunks(String filename) {
         return table.get(filename).second;
     }
