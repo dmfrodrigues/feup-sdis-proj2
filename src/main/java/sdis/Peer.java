@@ -5,8 +5,8 @@ import sdis.Protocols.DataStorage.ReclaimProtocol;
 import sdis.Protocols.Main.BackupFileProtocol;
 import sdis.Protocols.Main.DeleteFileProtocol;
 import sdis.Protocols.Main.RestoreFileProtocol;
-import sdis.Storage.ChunkStorageManager;
 */
+import sdis.Storage.ChunkStorageManager;
 import sdis.Storage.FileChunkIterator;
 import sdis.Storage.FileTable;
 
@@ -35,7 +35,7 @@ public class Peer implements PeerInterface {
     private final ServerSocket serverSocket;
 
     private final FileTable fileTable;
-//    private final ChunkStorageManager storageManager;
+    private final ChunkStorageManager storageManager;
 
     private final Random random = new Random(System.currentTimeMillis());
 
@@ -58,7 +58,7 @@ public class Peer implements PeerInterface {
 
         // Initialize storage space
         String storagePath = id + "/storage/chunks";
-//        storageManager = new ChunkStorageManager(storagePath, INITIAL_STORAGE_SIZE);
+        storageManager = new ChunkStorageManager(storagePath, INITIAL_STORAGE_SIZE);
 
         fileTable = new FileTable("../build/"+id);
         fileTable.load();
@@ -114,11 +114,9 @@ public class Peer implements PeerInterface {
         return address;
     }
 
-/*
     public ChunkStorageManager getStorageManager() {
         return storageManager;
     }
-*/
 
     public FileTable getFileTable() {
         return fileTable;
