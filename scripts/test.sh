@@ -1,14 +1,5 @@
 #! /usr/bin/bash
 
-# Script for running the test app
-# To be run at the root of the compiled tree
-# No jar files used
-# Assumes that TestApp is the main class 
-#  and that it belongs to the test package
-# Modify as appropriate, so that it can be run 
-#  from the root of the compiled tree
-
-# Check number input arguments
 argc=$#
 
 if (( argc < 2 )) 
@@ -17,12 +8,8 @@ then
 	exit 1
 fi
 
-# Assign input arguments to nicely named variables
-
 pap=$1
 oper=$2
-
-# Validate remaining arguments 
 
 case $oper in
 BACKUP)
@@ -74,10 +61,5 @@ STATE)
 	exit 1
 	;;
 esac
-
-# Execute the program
-# Should not need to change anything but the class and its package, unless you use any jar file
-
-# echo "java test.TestApp ${pap} ${oper} ${opernd_1} ${rep_deg}"
 
 java TestApp ${pap} ${oper} ${opernd_1} ${rep_deg}
