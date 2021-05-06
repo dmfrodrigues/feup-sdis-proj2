@@ -51,7 +51,7 @@ public class DataPieceStorageManager {
         return Arrays.asList(Objects.requireNonNull(storage.listFiles()));
     }
 
-    public boolean hasDataPiece(long id){
+    public boolean hasDataPiece(String id){
         File file = new File(path + "/" + id);
         return file.canRead();
     }
@@ -100,13 +100,13 @@ public class DataPieceStorageManager {
     }
 
     /**
-     * @brief Saves a chunk in the backup directory.
+     * @brief Saves a data piece in the backup directory.
      *
-     * @param id Chunk identifier.
-     * @param data Byte array of the chunk to be stored.
+     * @param id data piece identifier.
+     * @param data Byte array to be stored.
      * @return true if successful, false otherwise.
      **/
-    public boolean saveDataPiece(long id, byte[] data) throws IOException {
+    public boolean saveDataPiece(String id, byte[] data) throws IOException {
         if(getMemoryUsed() + data.length > max_size) return false;
         ByteBuffer buffer = ByteBuffer.wrap(data);
         AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(path + "/" + id), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
