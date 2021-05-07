@@ -1,6 +1,8 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Peer;
+import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -34,8 +36,8 @@ public class FingerAddMessage extends ChordMessage {
     }
 
     @Override
-    public String toString() {
-        return "FINGERADD " + nodeInfo + " " + getFingerIndex();
+    protected DataBuilder build() {
+        return new DataBuilder(("FINGERADD " + nodeInfo + " " + getFingerIndex()).getBytes());
     }
 
     private static class FingerAddProcessor extends ChordMessage.Processor {
@@ -74,7 +76,7 @@ public class FingerAddMessage extends ChordMessage {
     }
 
     @Override
-    public FingerAddProcessor getProcessor(Chord chord, Socket socket) {
-        return new FingerAddProcessor(chord, socket, this);
+    public FingerAddProcessor getProcessor(Peer peer, Socket socket) {
+        return new FingerAddProcessor(peer.getChord(), socket, this);
     }
 }

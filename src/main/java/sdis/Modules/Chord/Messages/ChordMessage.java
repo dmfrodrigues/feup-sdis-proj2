@@ -1,14 +1,13 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.Message;
+import sdis.Peer;
 
 import java.net.Socket;
-import java.util.function.Supplier;
 
-public abstract class ChordMessage {
-    public abstract String toString();
-
-    public static abstract class Processor implements Supplier<Void> {
+public abstract class ChordMessage extends Message {
+    public static abstract class Processor extends Message.Processor {
         private final Chord chord;
         private final Socket socket;
 
@@ -26,5 +25,5 @@ public abstract class ChordMessage {
         }
     }
 
-    public abstract Processor getProcessor(Chord chord, Socket socket);
+    public abstract ChordMessage.Processor getProcessor(Peer peer, Socket socket);
 }

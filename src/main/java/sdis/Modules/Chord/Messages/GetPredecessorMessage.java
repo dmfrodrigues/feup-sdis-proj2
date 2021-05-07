@@ -1,6 +1,8 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Peer;
+import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -10,8 +12,8 @@ public class GetPredecessorMessage extends ChordMessage {
     public GetPredecessorMessage(){}
 
     @Override
-    public String toString() {
-        return "GETPREDECESSOR";
+    protected DataBuilder build() {
+        return new DataBuilder("GETPREDECESSOR".getBytes());
     }
 
     private static class GetPredecessorProcessor extends ChordMessage.Processor {
@@ -34,7 +36,7 @@ public class GetPredecessorMessage extends ChordMessage {
     }
 
     @Override
-    public GetPredecessorProcessor getProcessor(Chord chord, Socket socket) {
-        return new GetPredecessorProcessor(chord, socket);
+    public GetPredecessorProcessor getProcessor(Peer peer, Socket socket) {
+        return new GetPredecessorProcessor(peer.getChord(), socket);
     }
 }

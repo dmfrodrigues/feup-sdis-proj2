@@ -2,6 +2,8 @@ package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.Chord.GetSuccessorProtocol;
+import sdis.Peer;
+import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -20,8 +22,8 @@ public class GetSuccessorMessage extends ChordMessage {
     }
 
     @Override
-    public String toString() {
-        return "GETSUCCESSOR " + getKey();
+    protected DataBuilder build() {
+        return new DataBuilder(("GETSUCCESSOR " + getKey()).getBytes());
     }
 
     private static class GetSuccessorProcessor extends ChordMessage.Processor {
@@ -48,7 +50,7 @@ public class GetSuccessorMessage extends ChordMessage {
     }
 
     @Override
-    public GetSuccessorProcessor getProcessor(Chord chord, Socket socket) {
-        return new GetSuccessorProcessor(chord, socket, this);
+    public GetSuccessorProcessor getProcessor(Peer peer, Socket socket) {
+        return new GetSuccessorProcessor(peer.getChord(), socket, this);
     }
 }

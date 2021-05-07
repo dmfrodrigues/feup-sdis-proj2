@@ -2,14 +2,13 @@ package sdis.Modules.DataStorage.Messages;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
+import sdis.Modules.Message;
+import sdis.Peer;
 
 import java.net.Socket;
-import java.util.function.Supplier;
 
-public abstract class DataStorageMessage {
-    public abstract String toString();
-
-    public static abstract class Processor implements Supplier<Void> {
+public abstract class DataStorageMessage extends Message {
+    public static abstract class Processor extends Message.Processor {
         private final Chord chord;
         private final DataStorage dataStorage;
         private final Socket socket;
@@ -33,5 +32,5 @@ public abstract class DataStorageMessage {
         }
     }
 
-    public abstract DataStorageMessage.Processor getProcessor(Chord chord, DataStorage dataStorage, Socket socket);
+    public abstract DataStorageMessage.Processor getProcessor(Peer peer, Socket socket);
 }

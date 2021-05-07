@@ -3,7 +3,9 @@ package sdis.Modules.DataStorage.Messages;
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetProtocol;
+import sdis.Peer;
 import sdis.UUID;
+import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -28,8 +30,8 @@ public class GetMessage extends DataStorageMessage {
     }
 
     @Override
-    public String toString() {
-        return "GET " + getNodeKey() + " " + getId();
+    protected DataBuilder build() {
+        return new DataBuilder(("GET " + getNodeKey() + " " + getId()).getBytes());
     }
 
     private static class GetProcessor extends Processor {
@@ -56,7 +58,7 @@ public class GetMessage extends DataStorageMessage {
     }
 
     @Override
-    public GetProcessor getProcessor(Chord chord, DataStorage dataStorage, Socket socket) {
-        return new GetProcessor(chord, dataStorage, socket, this);
+    public GetProcessor getProcessor(Peer peer, Socket socket) {
+        return new GetProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 }

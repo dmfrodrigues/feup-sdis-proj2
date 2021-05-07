@@ -3,7 +3,9 @@ package sdis.Modules.DataStorage.Messages;
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.DeleteProtocol;
+import sdis.Peer;
 import sdis.UUID;
+import sdis.Utils.DataBuilder;
 
 import java.net.Socket;
 
@@ -20,11 +22,11 @@ public class DeleteMessage extends DataStorageMessage {
     }
 
     @Override
-    public String toString() {
-        return "DELETE " + getId();
+    protected DataBuilder build() {
+        return new DataBuilder(("DELETE " + getId()).getBytes());
     }
 
-    private static class DeleteProcessor extends Processor {
+    private static class DeleteProcessor extends DataStorageMessage.Processor {
 
         private final DeleteMessage message;
 
@@ -42,7 +44,7 @@ public class DeleteMessage extends DataStorageMessage {
     }
 
     @Override
-    public DeleteProcessor getProcessor(Chord chord, DataStorage dataStorage, Socket socket) {
-        return new DeleteProcessor(chord, dataStorage, socket, this);
+    public DeleteProcessor getProcessor(Peer peer, Socket socket) {
+        return new DeleteProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 }

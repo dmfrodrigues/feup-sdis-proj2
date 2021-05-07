@@ -1,6 +1,8 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Peer;
+import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -42,8 +44,8 @@ public class FingerRemoveMessage extends ChordMessage {
     }
 
     @Override
-    public String toString() {
-        return "FINGERREMOVE " + oldPeer + " " + newPeer + " " + getFingerIndex();
+    protected DataBuilder build() {
+        return new DataBuilder(("FINGERREMOVE " + oldPeer + " " + newPeer + " " + getFingerIndex()).getBytes());
     }
 
     private static class FingerRemoveProcessor extends Processor {
@@ -83,7 +85,7 @@ public class FingerRemoveMessage extends ChordMessage {
     }
 
     @Override
-    public FingerRemoveProcessor getProcessor(Chord chord, Socket socket) {
-        return new FingerRemoveProcessor(chord, socket, this);
+    public FingerRemoveProcessor getProcessor(Peer peer, Socket socket) {
+        return new FingerRemoveProcessor(peer.getChord(), socket, this);
     }
 }

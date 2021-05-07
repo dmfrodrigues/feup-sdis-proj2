@@ -3,7 +3,9 @@ package sdis.Modules.DataStorage.Messages;
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.PutProtocol;
+import sdis.Peer;
 import sdis.UUID;
+import sdis.Utils.DataBuilder;
 
 import java.net.Socket;
 
@@ -32,8 +34,11 @@ public class PutMessage extends DataStorageMessage {
     }
 
     @Override
-    public String toString() {
-        return "PUT " + getNodeKey() + " " + getId() + "\n" + new String(getData());
+    protected DataBuilder build() {
+        return
+            new DataBuilder(("PUT " + getNodeKey() + " " + getId() + "\n").getBytes())
+            .append(getData())
+        ;
     }
 
     private static class PutProcessor extends Processor {
@@ -54,7 +59,7 @@ public class PutMessage extends DataStorageMessage {
     }
 
     @Override
-    public PutProcessor getProcessor(Chord chord, DataStorage dataStorage, Socket socket) {
-        return new PutProcessor(chord, dataStorage, socket, this);
+    public PutProcessor getProcessor(Peer peer, Socket socket) {
+        return new PutProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 }
