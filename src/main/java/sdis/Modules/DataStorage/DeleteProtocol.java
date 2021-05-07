@@ -1,7 +1,6 @@
 package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.PeerInfo;
 import sdis.Modules.DataStorage.Messages.DeleteMessage;
 import sdis.Modules.ProtocolSupplier;
 import sdis.UUID;
@@ -13,17 +12,19 @@ import java.util.concurrent.CompletionException;
 public class DeleteProtocol extends ProtocolSupplier<Boolean> {
 
     private final Chord chord;
+    private final DataStorage dataStorage;
     private final UUID id;
 
-    public DeleteProtocol(Chord chord, UUID id){
+    public DeleteProtocol(Chord chord, DataStorage dataStorage, UUID id){
         this.chord = chord;
+        this.dataStorage = dataStorage;
         this.id = id;
     }
 
     @Override
     public Boolean get() {
-        PeerInfo r = chord.getPeerInfo();
-        PeerInfo s = chord.getSuccessor();
+        Chord.NodeInfo r = chord.getPeerInfo();
+        Chord.NodeInfo s = chord.getSuccessor();
 
         boolean hasStored = false; // TODO: Fix boolean
         boolean pointsToSuccessor = false; // TODO: Fix condition
@@ -39,7 +40,7 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
         // If r has not stored that datapiece but has a pointer to its successor reporting that it might have stored
         if(!hasStored && pointsToSuccessor) {
             try {
-                Socket socket = chord.send(s, new DeleteMessage(id));
+                Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
                 return Boolean.parseBoolean(new String(socket.getInputStream().readAllBytes()));
             } catch (IOException e) {
                 throw new CompletionException(e);

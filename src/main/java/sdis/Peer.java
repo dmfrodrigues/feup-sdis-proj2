@@ -46,7 +46,7 @@ public class Peer implements PeerInterface {
         );
 
         String storagePath = id + "/storage/data";
-        chord = new Chord(this, getExecutor(), id);
+        chord = new Chord(getSocketAddress(), getExecutor(), id);
         dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
     }
 

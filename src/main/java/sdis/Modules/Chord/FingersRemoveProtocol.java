@@ -1,6 +1,5 @@
 package sdis.Modules.Chord;
 
-import sdis.PeerInfo;
 import sdis.Modules.Chord.Messages.FingerRemoveMessage;
 import sdis.Modules.ProtocolSupplier;
 
@@ -20,28 +19,28 @@ public class FingersRemoveProtocol extends ProtocolSupplier<Void> {
 
     @Override
     public Void get() {
-        CompletableFuture[] futureList = new CompletableFuture[chord.getKeySize()];
-        for(int i = 0; i < chord.getKeySize(); ++i){
+        CompletableFuture<?>[] futureList = new CompletableFuture[Chord.getKeySize()];
+        for(int i = 0; i < Chord.getKeySize(); ++i){
             Chord.Key k = chord.getKey().add(1L << i);
             int finalI = i;
-            CompletableFuture<PeerInfo> sFuture = CompletableFuture.supplyAsync(
+            CompletableFuture<Chord.NodeInfo> sFuture = CompletableFuture.supplyAsync(
                 new GetPredecessorProtocol(chord, k),
                 chord.getExecutor()
             );
-            CompletableFuture<PeerInfo> r_Future = CompletableFuture.supplyAsync(
+            CompletableFuture<Chord.NodeInfo> r_Future = CompletableFuture.supplyAsync(
                 new GetSuccessorProtocol(chord, chord.getKey()),
                 chord.getExecutor()
             );
-            CompletableFuture<PeerInfo> f = CompletableFuture.allOf(sFuture, r_Future)
+            CompletableFuture<Chord.NodeInfo> f = CompletableFuture.allOf(sFuture, r_Future)
             .thenApplyAsync((ignored) -> {
                 try {
-                    PeerInfo s = sFuture.get();
-                    PeerInfo r_ = r_Future.get();
+                    Chord.NodeInfo s = sFuture.get();
+                    Chord.NodeInfo r_ = r_Future.get();
 
                     Socket socket = chord.send(s, new FingerRemoveMessage(chord.getPeerInfo(), r_, finalI));
                     socket.shutdownOutput();
                     byte[] response = socket.getInputStream().readAllBytes();
-                    return new PeerInfo(response);
+                    return new Chord.NodeInfo(response);
                 } catch (IOException | InterruptedException e) {
                     throw new CompletionException(e);
                 } catch (ExecutionException e) {

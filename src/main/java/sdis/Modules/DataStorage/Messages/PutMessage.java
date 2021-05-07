@@ -1,16 +1,17 @@
 package sdis.Modules.DataStorage.Messages;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.PutProtocol;
 import sdis.UUID;
 
 import java.net.Socket;
 
-public class PutMessage extends DataSystemMessage {
+public class PutMessage extends DataStorageMessage {
 
-    private Chord.Key nodeKey;
-    private UUID id;
-    private byte[] data;
+    private final Chord.Key nodeKey;
+    private final UUID id;
+    private final byte[] data;
 
     public PutMessage(Chord.Key nodeKey, UUID id, byte[] data){
         this.nodeKey = nodeKey;
@@ -39,21 +40,21 @@ public class PutMessage extends DataSystemMessage {
 
         private final PutMessage message;
 
-        public PutProcessor(Chord chord, Socket socket, PutMessage message){
-            super(chord, socket);
+        public PutProcessor(Chord chord, DataStorage dataStorage, Socket socket, PutMessage message){
+            super(chord, dataStorage, socket);
             this.message = message;
         }
 
         @Override
         public Void get() {
-            PutProtocol putProtocol = new PutProtocol(getChord(), message.getNodeKey(), message.getId(), message.getData());
+            PutProtocol putProtocol = new PutProtocol(getChord(), getDataStorage(), message.getNodeKey(), message.getId(), message.getData());
             putProtocol.get();
             return null;
         }
     }
 
     @Override
-    public PutProcessor getProcessor(Chord chord, Socket socket) {
-        return new PutProcessor(chord, socket, this);
+    public PutProcessor getProcessor(Chord chord, DataStorage dataStorage, Socket socket) {
+        return new PutProcessor(chord, dataStorage, socket, this);
     }
 }

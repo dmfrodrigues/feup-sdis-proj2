@@ -1,7 +1,5 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Chord;
-import sdis.PeerInfo;
 import sdis.Modules.Chord.Messages.UpdatePredecessorMessage;
 import sdis.Modules.ProtocolSupplier;
 
@@ -11,18 +9,18 @@ import java.net.Socket;
 public class UpdatePredecessorProtocol extends ProtocolSupplier<Void> {
 
     private final Chord chord;
-    private final PeerInfo peerInfo;
+    private final Chord.NodeInfo nodeInfo;
 
-    public UpdatePredecessorProtocol(Chord chord, PeerInfo peerInfo){
+    public UpdatePredecessorProtocol(Chord chord, Chord.NodeInfo nodeInfo){
         this.chord = chord;
-        this.peerInfo = peerInfo;
+        this.nodeInfo = nodeInfo;
     }
 
     @Override
     public Void get() {
-        PeerInfo successor = chord.getSuccessor();
+        Chord.NodeInfo successor = chord.getSuccessor();
         try {
-            Socket socket = chord.send(successor, new UpdatePredecessorMessage(peerInfo));
+            Socket socket = chord.send(successor, new UpdatePredecessorMessage(nodeInfo));
             socket.shutdownOutput();
         } catch (IOException e) {
             e.printStackTrace();

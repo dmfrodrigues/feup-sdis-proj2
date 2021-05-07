@@ -1,7 +1,5 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Chord;
-import sdis.PeerInfo;
 import sdis.Modules.Chord.Messages.GetSuccessorMessage;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Utils.Utils;
@@ -9,7 +7,7 @@ import sdis.Utils.Utils;
 import java.io.IOException;
 import java.net.Socket;
 
-public class GetSuccessorProtocol extends ProtocolSupplier<PeerInfo> {
+public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
 
     private final Chord chord;
     private final Chord.Key key;
@@ -20,9 +18,9 @@ public class GetSuccessorProtocol extends ProtocolSupplier<PeerInfo> {
     }
 
     @Override
-    public PeerInfo get() {
-        PeerInfo r = chord.getPeerInfo();
-        PeerInfo p = chord.getPredecessor();
+    public Chord.NodeInfo get() {
+        Chord.NodeInfo r = chord.getPeerInfo();
+        Chord.NodeInfo p = chord.getPredecessor();
 
         // If r is the only node in the system
         if(p.equals(r))
@@ -40,10 +38,10 @@ public class GetSuccessorProtocol extends ProtocolSupplier<PeerInfo> {
         int i = (d == 0 ? 0 : Utils.log2(d));
 
 
-        PeerInfo r_ = chord.getFinger(i);
+        Chord.NodeInfo r_ = chord.getFinger(i);
 
         try {
-            PeerInfo ret;
+            Chord.NodeInfo ret;
             if(r_.equals(r)){
                 GetSuccessorProtocol newGetSuccessorProtocol = new GetSuccessorProtocol(chord, key);
                 ret = newGetSuccessorProtocol.get();
@@ -52,7 +50,7 @@ public class GetSuccessorProtocol extends ProtocolSupplier<PeerInfo> {
                 socket.shutdownOutput();
 
                 byte[] response = socket.getInputStream().readAllBytes();
-                ret = new PeerInfo(response);
+                ret = new Chord.NodeInfo(response);
             }
             return ret;
         } catch (IOException e) {

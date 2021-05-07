@@ -2,7 +2,6 @@ package sdis.Modules.Chord;
 
 import org.junit.Test;
 import sdis.Peer;
-import sdis.PeerInfo;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -20,7 +19,7 @@ public class TestChord {
         if(i == listOfPeers.length) i = 0;
         long expected = listOfPeers[i];
 
-        PeerInfo successor = chord.getSuccessor(new Chord.Key(key)).get();
+        Chord.NodeInfo successor = chord.getSuccessor(new Chord.Key(key)).get();
         assertNotNull(successor);
         long actual = successor.key.toLong();
 

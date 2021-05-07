@@ -1,7 +1,6 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
-import sdis.PeerInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -10,11 +9,11 @@ import java.util.concurrent.CompletionException;
 
 public class FingerRemoveMessage extends ChordMessage {
 
-    private final PeerInfo oldPeer;
-    private final PeerInfo newPeer;
+    private final Chord.NodeInfo oldPeer;
+    private final Chord.NodeInfo newPeer;
     private final int fingerIndex;
 
-    public FingerRemoveMessage(PeerInfo oldPeer, PeerInfo newPeer, int fingerIdx){
+    public FingerRemoveMessage(Chord.NodeInfo oldPeer, Chord.NodeInfo newPeer, int fingerIdx){
         this.oldPeer = oldPeer;
         this.newPeer = newPeer;
         this.fingerIndex = fingerIdx;
@@ -25,16 +24,16 @@ public class FingerRemoveMessage extends ChordMessage {
         String[] splitString = dataString.split(" ");
         String[] splitAddressOld = splitString[2].split(":");
         String[] splitAddressNew = splitString[4].split(":");
-        oldPeer = new PeerInfo(new Chord.Key(Long.parseLong(splitString[1])), new InetSocketAddress(splitAddressOld[0], Integer.parseInt(splitAddressOld[1])));
-        newPeer = new PeerInfo(new Chord.Key(Long.parseLong(splitString[3])), new InetSocketAddress(splitAddressNew[0], Integer.parseInt(splitAddressNew[1])));
+        oldPeer = new Chord.NodeInfo(new Chord.Key(Long.parseLong(splitString[1])), new InetSocketAddress(splitAddressOld[0], Integer.parseInt(splitAddressOld[1])));
+        newPeer = new Chord.NodeInfo(new Chord.Key(Long.parseLong(splitString[3])), new InetSocketAddress(splitAddressNew[0], Integer.parseInt(splitAddressNew[1])));
         fingerIndex = Integer.parseInt(splitString[5]);
     }
 
-    public PeerInfo getOldPeerInfo(){
+    public Chord.NodeInfo getOldPeerInfo(){
         return oldPeer;
     }
 
-    public PeerInfo getNewPeerInfo(){
+    public Chord.NodeInfo getNewPeerInfo(){
         return newPeer;
     }
 
@@ -48,7 +47,7 @@ public class FingerRemoveMessage extends ChordMessage {
     }
 
     private static class FingerRemoveProcessor extends Processor {
-        FingerRemoveMessage message;
+        final FingerRemoveMessage message;
 
         public FingerRemoveProcessor(Chord chord, Socket socket, FingerRemoveMessage message){
             super(chord, socket);
@@ -58,9 +57,9 @@ public class FingerRemoveMessage extends ChordMessage {
         @Override
         public Void get() {
             try {
-                PeerInfo s  = getChord().getPeerInfo();
-                PeerInfo r  = message.getOldPeerInfo();
-                PeerInfo r_ = message.getNewPeerInfo();
+                Chord.NodeInfo s  = getChord().getPeerInfo();
+                Chord.NodeInfo r  = message.getOldPeerInfo();
+                Chord.NodeInfo r_ = message.getNewPeerInfo();
                 // Update fingers if necessary
                 int i = message.getFingerIndex();
                 boolean updatedFingers = false;

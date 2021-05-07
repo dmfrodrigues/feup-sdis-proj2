@@ -1,7 +1,6 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
-import sdis.PeerInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -10,11 +9,11 @@ import java.util.concurrent.CompletionException;
 
 public class FingerAddMessage extends ChordMessage {
 
-    private final PeerInfo peerInfo;
+    private final Chord.NodeInfo nodeInfo;
     private final int fingerIndex;
 
-    public FingerAddMessage(PeerInfo peerInfo, int fingerIdx){
-        this.peerInfo = peerInfo;
+    public FingerAddMessage(Chord.NodeInfo nodeInfo, int fingerIdx){
+        this.nodeInfo = nodeInfo;
         this.fingerIndex = fingerIdx;
     }
 
@@ -22,12 +21,12 @@ public class FingerAddMessage extends ChordMessage {
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         String[] splitAddress = splitString[2].split(":");
-        peerInfo = new PeerInfo(new Chord.Key(Long.parseLong(splitString[1])), new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1])));
+        nodeInfo = new Chord.NodeInfo(new Chord.Key(Long.parseLong(splitString[1])), new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1])));
         fingerIndex = Integer.parseInt(splitString[3]);
     }
 
-    public PeerInfo getPeerInfo(){
-        return peerInfo;
+    public Chord.NodeInfo getPeerInfo(){
+        return nodeInfo;
     }
 
     public int getFingerIndex(){
@@ -36,11 +35,11 @@ public class FingerAddMessage extends ChordMessage {
 
     @Override
     public String toString() {
-        return "FINGERADD " + peerInfo + " " + getFingerIndex();
+        return "FINGERADD " + nodeInfo + " " + getFingerIndex();
     }
 
     private static class FingerAddProcessor extends ChordMessage.Processor {
-        FingerAddMessage message;
+        final FingerAddMessage message;
 
         public FingerAddProcessor(Chord chord, Socket socket, FingerAddMessage message){
             super(chord, socket);
@@ -50,8 +49,8 @@ public class FingerAddMessage extends ChordMessage {
         @Override
         public Void get() {
             try {
-                PeerInfo s = getChord().getPeerInfo();
-                PeerInfo r = message.getPeerInfo();
+                Chord.NodeInfo s = getChord().getPeerInfo();
+                Chord.NodeInfo r = message.getPeerInfo();
                 // Update fingers if necessary
                 int i = message.getFingerIndex();
                 boolean updatedFingers = false;

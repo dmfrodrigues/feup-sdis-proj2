@@ -1,6 +1,5 @@
 package sdis.Modules.Chord;
 
-import sdis.PeerInfo;
 import sdis.Modules.Chord.Messages.FingerAddMessage;
 import sdis.Modules.ProtocolSupplier;
 
@@ -20,11 +19,11 @@ public class FingersAddProtocol extends ProtocolSupplier<Void> {
 
     @Override
     public Void get() {
-        CompletableFuture[] futureList = new CompletableFuture[chord.getKeySize()];
-        for(int i = 0; i < chord.getKeySize(); ++i){
+        CompletableFuture<?>[] futureList = new CompletableFuture[Chord.getKeySize()];
+        for(int i = 0; i < Chord.getKeySize(); ++i){
             Chord.Key k = chord.getKey().subtract(1L << i);
             int finalK = i;
-            CompletableFuture<PeerInfo> f = CompletableFuture.supplyAsync(
+            CompletableFuture<Chord.NodeInfo> f = CompletableFuture.supplyAsync(
                 new GetPredecessorProtocol(chord, k),
                 chord.getExecutor()
             )
@@ -33,7 +32,7 @@ public class FingersAddProtocol extends ProtocolSupplier<Void> {
                     Socket socket = chord.send(predecessor, new FingerAddMessage(chord.getPeerInfo(), finalK));
                     socket.shutdownOutput();
                     byte[] response = socket.getInputStream().readAllBytes();
-                    return new PeerInfo(response);
+                    return new Chord.NodeInfo(response);
                 } catch (IOException e) {
                     throw new CompletionException(e);
                 }

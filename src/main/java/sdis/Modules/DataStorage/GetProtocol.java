@@ -1,12 +1,8 @@
 package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.DataStorage.Messages.DeleteMessage;
 import sdis.Modules.DataStorage.Messages.GetMessage;
-import sdis.Modules.DataStorage.Messages.PutMessage;
 import sdis.Modules.ProtocolSupplier;
-import sdis.Peer;
-import sdis.PeerInfo;
 import sdis.UUID;
 
 import java.io.IOException;
@@ -17,23 +13,23 @@ import java.util.concurrent.ExecutionException;
 public class GetProtocol extends ProtocolSupplier<byte[]> {
 
     private final Chord chord;
+    private final DataStorage dataStorage;
     private final Chord.Key originalNodeKey;
     private final UUID id;
 
-    public GetProtocol(Chord chord, UUID id){
-        this(chord, chord.getKey(), id);
+    public GetProtocol(Chord chord, DataStorage dataStorage, UUID id){
+        this(chord, dataStorage, chord.getKey(), id);
     }
-    public GetProtocol(Chord chord, Chord.Key originalNodeKey, UUID id){
+    public GetProtocol(Chord chord, DataStorage dataStorage, Chord.Key originalNodeKey, UUID id){
         this.chord = chord;
+        this.dataStorage = dataStorage;
         this.originalNodeKey = originalNodeKey;
         this.id = id;
     }
 
     @Override
     public byte[] get() {
-        PeerInfo s = chord.getSuccessor();
-        Peer peer = chord.getPeer();
-        DataStorage dataStorage = peer.getDataStorage();
+        Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStored;
@@ -54,10 +50,13 @@ public class GetProtocol extends ProtocolSupplier<byte[]> {
             }
         }
 
-        boolean pointsToSuccessor = peer.getDataStorage().successorHasStored(id);
+        boolean pointsToSuccessor = dataStorage.successorHasStored(id);
         if(pointsToSuccessor){
             try {
-                Socket socket = chord.send(s, new GetMessage(chord.getKey(), id));
+                Socket socket = dataStorage.send(s.address, new GetMessage(originalNodeKey, id));
+                byte[] ret = socket.getInputStream().readAllBytes();
+                socket.close();
+                return ret;
             } catch (IOException e) {
                 throw new CompletionException(e);
             }

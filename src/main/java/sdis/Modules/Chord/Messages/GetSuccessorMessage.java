@@ -1,7 +1,6 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
-import sdis.PeerInfo;
 import sdis.Modules.Chord.GetSuccessorProtocol;
 
 import java.io.IOException;
@@ -37,9 +36,9 @@ public class GetSuccessorMessage extends ChordMessage {
         @Override
         public Void get() {
             GetSuccessorProtocol protocol = new GetSuccessorProtocol(getChord(), message.getKey());
-            PeerInfo peerInfo = protocol.get();
+            Chord.NodeInfo nodeInfo = protocol.get();
             try {
-                getSocket().getOutputStream().write(peerInfo.toString().getBytes());
+                getSocket().getOutputStream().write(nodeInfo.toString().getBytes());
                 getSocket().close();
             } catch (IOException e) {
                 throw new CompletionException(e);

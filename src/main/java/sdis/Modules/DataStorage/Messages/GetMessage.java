@@ -1,6 +1,7 @@
 package sdis.Modules.DataStorage.Messages;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetProtocol;
 import sdis.UUID;
 
@@ -8,10 +9,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class GetMessage extends DataSystemMessage {
+public class GetMessage extends DataStorageMessage {
 
-    private Chord.Key nodeKey;
-    private UUID id;
+    private final Chord.Key nodeKey;
+    private final UUID id;
 
     public GetMessage(Chord.Key nodeKey, UUID id){
         this.nodeKey = nodeKey;
@@ -35,14 +36,14 @@ public class GetMessage extends DataSystemMessage {
 
         private final GetMessage message;
 
-        public GetProcessor(Chord chord, Socket socket, GetMessage message){
-            super(chord, socket);
+        public GetProcessor(Chord chord, DataStorage dataStorage, Socket socket, GetMessage message){
+            super(chord, dataStorage, socket);
             this.message = message;
         }
 
         @Override
         public Void get() {
-            GetProtocol getProtocol = new GetProtocol(getChord(), message.getNodeKey(), message.getId());
+            GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.getNodeKey(), message.getId());
             byte[] data = getProtocol.get();
             try {
                 getSocket().getOutputStream().write(data);
@@ -55,7 +56,7 @@ public class GetMessage extends DataSystemMessage {
     }
 
     @Override
-    public GetProcessor getProcessor(Chord chord, Socket socket) {
-        return new GetProcessor(chord, socket, this);
+    public GetProcessor getProcessor(Chord chord, DataStorage dataStorage, Socket socket) {
+        return new GetProcessor(chord, dataStorage, socket, this);
     }
 }

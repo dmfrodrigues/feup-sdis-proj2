@@ -1,7 +1,6 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
-import sdis.PeerInfo;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -9,13 +8,13 @@ import java.util.concurrent.CompletionException;
 
 public class UpdatePredecessorMessage extends ChordMessage {
 
-    private final PeerInfo predecessor;
+    private final Chord.NodeInfo predecessor;
 
-    public UpdatePredecessorMessage(PeerInfo predecessor){
+    public UpdatePredecessorMessage(Chord.NodeInfo predecessor){
         this.predecessor = predecessor;
     }
 
-    private PeerInfo getPredecessor() {
+    private Chord.NodeInfo getPredecessor() {
         return predecessor;
     }
 

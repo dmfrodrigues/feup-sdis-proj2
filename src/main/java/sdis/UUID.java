@@ -3,7 +3,7 @@ package sdis;
 import sdis.Modules.Chord.Chord;
 
 public class UUID implements Comparable<UUID> {
-    private String s;
+    private final String s;
 
     public UUID(String s){
         this.s = s;

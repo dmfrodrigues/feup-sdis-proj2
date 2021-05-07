@@ -1,8 +1,6 @@
 package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.PeerInfo;
-import sdis.Peer;
 import sdis.Modules.DataStorage.Messages.DeleteMessage;
 import sdis.Modules.DataStorage.Messages.PutMessage;
 import sdis.Modules.ProtocolSupplier;
@@ -16,15 +14,17 @@ import java.util.concurrent.ExecutionException;
 public class PutProtocol extends ProtocolSupplier<Boolean> {
 
     private final Chord chord;
+    private final DataStorage dataStorage;
     private final Chord.Key originalNodeKey;
     private final UUID id;
     private final byte[] data;
 
-    public PutProtocol(Chord chord, UUID id, byte[] data){
-        this(chord, chord.getKey(), id, data);
+    public PutProtocol(Chord chord, DataStorage dataStorage, UUID id, byte[] data){
+        this(chord, dataStorage, chord.getKey(), id, data);
     }
-    public PutProtocol(Chord chord, Chord.Key originalNodeKey, UUID id, byte[] data){
+    public PutProtocol(Chord chord, DataStorage dataStorage, Chord.Key originalNodeKey, UUID id, byte[] data){
         this.chord = chord;
+        this.dataStorage = dataStorage;
         this.originalNodeKey = originalNodeKey;
         this.id = id;
         this.data = data;
@@ -32,16 +32,14 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
 
     @Override
     public Boolean get() {
-        PeerInfo r = chord.getPeerInfo();
-        PeerInfo s = chord.getSuccessor();
-        Peer peer = chord.getPeer();
-        DataStorage dataStorage = peer.getDataStorage();
+        Chord.NodeInfo r = chord.getPeerInfo();
+        Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         if(s.key == originalNodeKey) return false;
 
-        boolean hasStored = false;
-        boolean hasSpace = false;
+        boolean hasStored;
+        boolean hasSpace;
         try {
             hasStored = localDataStorage.has(id).get();
             hasSpace = localDataStorage.canPut(data.length).get();
@@ -54,13 +52,13 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
 
         // If r has not stored that datapiece and does not have space for another piece
         if(!hasStored && !hasSpace){
-            peer.getDataStorage().registerSuccessorStored(id);
+            dataStorage.registerSuccessorStored(id);
             try {
-                Socket socket = chord.send(s, new PutMessage(originalNodeKey, id, data));
+                Socket socket = dataStorage.send(s.address, new PutMessage(originalNodeKey, id, data));
                 socket.shutdownOutput();
                 boolean response = Boolean.parseBoolean(new String(socket.getInputStream().readAllBytes()));
                 if(!response) {
-                    peer.getDataStorage().unregisterSuccessorStored(id);
+                    dataStorage.unregisterSuccessorStored(id);
                 }
                 return response;
             } catch (IOException e) {
@@ -71,14 +69,14 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
         if(hasStored){
             return true;
         }
-        boolean pointsToSuccessor = peer.getDataStorage().successorHasStored(id);
+        boolean pointsToSuccessor = dataStorage.successorHasStored(id);
         // If r has not stored that chunk but has a pointer to its successor reporting that it might have stored
-        if(!hasStored && pointsToSuccessor){
+        if(pointsToSuccessor){
             // If it has space for that chunk
             if(hasSpace){
                 try {
-                    peer.getDataStorage().put(id, data).get();
-                    Socket socket = chord.send(s, new DeleteMessage(id));
+                    dataStorage.put(id, data).get();
+                    Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
                     socket.close();
                 } catch (InterruptedException | IOException e) {
                     throw new CompletionException(e);
@@ -88,11 +86,11 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
                 return true;
             } else { // If it does not have space for that chunk
                 try {
-                    Socket socket = chord.send(s, new PutMessage(originalNodeKey, id, data));
+                    Socket socket = dataStorage.send(s.address, new PutMessage(originalNodeKey, id, data));
                     socket.shutdownOutput();
                     boolean response = Boolean.parseBoolean(new String(socket.getInputStream().readAllBytes()));
                     if (!response) {
-                        peer.getDataStorage().unregisterSuccessorStored(id);
+                        dataStorage.unregisterSuccessorStored(id);
                     }
                     return response;
                 } catch (IOException e) {
@@ -101,6 +99,6 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
             }
         }
 
-        return true;
+        return false;
     }
 }

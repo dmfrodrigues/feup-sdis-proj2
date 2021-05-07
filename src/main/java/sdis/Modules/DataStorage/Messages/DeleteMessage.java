@@ -1,14 +1,15 @@
 package sdis.Modules.DataStorage.Messages;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.DeleteProtocol;
 import sdis.UUID;
 
 import java.net.Socket;
 
-public class DeleteMessage extends DataSystemMessage {
+public class DeleteMessage extends DataStorageMessage {
 
-    private UUID id;
+    private final UUID id;
 
     public DeleteMessage(UUID id){
         this.id = id;
@@ -27,21 +28,21 @@ public class DeleteMessage extends DataSystemMessage {
 
         private final DeleteMessage message;
 
-        public DeleteProcessor(Chord chord, Socket socket, DeleteMessage message){
-            super(chord, socket);
+        public DeleteProcessor(Chord chord, DataStorage dataStorage, Socket socket, DeleteMessage message){
+            super(chord, dataStorage, socket);
             this.message = message;
         }
 
         @Override
         public Void get() {
-            DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), message.getId());
+            DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.getId());
             deleteProtocol.get();
             return null;
         }
     }
 
     @Override
-    public DeleteProcessor getProcessor(Chord chord, Socket socket) {
-        return new DeleteProcessor(chord, socket, this);
+    public DeleteProcessor getProcessor(Chord chord, DataStorage dataStorage, Socket socket) {
+        return new DeleteProcessor(chord, dataStorage, socket, this);
     }
 }
