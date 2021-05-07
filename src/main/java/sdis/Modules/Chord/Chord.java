@@ -173,7 +173,7 @@ public class Chord {
     public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());
         OutputStream os = socket.getOutputStream();
-        os.write(m.toString().getBytes());
+        os.write(m.asByteArray());
         os.flush();
         return socket;
     }
