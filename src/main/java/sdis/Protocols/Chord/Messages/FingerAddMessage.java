@@ -1,6 +1,6 @@
 package sdis.Protocols.Chord.Messages;
 
-import sdis.Chord;
+import sdis.Protocols.Chord.Chord;
 import sdis.PeerInfo;
 
 import java.io.IOException;

@@ -1,6 +1,5 @@
 package sdis.Protocols.Chord;
 
-import sdis.Chord;
 import sdis.PeerInfo;
 import sdis.Protocols.Chord.Messages.GetPredecessorMessage;
 import sdis.Protocols.ProtocolSupplier;

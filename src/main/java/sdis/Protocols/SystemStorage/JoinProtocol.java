@@ -1,6 +1,6 @@
 package sdis.Protocols.SystemStorage;
 
-import sdis.Chord;
+import sdis.Protocols.Chord.Chord;
 import sdis.Peer;
 import sdis.PeerInfo;
 import sdis.Protocols.Chord.FingersAddProtocol;

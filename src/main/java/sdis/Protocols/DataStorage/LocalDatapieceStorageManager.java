@@ -1,4 +1,4 @@
-package sdis.Storage;
+package sdis.Protocols.DataStorage;
 
 import sdis.Peer;
 
@@ -21,14 +21,14 @@ import java.util.concurrent.Future;
  *
  * There should be at most one instance of this class.
  */
-public class DatapieceStorageManager {
+public class LocalDatapieceStorageManager extends DatapieceStorageManager {
     private static final int BUFFER_SIZE = 80000;
 
     private Peer peer;
     private int capacity;
     private final String storagePath;
 
-    public DatapieceStorageManager(Peer peer, String storagePath, int capacity){
+    public LocalDatapieceStorageManager(Peer peer, String storagePath, int capacity){
         this.peer = peer;
         this.storagePath = storagePath;
         this.capacity = capacity;
@@ -65,6 +65,7 @@ public class DatapieceStorageManager {
      *
      * @return List of IDs of stored datapieces
      */
+    @Override
     public List<String> getDatapieces(){
         File storage = new File(storagePath);
         return Arrays.asList(Objects.requireNonNull(storage.list()));
@@ -83,6 +84,10 @@ public class DatapieceStorageManager {
         return size;
     }
 
+    public boolean canSaveDatapiece(int length){
+        return getMemoryUsed() + length > getCapacity();
+    }
+
     /**
      * @brief Saves a data piece in the backup directory.
      *
@@ -90,8 +95,9 @@ public class DatapieceStorageManager {
      * @param data Byte array to be stored.
      * @return true if successful, false otherwise.
      **/
+    @Override
     public boolean saveDatapiece(String id, byte[] data) throws IOException {
-        if(getMemoryUsed() + data.length > getCapacity()) return false;
+        if(!canSaveDatapiece(data.length)) return false;
         ByteBuffer buffer = ByteBuffer.wrap(data);
         AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(storagePath + "/" + id), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         try {
@@ -103,11 +109,13 @@ public class DatapieceStorageManager {
         return true;
     }
 
+    @Override
     public boolean hasDatapiece(String id){
         File file = new File(storagePath + "/" + id);
         return file.canRead();
     }
 
+    @Override
     public CompletableFuture<byte[]> getDatapiece(String id) throws IOException {
         if(!hasDatapiece(id)) throw new IOException("Could not find that datapiece " + id);
 
@@ -133,6 +141,7 @@ public class DatapieceStorageManager {
      *
      * @param id    data piece identifier
      */
+    @Override
     public void deleteDatapiece(String id){
         File datapiece = new File(storagePath + "/" + id);
         datapiece.delete();

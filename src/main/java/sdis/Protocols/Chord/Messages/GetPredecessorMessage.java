@@ -1,6 +1,6 @@
 package sdis.Protocols.Chord.Messages;
 
-import sdis.Chord;
+import sdis.Protocols.Chord.Chord;
 
 import java.io.IOException;
 import java.net.Socket;

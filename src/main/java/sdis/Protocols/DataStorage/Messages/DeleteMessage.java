@@ -1,6 +1,6 @@
 package sdis.Protocols.DataStorage.Messages;
 
-import sdis.Chord;
+import sdis.Protocols.Chord.Chord;
 import sdis.Protocols.DataStorage.DeleteProtocol;
 
 import java.net.Socket;

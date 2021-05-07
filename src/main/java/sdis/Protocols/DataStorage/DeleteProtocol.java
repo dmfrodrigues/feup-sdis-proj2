@@ -1,6 +1,6 @@
 package sdis.Protocols.DataStorage;
 
-import sdis.Chord;
+import sdis.Protocols.Chord.Chord;
 import sdis.PeerInfo;
 import sdis.Protocols.DataStorage.Messages.DeleteMessage;
 import sdis.Protocols.ProtocolSupplier;

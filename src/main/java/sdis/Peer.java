@@ -6,8 +6,9 @@ import sdis.Protocols.Main.BackupFileProtocol;
 import sdis.Protocols.Main.DeleteFileProtocol;
 import sdis.Protocols.Main.RestoreFileProtocol;
 */
-import sdis.Storage.DatapieceStorageManager;
-import sdis.Storage.FileTable;
+import sdis.Protocols.Chord.Chord;
+import sdis.Protocols.DataStorage.LocalDatapieceStorageManager;
+import sdis.Protocols.DataStorage.GlobalDatapieceStorageManager;
 
 import java.io.IOException;
 import java.net.*;
@@ -31,8 +32,8 @@ public class Peer implements PeerInterface {
     private final InetSocketAddress address;
     private final ServerSocket serverSocket;
 
-    private final FileTable fileTable;
-    private final DatapieceStorageManager storageManager;
+    private final GlobalDatapieceStorageManager globalDatapieceStorageManager;
+    private final LocalDatapieceStorageManager storageManager;
 
     private final Random random = new Random(System.currentTimeMillis());
 
@@ -55,10 +56,10 @@ public class Peer implements PeerInterface {
 
         // Initialize storage space
         String storagePath = id + "/storage/data";
-        storageManager = new DatapieceStorageManager(this, storagePath, INITIAL_STORAGE_SIZE);
+        storageManager = new LocalDatapieceStorageManager(this, storagePath, INITIAL_STORAGE_SIZE);
 
-        fileTable = new FileTable("../build/"+id);
-        fileTable.load();
+        globalDatapieceStorageManager = new GlobalDatapieceStorageManager("../build/"+id);
+        globalDatapieceStorageManager.load();
 
         chord = new Chord(this, 62, id);
     }
@@ -111,12 +112,12 @@ public class Peer implements PeerInterface {
         return address;
     }
 
-    public DatapieceStorageManager getStorageManager() {
+    public LocalDatapieceStorageManager getStorageManager() {
         return storageManager;
     }
 
-    public FileTable getFileTable() {
-        return fileTable;
+    public GlobalDatapieceStorageManager getFileTable() {
+        return globalDatapieceStorageManager;
     }
 
     /**

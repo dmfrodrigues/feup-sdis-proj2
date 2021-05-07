@@ -1,6 +1,6 @@
 package sdis.Protocols.Chord.Messages;
 
-import sdis.Chord;
+import sdis.Protocols.Chord.Chord;
 
 import java.net.Socket;
 import java.util.function.Supplier;
