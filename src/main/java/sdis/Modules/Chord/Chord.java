@@ -1,5 +1,7 @@
 package sdis.Modules.Chord;
 
+import sdis.Modules.Chord.Messages.GetSuccessorMessage;
+import sdis.Modules.ProtocolSupplier;
 import sdis.Peer;
 import sdis.PeerInfo;
 import sdis.Modules.Chord.Messages.ChordMessage;
@@ -8,14 +10,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public class Chord {
-    public static class Key implements Comparable<Key>{
+    public static class Key {
         private final long k;
 
         public Key(long k){
             this.k = k % Chord.getMod();
+        }
+
+        public long toLong(){
+            return k;
         }
 
         public Key add(long l) {
@@ -31,12 +39,20 @@ public class Chord {
         }
 
         @Override
-        public int compareTo(Key key) {
-            return Long.compare(k, key.k);
+        public String toString(){
+            return Long.toString(k);
+        }
+
+        @Override
+        public boolean equals(Object o){
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Key key = (Key) o;
+            return Objects.equals(k, key.k);
         }
     }
 
-    private final static int m = 62;
+    private static int m = 30;
 
     private final Peer peer;
     private final Executor executor;
@@ -79,6 +95,15 @@ public class Chord {
         return getFinger(0);
     }
 
+    public CompletableFuture<PeerInfo> getSuccessor(Chord.Key key){
+        GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(this, key);
+        return CompletableFuture.supplyAsync(getSuccessorProtocol, getExecutor());
+    }
+
+    public static void setKeySize(int i) {
+        m = i;
+    }
+
     public static int getKeySize() {
         return m;
     }
@@ -87,6 +112,32 @@ public class Chord {
         return (1L << getKeySize());
     }
 
+    /**
+     * @brief Create a new chord system.
+     *
+     * @return Future that will resolve when join is complete.
+     */
+    public CompletableFuture<Void> join(){
+        return CompletableFuture.runAsync(() -> {
+            PeerInfo peerInfo = getPeerInfo();
+            setPredecessor(peerInfo);
+            for(int i = 0; i < getKeySize(); ++i){
+                setFinger(i, peerInfo);
+            }
+        }, getExecutor());
+    }
+
+    /**
+     * @brief Join an existing chord system.
+     *
+     * @param gateway
+     * @param moveKeys
+     * @return
+     */
+    public CompletableFuture<Void> join(InetSocketAddress gateway, ProtocolSupplier<Void> moveKeys) {
+        JoinProtocol joinProtocol = new JoinProtocol(peer, gateway, moveKeys);
+        return CompletableFuture.supplyAsync(joinProtocol, getExecutor());
+    }
 
     public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());

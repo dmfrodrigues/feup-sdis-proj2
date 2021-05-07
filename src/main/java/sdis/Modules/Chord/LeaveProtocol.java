@@ -1,10 +1,7 @@
-package sdis.Modules.SystemStorage;
+package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Chord;
-import sdis.Peer;
-import sdis.Modules.Chord.FingersRemoveProtocol;
-import sdis.Modules.Chord.UpdatePredecessorProtocol;
 import sdis.Modules.ProtocolSupplier;
+import sdis.Peer;
 
 public class LeaveProtocol extends ProtocolSupplier<Void> {
     private final Peer peer;

@@ -21,19 +21,40 @@ public class GetSuccessorProtocol extends ProtocolSupplier<PeerInfo> {
 
     @Override
     public PeerInfo get() {
-        if(chord.getPredecessor().key.compareTo(key) < 0 && key.compareTo(chord.getKey()) <= 0)
-            return chord.getPeerInfo();
+        PeerInfo r = chord.getPeerInfo();
+        PeerInfo p = chord.getPredecessor();
+
+        // If r is the only node in the system
+        if(p.equals(r))
+            return r;
+
+        if(
+            chord.distance(p.key, key) <=
+            chord.distance(p.key, r.key)
+        )
+            return r;
+
+        System.out.println("L27");
 
         long d = chord.distance(chord.getKey(), key);
-        int i = Utils.log2(d);
+        int i = (d == 0 ? 0 : Utils.log2(d));
+
+
         PeerInfo r_ = chord.getFinger(i);
 
         try {
-            Socket socket = chord.send(r_, new GetSuccessorMessage(key));
-            socket.shutdownOutput();
+            PeerInfo ret;
+            if(r_.equals(r)){
+                GetSuccessorProtocol newGetSuccessorProtocol = new GetSuccessorProtocol(chord, key);
+                ret = newGetSuccessorProtocol.get();
+            } else {
+                Socket socket = chord.send(r_, new GetSuccessorMessage(key));
+                socket.shutdownOutput();
 
-            byte[] response = socket.getInputStream().readAllBytes();
-            return new PeerInfo(response);
+                byte[] response = socket.getInputStream().readAllBytes();
+                ret = new PeerInfo(response);
+            }
+            return ret;
         } catch (IOException e) {
             e.printStackTrace();
         }

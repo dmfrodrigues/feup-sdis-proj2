@@ -8,6 +8,7 @@ import sdis.Protocols.Main.RestoreFileProtocol;
 */
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
+import sdis.Modules.ProtocolSupplier;
 
 import java.io.IOException;
 import java.net.*;
@@ -21,37 +22,32 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class Peer implements PeerInterface {
-    private final Chord.Key id;
-
-    private final InetSocketAddress address;
-    private final ServerSocket serverSocket;
-
-    private final DataStorage dataStorage;
-
     private final Random random = new Random(System.currentTimeMillis());
 
+    private final Chord.Key id;
+    private final InetSocketAddress socketAddress;
+    private final ServerSocket serverSocket;
     private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(100);
     private final Chord chord;
+    private final DataStorage dataStorage;
 
-    public Peer(
-        Chord.Key id,
-        InetSocketAddress address
-    ) throws IOException {
+
+    public Peer(Chord.Key id, InetAddress ipAddress) throws IOException {
         // Store arguments
         this.id = id;
-        this.address = address;
+
+        serverSocket = new ServerSocket();
+        serverSocket.bind(null);
+        socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
+
         System.out.println(
             "Starting peer " + this.id +
-            " with address " + this.address.getAddress().getHostAddress() + ":" + this.address.getPort()
+            " with address " + getSocketAddress().getAddress().getHostAddress() + ":" + getSocketAddress().getPort()
         );
 
-        serverSocket = new ServerSocket(address.getPort());
-
-        // Initialize storage space
         String storagePath = id + "/storage/data";
-        dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
-
         chord = new Chord(this, getExecutor(), id);
+        dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
     }
 
     public static class CleanupRemoteObjectRunnable implements Runnable {
@@ -82,6 +78,23 @@ public class Peer implements PeerInterface {
         Runtime.getRuntime().addShutdownHook(rmiCleanupThread);
     }
 
+    public void join(){
+        System.out.println("Peer " + getKey() + " creating a new chord");
+
+        getChord().join();
+    }
+
+    public void join(InetSocketAddress gateway){
+        System.out.println("Peer " + getKey() + " joining a chord");
+
+        getChord().join(gateway, new ProtocolSupplier<>() {
+            @Override
+            public Void get() {
+                return null;
+            }
+        });
+    }
+
     public Chord getChord() {
         return chord;
     }
@@ -99,7 +112,7 @@ public class Peer implements PeerInterface {
     }
 
     public InetSocketAddress getSocketAddress() {
-        return address;
+        return socketAddress;
     }
 
     public DataStorage getDataStorage() {
