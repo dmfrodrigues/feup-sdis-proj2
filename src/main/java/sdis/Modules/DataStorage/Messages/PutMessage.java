@@ -6,6 +6,7 @@ import sdis.Modules.DataStorage.PutProtocol;
 import sdis.Peer;
 import sdis.UUID;
 import sdis.Utils.DataBuilder;
+import sdis.Utils.Utils;
 
 import java.net.Socket;
 
@@ -19,6 +20,18 @@ public class PutMessage extends DataStorageMessage {
         this.nodeKey = nodeKey;
         this.id = id;
         this.data = data;
+    }
+
+    public PutMessage(byte[] data){
+        int headerSize = Utils.find_nth(data, "\n".getBytes(), 1);
+        String dataString = new String(data, 0, headerSize);
+        String[] splitString = dataString.split(" ");
+        nodeKey = new Chord.Key(Long.parseLong(splitString[1]));
+        id = new UUID(splitString[2]);
+
+        int dataOffset = headerSize+1;
+        this.data = new byte[data.length - dataOffset];
+        System.arraycopy(data, dataOffset, this.data, 0, this.data.length);
     }
 
     private Chord.Key getNodeKey() {

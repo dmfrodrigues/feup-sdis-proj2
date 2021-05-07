@@ -23,7 +23,13 @@ public class FingerAddMessage extends ChordMessage {
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         String[] splitAddress = splitString[2].split(":");
-        nodeInfo = new Chord.NodeInfo(new Chord.Key(Long.parseLong(splitString[1])), new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1])));
+        nodeInfo = new Chord.NodeInfo(
+            new Chord.Key(Long.parseLong(splitString[1])),
+            new InetSocketAddress(
+                splitAddress[0],
+                Integer.parseInt(splitAddress[1])
+            )
+        );
         fingerIndex = Integer.parseInt(splitString[3]);
     }
 

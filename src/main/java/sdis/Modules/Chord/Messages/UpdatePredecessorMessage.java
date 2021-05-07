@@ -5,6 +5,7 @@ import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
@@ -14,6 +15,19 @@ public class UpdatePredecessorMessage extends ChordMessage {
 
     public UpdatePredecessorMessage(Chord.NodeInfo predecessor){
         this.predecessor = predecessor;
+    }
+
+    public UpdatePredecessorMessage(byte[] data){
+        String dataString = new String(data);
+        String[] splitString = dataString.split(" ");
+        String[] splitAddress = splitString[2].split(":");
+        predecessor = new Chord.NodeInfo(
+            new Chord.Key(Long.parseLong(splitString[1])),
+            new InetSocketAddress(
+                splitAddress[0],
+                Integer.parseInt(splitAddress[1])
+            )
+        );
     }
 
     private Chord.NodeInfo getPredecessor() {

@@ -7,6 +7,7 @@ import sdis.Peer;
 import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class DeleteMessage extends DataStorageMessage {
@@ -15,6 +16,12 @@ public class DeleteMessage extends DataStorageMessage {
 
     public DeleteMessage(UUID id){
         this.id = id;
+    }
+
+    public DeleteMessage(byte[] data){
+        String dataString = new String(data);
+        String[] splitString = dataString.split(" ");
+        id = new UUID(splitString[1]);
     }
 
     private UUID getId() {
