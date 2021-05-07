@@ -1,12 +1,14 @@
 package sdis;
 
+import sdis.Modules.Chord.Chord;
+
 import java.net.InetSocketAddress;
 
 public class PeerInfo {
-    public long key;
+    public Chord.Key key;
     public InetSocketAddress address;
 
-    public PeerInfo(long key, InetSocketAddress address){
+    public PeerInfo(Chord.Key key, InetSocketAddress address){
         this.key = key;
         this.address = address;
     }
@@ -14,7 +16,7 @@ public class PeerInfo {
     public PeerInfo(byte[] data) {
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
-        key = Long.parseLong(splitString[0]);
+        key = new Chord.Key(Long.parseLong(splitString[0]));
         String[] splitAddress = splitString[1].split(":");
         address = new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1]));
     }

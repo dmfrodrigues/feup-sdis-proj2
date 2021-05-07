@@ -6,9 +6,8 @@ import sdis.Protocols.Main.BackupFileProtocol;
 import sdis.Protocols.Main.DeleteFileProtocol;
 import sdis.Protocols.Main.RestoreFileProtocol;
 */
-import sdis.Protocols.Chord.Chord;
-import sdis.Protocols.DataStorage.LocalDatapieceStorageManager;
-import sdis.Protocols.DataStorage.GlobalDatapieceStorageManager;
+import sdis.Modules.Chord.Chord;
+import sdis.Modules.DataStorage.DataStorage;
 
 import java.io.IOException;
 import java.net.*;
@@ -22,18 +21,12 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class Peer implements PeerInterface {
-    /**
-     * Initially reserved storage for backing up chunks (in bytes).
-     */
-    private static final int INITIAL_STORAGE_SIZE = 1000000000;
-
-    private final long id;
+    private final Chord.Key id;
 
     private final InetSocketAddress address;
     private final ServerSocket serverSocket;
 
-    private final GlobalDatapieceStorageManager globalDatapieceStorageManager;
-    private final LocalDatapieceStorageManager storageManager;
+    private final DataStorage dataStorage;
 
     private final Random random = new Random(System.currentTimeMillis());
 
@@ -41,7 +34,7 @@ public class Peer implements PeerInterface {
     private final Chord chord;
 
     public Peer(
-        long id,
+        Chord.Key id,
         InetSocketAddress address
     ) throws IOException {
         // Store arguments
@@ -56,12 +49,9 @@ public class Peer implements PeerInterface {
 
         // Initialize storage space
         String storagePath = id + "/storage/data";
-        storageManager = new LocalDatapieceStorageManager(this, storagePath, INITIAL_STORAGE_SIZE);
+        dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
 
-        globalDatapieceStorageManager = new GlobalDatapieceStorageManager("../build/"+id);
-        globalDatapieceStorageManager.load();
-
-        chord = new Chord(this, 62, id);
+        chord = new Chord(this, getExecutor(), id);
     }
 
     public static class CleanupRemoteObjectRunnable implements Runnable {
@@ -104,7 +94,7 @@ public class Peer implements PeerInterface {
         return executor;
     }
 
-    public long getId() {
+    public Chord.Key getKey() {
         return id;
     }
 
@@ -112,12 +102,8 @@ public class Peer implements PeerInterface {
         return address;
     }
 
-    public LocalDatapieceStorageManager getStorageManager() {
-        return storageManager;
-    }
-
-    public GlobalDatapieceStorageManager getFileTable() {
-        return globalDatapieceStorageManager;
+    public DataStorage getDataStorage() {
+        return dataStorage;
     }
 
     /**

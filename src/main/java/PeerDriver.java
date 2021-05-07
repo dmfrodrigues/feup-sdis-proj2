@@ -1,3 +1,4 @@
+import sdis.Modules.Chord.Chord;
 import sdis.Peer;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ public class PeerDriver {
         String serviceAccessPoint = args[1];
 
         Peer peer = new Peer(
-            Long.parseLong(args[0]),
+            new Chord.Key(Long.parseLong(args[0])),
             new InetSocketAddress(args[2], Integer.parseInt(args[3]))
         );
 
