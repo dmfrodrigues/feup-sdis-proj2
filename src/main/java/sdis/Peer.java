@@ -8,6 +8,7 @@ import sdis.Protocols.Main.RestoreFileProtocol;
 */
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
+import sdis.Modules.Message;
 import sdis.Modules.ProtocolSupplier;
 
 import java.io.IOException;
@@ -31,9 +32,9 @@ public class Peer implements PeerInterface {
     private final Chord chord;
     private final DataStorage dataStorage;
 
+    private final ServerSocketHandler serverSocketHandler;
 
     public Peer(Chord.Key id, InetAddress ipAddress) throws IOException {
-        // Store arguments
         this.id = id;
 
         serverSocket = new ServerSocket();
@@ -42,12 +43,16 @@ public class Peer implements PeerInterface {
 
         System.out.println(
             "Starting peer " + this.id +
-            " with address " + getSocketAddress().getAddress().getHostAddress() + ":" + getSocketAddress().getPort()
+            " with address " + getSocketAddress()
         );
 
         String storagePath = id + "/storage/data";
         chord = new Chord(getSocketAddress(), getExecutor(), id);
         dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
+
+        serverSocketHandler = new ServerSocketHandler(this, serverSocket);
+        Thread serverSocketHandlerThread = new Thread(serverSocketHandler);
+        serverSocketHandlerThread.start();
     }
 
     public static class CleanupRemoteObjectRunnable implements Runnable {
@@ -78,16 +83,16 @@ public class Peer implements PeerInterface {
         Runtime.getRuntime().addShutdownHook(rmiCleanupThread);
     }
 
-    public void join(){
+    public CompletableFuture<Void> join(){
         System.out.println("Peer " + getKey() + " creating a new chord");
 
-        getChord().join();
+        return getChord().join();
     }
 
-    public void join(InetSocketAddress gateway){
+    public CompletableFuture<Void> join(InetSocketAddress gateway){
         System.out.println("Peer " + getKey() + " joining a chord");
 
-        getChord().join(gateway, new ProtocolSupplier<>() {
+        return getChord().join(gateway, new ProtocolSupplier<>() {
             @Override
             public Void get() {
                 return null;
@@ -177,5 +182,49 @@ public class Peer implements PeerInterface {
         ReclaimProtocol callable = new ReclaimProtocol(this, space_kb);
         executor.submit(callable);
          */
+    }
+
+    public static class ServerSocketHandler implements Runnable {
+        private static final int BUFFER_LENGTH = 80000;
+
+        private final Peer peer;
+        private final ServerSocket serverSocket;
+
+        private final MessageFactory messageFactory;
+
+        public ServerSocketHandler(Peer peer, ServerSocket serverSocket) {
+            this.peer = peer;
+            this.serverSocket = serverSocket;
+
+            messageFactory = new MessageFactory();
+        }
+
+        public ServerSocket getServerSocket() {
+            return serverSocket;
+        }
+
+        public Peer getPeer() {
+            return peer;
+        }
+
+        @Override
+        public void run() {
+            byte[] buf = new byte[BUFFER_LENGTH];
+            DatagramPacket packet = new DatagramPacket(buf, buf.length);
+            while (true) {
+                try {
+                    // System.out.println("Peer " + peer.getKey() + " waiting for message");
+                    Socket socket = serverSocket.accept();
+                    byte[] data = socket.getInputStream().readAllBytes();
+                    // System.out.println("Peer " + peer.getKey() + " got message " + new String(data));
+                    Message message = messageFactory.factoryMethod(data);
+                    Message.Processor processor = message.getProcessor(peer, socket);
+                    processor.get();
+                    // System.out.println("Peer " + peer.getKey() + " processed message " + new String(data));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

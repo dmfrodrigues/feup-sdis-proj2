@@ -14,6 +14,7 @@ public class MessageFactory {
 
     public Message factoryMethod(byte[] b) throws ClassNotFoundException {
         int i = Utils.find_nth(b, " ".getBytes(), 1);
+        if(i == -1) i = b.length;
         byte[] start = new byte[i];
         System.arraycopy(b, 0, start, 0, i);
         String startStr = new String(start);

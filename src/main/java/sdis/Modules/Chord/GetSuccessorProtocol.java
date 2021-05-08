@@ -32,8 +32,6 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
         )
             return r;
 
-        System.out.println("L27");
-
         long d = chord.distance(chord.getKey(), key);
         int i = (d == 0 ? 0 : Utils.log2(d));
 

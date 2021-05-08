@@ -31,7 +31,7 @@ public class TestChord {
         Chord.setKeySize(8);
 
         Peer peer1 = new Peer(new Chord.Key(0), InetAddress.getByName("localhost"));
-        peer1.join();
+        peer1.join().get();
 
         Chord chord = peer1.getChord();
 
@@ -50,7 +50,7 @@ public class TestChord {
         Chord.setKeySize(8);
 
         Peer peer1 = new Peer(new Chord.Key(0), InetAddress.getByName("localhost"));
-        peer1.join();
+        peer1.join().get();
 
         long[] peers = new long[]{0};
 
@@ -64,11 +64,11 @@ public class TestChord {
         Chord.setKeySize(8);
 
         Peer peer1 = new Peer(new Chord.Key(0), InetAddress.getByName("localhost"));
-        peer1.join();
+        peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
         Peer peer2 = new Peer(new Chord.Key(10), InetAddress.getByName("localhost"));
-        peer2.join(addressPeer1);
+        peer2.join(addressPeer1).get();
 
         Chord chord = peer1.getChord();
 
@@ -98,11 +98,11 @@ public class TestChord {
         Chord.setKeySize(8);
 
         Peer peer1 = new Peer(new Chord.Key(0), InetAddress.getByName("localhost"));
-        peer1.join();
+        peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
         Peer peer2 = new Peer(new Chord.Key(10), InetAddress.getByName("localhost"));
-        peer2.join(addressPeer1);
+        peer2.join(addressPeer1).get();
 
         long[] peers = new long[]{0, 10};
 

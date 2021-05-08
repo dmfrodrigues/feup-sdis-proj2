@@ -1,6 +1,20 @@
 package sdis.Utils;
 
 public class Utils {
+
+    /**
+     * @brief Find n-th occurence of a string (needle) in another string (haystack).
+     *
+     * If n=1, this function finds the first occurence.
+     *
+     * It returns the index of the first character of the haystack where it matches the needle.
+     * If a solution is not found, -1 is returned.
+     *
+     * @param haystack  String to search in
+     * @param needle    String to search for
+     * @param n         Number of the occurence.
+     * @return
+     */
     static public int find_nth(byte[] haystack, byte[] needle, int n){
         for(int i = 0; i+needle.length <= haystack.length; ++i){
             boolean occurs = true;

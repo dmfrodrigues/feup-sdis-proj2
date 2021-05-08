@@ -23,16 +23,16 @@ public class FingersAddProtocol extends ProtocolSupplier<Void> {
         for(int i = 0; i < Chord.getKeySize(); ++i){
             Chord.Key k = chord.getKey().subtract(1L << i);
             int finalK = i;
-            CompletableFuture<Chord.NodeInfo> f = CompletableFuture.supplyAsync(
+            CompletableFuture<Void> f = CompletableFuture.supplyAsync(
                 new GetPredecessorProtocol(chord, k),
                 chord.getExecutor()
             )
             .thenApplyAsync(predecessor -> {
                 try {
                     Socket socket = chord.send(predecessor, new FingerAddMessage(chord.getPeerInfo(), finalK));
-                    socket.shutdownOutput();
-                    byte[] response = socket.getInputStream().readAllBytes();
-                    return new Chord.NodeInfo(response);
+                    socket.getInputStream().readAllBytes();
+                    socket.close();
+                    return null;
                 } catch (IOException e) {
                     throw new CompletionException(e);
                 }

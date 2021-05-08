@@ -29,6 +29,7 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
             Chord.Key k = r.add(1L << i);
             try {
                 Socket socket = chord.send(g, new GetSuccessorMessage(k));
+                socket.shutdownOutput();
                 byte[] response = socket.getInputStream().readAllBytes();
                 Chord.NodeInfo s = new Chord.NodeInfo(response);
                 chord.setFinger(i, s);
@@ -37,7 +38,7 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
             }
         }
         // Get predecessor
-        GetPredecessorProtocol getPredecessorProtocol = new GetPredecessorProtocol(chord, chord.getKey());
+        GetPredecessorProtocol getPredecessorProtocol = new GetPredecessorProtocol(chord, chord.getSuccessor().address);
         Chord.NodeInfo predecessor = getPredecessorProtocol.get();
         chord.setPredecessor(predecessor);
 
