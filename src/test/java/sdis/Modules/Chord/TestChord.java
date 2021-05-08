@@ -88,6 +88,8 @@ public class TestChord {
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
         peer2.join(addressPeer1).get();
 
+        sleep(1000);
+
         Chord chord1 = peer1.getChord();
 
         assertEquals(10, chord1.getPredecessor().key.toLong());

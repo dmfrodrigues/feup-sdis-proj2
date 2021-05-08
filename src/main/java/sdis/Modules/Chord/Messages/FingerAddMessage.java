@@ -61,6 +61,7 @@ public class FingerAddMessage extends ChordMessage {
                 // System.out.println("        Peer " + chord.getKey() + " is processing FINGERADD");
                 Chord.NodeInfo s = chord.getNodeInfo();
                 Chord.NodeInfo r = message.getPeerInfo();
+                Chord.NodeInfo p = chord.getPredecessor();
                 // Update fingers if necessary
                 int i = message.getFingerIndex();
                 boolean updatedFingers = false;
@@ -74,7 +75,7 @@ public class FingerAddMessage extends ChordMessage {
                 // If at least one finger was updated, redirect to predecessor
                 if(updatedFingers){
                     // System.out.println("        Peer " + chord.getKey() + " updated fingers");
-                    chord.send(chord.getPredecessor(), message);
+                    chord.send(p, message);
                 } else {
                     // System.out.println("        Peer " + chord.getKey() + " did not update any fingers");
                 }
