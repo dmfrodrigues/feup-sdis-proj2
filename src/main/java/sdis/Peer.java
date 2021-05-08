@@ -56,23 +56,6 @@ public class Peer implements PeerInterface {
         serverSocketHandlerThread.start();
     }
 
-    public static class CleanupRemoteObjectRunnable implements Runnable {
-        private final String remoteObjName;
-
-        public CleanupRemoteObjectRunnable(String remoteObjName) {
-            this.remoteObjName = remoteObjName;
-        }
-
-        @Override
-        public void run() {
-            try {
-                Registry registry = LocateRegistry.getRegistry();
-                registry.unbind(remoteObjName);
-            } catch (RemoteException | NotBoundException e) {
-                e.printStackTrace();
-            }
-        }
-    }
     public void bindAsRemoteObject(String remoteObjName) throws RemoteException, AlreadyBoundException {
         PeerInterface stub = (PeerInterface) UnicastRemoteObject.exportObject(this, 0);
 
@@ -215,8 +198,7 @@ public class Peer implements PeerInterface {
         @Override
         public void run() {
             byte[] buf = new byte[BUFFER_LENGTH];
-            DatagramPacket packet = new DatagramPacket(buf, buf.length);
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Socket socket = serverSocket.accept();
                     InputStream is = socket.getInputStream();
