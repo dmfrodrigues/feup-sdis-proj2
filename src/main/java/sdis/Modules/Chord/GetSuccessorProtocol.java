@@ -53,7 +53,7 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
                 byte[] response = socket.getInputStream().readAllBytes();
                 socket.close();
                 ret = chord.newNodeInfo(response);
-                System.out.println("    Peer " + chord.getKey() + "\t got response to " + new String(m.asByteArray()));
+                // System.out.println("    Peer " + chord.getKey() + "\t got response to " + new String(m.asByteArray()));
             }
             return ret;
         } catch (IOException e) {

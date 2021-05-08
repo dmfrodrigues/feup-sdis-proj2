@@ -216,7 +216,8 @@ public class Peer implements PeerInterface {
                     System.out.println("    Peer " + peer.getKey() + " waiting for message");
                     Socket socket = serverSocket.accept();
                     System.out.println("    Peer " + peer.getKey() + " got message; starting to read it");
-                    byte[] data = socket.getInputStream().readAllBytes();
+                    InputStream is = socket.getInputStream();
+                    byte[] data = is.readAllBytes();
                     System.out.println("    Peer " + peer.getKey() + " got       " + new String(data));
                     Message message = messageFactory.factoryMethod(data);
                     Message.Processor processor = message.getProcessor(peer, socket);
