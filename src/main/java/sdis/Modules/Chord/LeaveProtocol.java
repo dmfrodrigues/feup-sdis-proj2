@@ -13,6 +13,12 @@ public class LeaveProtocol extends ProtocolSupplier<Void> {
 
     @Override
     public Void get() {
+        Chord.NodeInfo r = chord.getNodeInfo();
+        Chord.NodeInfo s = chord.getSuccessor();
+
+        // If it is alone, just leave
+        if(r.equals(s)) return null;
+
         // Update predecessors and fingers tables of other nodes
         // Update predecessor of successor
         UpdatePredecessorProtocol updatePredecessorProtocol = new UpdatePredecessorProtocol(chord, chord.getPredecessor());

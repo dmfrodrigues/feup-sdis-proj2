@@ -1,17 +1,14 @@
 package sdis.Modules.Chord;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.Timeout;
 import sdis.Peer;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.Thread.sleep;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class TestChordJoin {
     public long getExpectedSuccessor(List<Long> listOfPeers, long key, long MOD){
@@ -30,6 +27,8 @@ public class TestChordJoin {
 
         Chord chord1 = peer1.getChord();
 
+        assertEquals(0, chord1.getPredecessor().key.toLong());
+        assertEquals(0, chord1.getSuccessor().key.toLong());
         assertEquals(0, chord1.getFinger(0).key.toLong());
         assertEquals(0, chord1.getFinger(1).key.toLong());
         assertEquals(0, chord1.getFinger(2).key.toLong());
