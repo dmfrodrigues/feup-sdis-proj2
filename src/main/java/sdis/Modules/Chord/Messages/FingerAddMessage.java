@@ -62,6 +62,15 @@ public class FingerAddMessage extends ChordMessage {
                 Chord.NodeInfo s = chord.getNodeInfo();
                 Chord.NodeInfo r = message.getPeerInfo();
                 Chord.NodeInfo p = chord.getPredecessor();
+
+                // If the new node to update the fingers table is itself, ignore
+                if(s.equals(r)){
+                    getSocket().shutdownOutput();
+                    getSocket().getInputStream().readAllBytes();
+                    getSocket().close();
+                    return null;
+                }
+
                 // Update fingers if necessary
                 int i = message.getFingerIndex();
                 boolean updatedFingers = false;
@@ -72,16 +81,24 @@ public class FingerAddMessage extends ChordMessage {
                     updatedFingers = true;
                     chord.setFinger(i--, r);
                 }
-                // If at least one finger was updated, redirect to predecessor
-                if(updatedFingers){
-                    // System.out.println("        Peer " + chord.getKey() + " updated fingers");
-                    chord.send(p, message);
-                } else {
-                    // System.out.println("        Peer " + chord.getKey() + " did not update any fingers");
-                }
+
                 getSocket().shutdownOutput();
                 getSocket().getInputStream().readAllBytes();
                 getSocket().close();
+
+                // If at least one finger was updated, and the predecessor was
+                // not the one that sent the message, redirect to predecessor.
+                // (this is already prevented by the `s.equals(r)` check on
+                // arrival, but we can also check that on departure)
+                if(updatedFingers && !p.equals(r)){
+                    // System.out.println("        Peer " + chord.getKey() + " updated fingers");
+                    Socket predecessorSocket = chord.send(p, message);
+                    predecessorSocket.shutdownOutput();
+                    predecessorSocket.getInputStream().readAllBytes();
+                    predecessorSocket.close();
+                } else {
+                    // System.out.println("        Peer " + chord.getKey() + " did not update any fingers");
+                }
 
                 // System.out.println("        Peer " + chord.getKey() + " is done with FINGERADD");
 
