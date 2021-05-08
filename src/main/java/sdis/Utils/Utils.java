@@ -13,7 +13,7 @@ public class Utils {
      * @param haystack  String to search in
      * @param needle    String to search for
      * @param n         Number of the occurence.
-     * @return
+     * @return          Index of the n-th occurence of needle in haystack
      */
     static public int find_nth(byte[] haystack, byte[] needle, int n){
         for(int i = 0; i+needle.length <= haystack.length; ++i){

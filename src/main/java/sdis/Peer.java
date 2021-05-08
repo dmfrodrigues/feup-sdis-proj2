@@ -79,9 +79,13 @@ public class Peer implements PeerInterface {
         Registry registry = LocateRegistry.getRegistry();
         registry.bind(remoteObjName, stub);
 
-        CleanupRemoteObjectRunnable rmiCleanupRunnable = new CleanupRemoteObjectRunnable(remoteObjName);
-        Thread rmiCleanupThread = new Thread(rmiCleanupRunnable);
-        Runtime.getRuntime().addShutdownHook(rmiCleanupThread);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                registry.unbind(remoteObjName);
+            } catch (RemoteException | NotBoundException e) {
+                e.printStackTrace();
+            }
+        }));
     }
 
     public CompletableFuture<Void> join(){

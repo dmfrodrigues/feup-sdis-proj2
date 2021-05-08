@@ -7,7 +7,6 @@ import sdis.Peer;
 import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
-import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class DeleteMessage extends DataStorageMessage {

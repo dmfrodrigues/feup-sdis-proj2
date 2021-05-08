@@ -1,4 +1,3 @@
-import sdis.Modules.Chord.Chord;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Peer;
 

@@ -78,7 +78,7 @@ public class Chord {
         }
     }
 
-    private int keySize = 30;
+    private int keySize;
 
     private final InetSocketAddress socketAddress;
     private final Executor executor;
