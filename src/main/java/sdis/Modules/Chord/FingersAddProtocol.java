@@ -23,7 +23,6 @@ public class FingersAddProtocol extends ProtocolSupplier<Void> {
         for(int i = 0; i < chord.getKeySize(); ++i){
             Chord.Key k = chord.getKey().subtract(1L << i);
             int finalI = i;
-            // System.out.println("Peer " + chord.getKey() + " updating i=" + i);
             CompletableFuture<Void> f = CompletableFuture.supplyAsync(
                 new GetPredecessorProtocol(chord, k),
                 chord.getExecutor()
@@ -38,7 +37,6 @@ public class FingersAddProtocol extends ProtocolSupplier<Void> {
                     socket.shutdownOutput();
                     socket.getInputStream().readAllBytes();
                     socket.close();
-                    // System.out.println("    Peer " + chord.getKey() + "\t sent " + new String(m.asByteArray()) + " to " + predecessor);
                     return null;
                 } catch (IOException e) {
                     throw new CompletionException(e);
@@ -50,7 +48,6 @@ public class FingersAddProtocol extends ProtocolSupplier<Void> {
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
-            // System.out.println("Peer " + chord.getKey() + " updated i=" + i);
         }
         CompletableFuture<Void> future = CompletableFuture.allOf(futureList);
         try {

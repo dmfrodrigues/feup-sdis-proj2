@@ -187,7 +187,6 @@ public class Chord {
         OutputStream os = socket.getOutputStream();
         os.write(m.asByteArray());
         os.flush();
-        // System.out.println("    Peer " + getKey() + "\t sent      " + new String(m.asByteArray()) + " to " + to);
         return socket;
     }
 

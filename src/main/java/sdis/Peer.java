@@ -12,6 +12,7 @@ import sdis.Modules.Message;
 import sdis.Modules.ProtocolSupplier;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.*;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
@@ -213,12 +214,9 @@ public class Peer implements PeerInterface {
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
             while (true) {
                 try {
-                    System.out.println("    Peer " + peer.getKey() + " waiting for message");
                     Socket socket = serverSocket.accept();
-                    System.out.println("    Peer " + peer.getKey() + " got message; starting to read it");
                     InputStream is = socket.getInputStream();
                     byte[] data = is.readAllBytes();
-                    System.out.println("    Peer " + peer.getKey() + " got       " + new String(data));
                     Message message = messageFactory.factoryMethod(data);
                     Message.Processor processor = message.getProcessor(peer, socket);
                     CompletableFuture.supplyAsync(processor, executor);

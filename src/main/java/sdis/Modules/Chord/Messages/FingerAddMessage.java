@@ -58,7 +58,6 @@ public class FingerAddMessage extends ChordMessage {
         public Void get() {
             try {
                 Chord chord = getChord();
-                // System.out.println("        Peer " + chord.getKey() + " is processing FINGERADD");
                 Chord.NodeInfo s = chord.getNodeInfo();
                 Chord.NodeInfo r = message.getPeerInfo();
                 Chord.NodeInfo p = chord.getPredecessor();
@@ -91,16 +90,11 @@ public class FingerAddMessage extends ChordMessage {
                 // (this is already prevented by the `s.equals(r)` check on
                 // arrival, but we can also check that on departure)
                 if(updatedFingers && !p.equals(r)){
-                    // System.out.println("        Peer " + chord.getKey() + " updated fingers");
                     Socket predecessorSocket = chord.send(p, message);
                     predecessorSocket.shutdownOutput();
                     predecessorSocket.getInputStream().readAllBytes();
                     predecessorSocket.close();
-                } else {
-                    // System.out.println("        Peer " + chord.getKey() + " did not update any fingers");
                 }
-
-                // System.out.println("        Peer " + chord.getKey() + " is done with FINGERADD");
 
                 return null;
             } catch (IOException e) {

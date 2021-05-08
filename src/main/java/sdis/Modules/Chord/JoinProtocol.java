@@ -27,7 +27,6 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
 
         // Initialize fingers table and predecessor
         // Build fingers table
-        // System.out.println("Peer " + chord.getKey() + " building fingers table");
         for(int i = 0; i < chord.getKeySize(); ++i){
             Chord.Key k = r.key.add(1L << i);
             try {
@@ -35,7 +34,6 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
                 socket.shutdownOutput();
                 byte[] response = socket.getInputStream().readAllBytes();
                 socket.close();
-                // System.out.println("Peer " + chord.getKey() + " got answer to GETSUCCESSOR " + k);
                 Chord.NodeInfo s = chord.newNodeInfo(response);
                 if(chord.distance(k, r.key) < chord.distance(k, s.key)) s = r;
                 chord.setFinger(i, s);
@@ -44,10 +42,8 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
             }
         }
         // Get predecessor
-//        System.out.println("Peer " + chord.getKey() + " getting predecessor");
         GetPredecessorProtocol getPredecessorProtocol = new GetPredecessorProtocol(chord, chord.getSuccessor().address);
         Chord.NodeInfo predecessor = getPredecessorProtocol.get();
-//        System.out.println("Peer " + chord.getKey() + " got predecessor: " + predecessor);
         chord.setPredecessor(predecessor);
 
         // Update other nodes

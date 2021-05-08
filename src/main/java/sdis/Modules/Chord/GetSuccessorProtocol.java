@@ -19,8 +19,6 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
 
     @Override
     public Chord.NodeInfo get() {
-         System.out.println("Peer " + chord.getKey() + " starting GetSuccessor protocol for key " + key);
-
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo p = chord.getPredecessor();
 
@@ -48,12 +46,10 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
             } else {
                 GetSuccessorMessage m = new GetSuccessorMessage(key);
                 Socket socket = chord.send(r_, m);
-                System.out.println("    Peer " + chord.getKey() + "\t sent " + new String(m.asByteArray()) + " to " + r_);
                 socket.shutdownOutput();
                 byte[] response = socket.getInputStream().readAllBytes();
                 socket.close();
                 ret = chord.newNodeInfo(response);
-                // System.out.println("    Peer " + chord.getKey() + "\t got response to " + new String(m.asByteArray()));
             }
             return ret;
         } catch (IOException e) {
