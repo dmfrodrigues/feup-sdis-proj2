@@ -37,7 +37,7 @@ public class FingersRemoveProtocol extends ProtocolSupplier<Void> {
                     Chord.NodeInfo s = sFuture.get();
                     Chord.NodeInfo r_ = r_Future.get();
 
-                    Socket socket = chord.send(s, new FingerRemoveMessage(chord.getPeerInfo(), r_, finalI));
+                    Socket socket = chord.send(s, new FingerRemoveMessage(chord.getNodeInfo(), r_, finalI));
                     socket.shutdownOutput();
                     byte[] response = socket.getInputStream().readAllBytes();
                     return new Chord.NodeInfo(response);

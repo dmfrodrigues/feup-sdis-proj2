@@ -32,7 +32,7 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
 
     @Override
     public Boolean get() {
-        Chord.NodeInfo r = chord.getPeerInfo();
+        Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 

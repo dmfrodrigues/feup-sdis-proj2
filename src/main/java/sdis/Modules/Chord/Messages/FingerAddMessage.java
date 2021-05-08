@@ -57,7 +57,7 @@ public class FingerAddMessage extends ChordMessage {
         @Override
         public Void get() {
             try {
-                Chord.NodeInfo s = getChord().getPeerInfo();
+                Chord.NodeInfo s = getChord().getNodeInfo();
                 Chord.NodeInfo r = message.getPeerInfo();
                 // Update fingers if necessary
                 int i = message.getFingerIndex();

@@ -31,6 +31,11 @@ public class GetPredecessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
             address = s.address;
         }
 
+        // If we are searching for the predecessor of the current node
+        if(address.equals(chord.getSocketAddress())){
+            return chord.getPredecessor();
+        }
+
         try {
             Socket socket = chord.send(address, new GetPredecessorMessage());
             socket.shutdownOutput();

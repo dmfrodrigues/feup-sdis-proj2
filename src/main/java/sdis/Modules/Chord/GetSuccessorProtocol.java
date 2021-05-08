@@ -19,7 +19,7 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
 
     @Override
     public Chord.NodeInfo get() {
-        Chord.NodeInfo r = chord.getPeerInfo();
+        Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo p = chord.getPredecessor();
 
         // If r is the only node in the system
