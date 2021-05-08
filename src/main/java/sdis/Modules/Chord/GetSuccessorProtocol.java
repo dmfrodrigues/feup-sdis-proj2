@@ -19,7 +19,7 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
 
     @Override
     public Chord.NodeInfo get() {
-         System.out.println("Peer " + chord.getKey() + " starting GetSuccessor protocol");
+         System.out.println("Peer " + chord.getKey() + " starting GetSuccessor protocol for key " + key);
 
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo p = chord.getPredecessor();
