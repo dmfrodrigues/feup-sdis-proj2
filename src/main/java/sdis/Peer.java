@@ -88,6 +88,17 @@ public class Peer implements PeerInterface {
         });
     }
 
+    public CompletableFuture<Void> leave(){
+        System.out.println("Peer " + getKey() + " leaving its chord");
+
+        return getChord().leave(new ProtocolSupplier<>() {
+            @Override
+            public Void get() {
+                return null;
+            }
+        });
+    }
+
     public Chord getChord() {
         return chord;
     }

@@ -182,6 +182,11 @@ public class Chord {
         return CompletableFuture.supplyAsync(joinProtocol, getExecutor());
     }
 
+    public CompletableFuture<Void> leave(ProtocolSupplier<Void> moveKeys) {
+        LeaveProtocol leaveProtocol = new LeaveProtocol(this, moveKeys);
+        return CompletableFuture.supplyAsync(leaveProtocol, getExecutor());
+    }
+
     public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());
         OutputStream os = socket.getOutputStream();
