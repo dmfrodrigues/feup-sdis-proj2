@@ -19,7 +19,7 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
 
     @Override
     public Chord.NodeInfo get() {
-        // System.out.println("Peer " + chord.getKey() + " starting GetSuccessor protocol");
+         System.out.println("Peer " + chord.getKey() + " starting GetSuccessor protocol");
 
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo p = chord.getPredecessor();
@@ -28,20 +28,11 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
         if(p.equals(r))
             return r;
 
-        // System.out.println("    Peer " + chord.getKey() + " is not alone");
-
         long d1 = Chord.distance(  key, r.key); // Distance from key         to current node
         long d2 = Chord.distance(p.key, r.key); // Distance from predecessor to current node
         if(d1 < d2) {
-            // System.out.println("    Peer " + chord.getKey() + " believes it is the owner of key " + key);
-            // System.out.println("    p=" + p + "    r=" + r + "    key=" + key);
-            // System.out.println("    Chord.distance(p.key,   key)=" + Chord.distance(p.key,   key));
-            // System.out.println("    Chord.distance(p.key, r.key)=" + Chord.distance(p.key, r.key));
-
             return r;
         }
-
-        System.out.println("    Peer " + chord.getKey() + " is not the owner of key " + key);
 
         long d = Chord.distance(chord.getKey(), key);
         int i = (d == 0 ? 0 : Utils.log2(d));
@@ -57,14 +48,12 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
             } else {
                 GetSuccessorMessage m = new GetSuccessorMessage(key);
                 Socket socket = chord.send(r_, m);
+                System.out.println("    Peer " + chord.getKey() + "\t sent " + new String(m.asByteArray()) + " to " + r_);
                 socket.shutdownOutput();
-
-                // System.out.println("    Peer " + chord.getKey() + "\t sent " + new String(m.asByteArray()) + " to " + r_);
-
                 byte[] response = socket.getInputStream().readAllBytes();
+                socket.close();
                 ret = chord.newNodeInfo(response);
-
-                // System.out.println("    Peer " + chord.getKey() + "\t got response to " + new String(m.asByteArray()));
+                System.out.println("    Peer " + chord.getKey() + "\t got response to " + new String(m.asByteArray()));
             }
             return ret;
         } catch (IOException e) {

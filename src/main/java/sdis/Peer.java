@@ -213,14 +213,14 @@ public class Peer implements PeerInterface {
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
             while (true) {
                 try {
-                    // System.out.println("    Peer " + peer.getKey() + "\t waiting for message");
+                    System.out.println("    Peer " + peer.getKey() + " waiting for message");
                     Socket socket = serverSocket.accept();
+                    System.out.println("    Peer " + peer.getKey() + " got message; starting to read it");
                     byte[] data = socket.getInputStream().readAllBytes();
-                    // System.out.println("    Peer " + peer.getKey() + "\t got       " + new String(data));
+                    System.out.println("    Peer " + peer.getKey() + " got       " + new String(data));
                     Message message = messageFactory.factoryMethod(data);
                     Message.Processor processor = message.getProcessor(peer, socket);
-                    processor.get();
-                    // System.out.println("    Peer " + peer.getKey() + "\t processed " + new String(data));
+                    CompletableFuture.supplyAsync(processor, executor);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

@@ -47,6 +47,8 @@ public class GetSuccessorMessage extends ChordMessage {
             Chord.NodeInfo nodeInfo = protocol.get();
             try {
                 getSocket().getOutputStream().write(nodeInfo.toString().getBytes());
+                getSocket().shutdownOutput();
+                getSocket().getInputStream().readAllBytes();
                 getSocket().close();
             } catch (IOException e) {
                 throw new CompletionException(e);

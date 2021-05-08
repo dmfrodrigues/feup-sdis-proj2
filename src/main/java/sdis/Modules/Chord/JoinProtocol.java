@@ -34,6 +34,7 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
                 Socket socket = chord.send(g, new GetSuccessorMessage(k));
                 socket.shutdownOutput();
                 byte[] response = socket.getInputStream().readAllBytes();
+                socket.close();
                 // System.out.println("Peer " + chord.getKey() + " got answer to GETSUCCESSOR " + k);
                 Chord.NodeInfo s = chord.newNodeInfo(response);
                 if(chord.distance(k, r.key) < chord.distance(k, s.key)) s = r;

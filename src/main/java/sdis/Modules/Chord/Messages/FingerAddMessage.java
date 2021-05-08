@@ -78,6 +78,8 @@ public class FingerAddMessage extends ChordMessage {
                 } else {
                     // System.out.println("        Peer " + chord.getKey() + " did not update any fingers");
                 }
+                getSocket().shutdownOutput();
+                getSocket().getInputStream().readAllBytes();
                 getSocket().close();
 
                 // System.out.println("        Peer " + chord.getKey() + " is done with FINGERADD");

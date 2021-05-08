@@ -22,6 +22,8 @@ public class UpdatePredecessorProtocol extends ProtocolSupplier<Void> {
         try {
             Socket socket = chord.send(successor, new UpdatePredecessorMessage(nodeInfo));
             socket.shutdownOutput();
+            socket.getInputStream().readAllBytes();
+            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

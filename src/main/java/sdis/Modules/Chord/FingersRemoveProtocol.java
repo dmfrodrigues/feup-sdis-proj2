@@ -40,6 +40,7 @@ public class FingersRemoveProtocol extends ProtocolSupplier<Void> {
                     Socket socket = chord.send(s, new FingerRemoveMessage(chord.getNodeInfo(), r_, finalI));
                     socket.shutdownOutput();
                     byte[] response = socket.getInputStream().readAllBytes();
+                    socket.close();
                     return chord.newNodeInfo(response);
                 } catch (IOException | InterruptedException e) {
                     throw new CompletionException(e);

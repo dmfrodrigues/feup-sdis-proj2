@@ -76,6 +76,8 @@ public class FingerRemoveMessage extends ChordMessage {
                 if(updatedFingers){
                     getChord().send(getChord().getPredecessor(), message);
                 }
+                getSocket().shutdownOutput();
+                getSocket().getInputStream().readAllBytes();
                 getSocket().close();
                 return null;
             } catch (IOException e) {

@@ -52,6 +52,8 @@ public class UpdatePredecessorMessage extends ChordMessage {
         public Void get() {
             getChord().setPredecessor(message.getPredecessor());
             try {
+                getSocket().shutdownOutput();
+                getSocket().getInputStream().readAllBytes();
                 getSocket().close();
                 return null;
             } catch (IOException e) {

@@ -1,13 +1,17 @@
 package sdis.Modules.Chord;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import sdis.Peer;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
+import static java.lang.Thread.sleep;
 import static org.junit.Assert.*;
 
 public class TestChord {
@@ -26,8 +30,11 @@ public class TestChord {
         assertEquals(expected, actual);
     }
 
+    @Rule
+    public Timeout globalTimeout = new Timeout(10000, TimeUnit.MILLISECONDS);
+
     @Test
-    public void testChord_1peer_small_checkFingers() throws Exception {
+    public void peer1_small_checkFingers() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
         peer1.join().get();
 
@@ -44,7 +51,7 @@ public class TestChord {
     }
 
     @Test
-    public void testChord_1peer_small() throws Exception {
+    public void peer1_small() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
         peer1.join().get();
 
@@ -61,7 +68,7 @@ public class TestChord {
     }
 
     @Test
-    public void testChord_1peer_large() throws Exception {
+    public void peer1_large() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
         peer1.join().get();
 
@@ -73,7 +80,7 @@ public class TestChord {
     }
 
     @Test
-    public void testChord_2peer_small_checkFingers() throws Exception {
+    public void peer2_small_checkFingers() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
         peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
@@ -109,16 +116,19 @@ public class TestChord {
     }
 
     @Test
-    public void testChord_2peer_small() throws Exception {
+    public void peer2_small() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
         peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
+        sleep(1000);
+
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
         peer2.join(addressPeer1).get();
 
-        Chord chord1 = peer1.getChord();
+        sleep(1000);
 
+        Chord chord1 = peer1.getChord();
         assertEquals( 0, chord1.getSuccessor(chord1.newKey(  0)).get().key.toLong());
         assertEquals(10, chord1.getSuccessor(chord1.newKey(  1)).get().key.toLong());
         assertEquals(10, chord1.getSuccessor(chord1.newKey(  5)).get().key.toLong());
@@ -141,7 +151,7 @@ public class TestChord {
     }
 
     @Test
-    public void testChord_2peer_large() throws Exception {
+    public void peer2_large() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
         peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();

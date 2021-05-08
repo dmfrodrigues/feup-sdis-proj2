@@ -27,6 +27,8 @@ public class GetPredecessorMessage extends ChordMessage {
             try {
                 byte[] response = getChord().getPredecessor().toString().getBytes();
                 getSocket().getOutputStream().write(response);
+                getSocket().shutdownOutput();
+                getSocket().getInputStream().readAllBytes();
                 getSocket().close();
                 return null;
             } catch (IOException e) {
