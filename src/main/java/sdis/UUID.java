@@ -13,8 +13,8 @@ public class UUID implements Comparable<UUID> {
         return s;
     }
 
-    public Chord.Key getKey(){
-        return new Chord.Key(s.hashCode());
+    public Chord.Key getKey(Chord chord){
+        return chord.newKey(s.hashCode());
     }
 
     @Override

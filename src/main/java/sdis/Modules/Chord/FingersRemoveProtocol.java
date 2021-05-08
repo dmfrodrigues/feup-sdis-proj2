@@ -19,8 +19,8 @@ public class FingersRemoveProtocol extends ProtocolSupplier<Void> {
 
     @Override
     public Void get() {
-        CompletableFuture<?>[] futureList = new CompletableFuture[Chord.getKeySize()];
-        for(int i = 0; i < Chord.getKeySize(); ++i){
+        CompletableFuture<?>[] futureList = new CompletableFuture[chord.getKeySize()];
+        for(int i = 0; i < chord.getKeySize(); ++i){
             Chord.Key k = chord.getKey().add(1L << i);
             int finalI = i;
             CompletableFuture<Chord.NodeInfo> sFuture = CompletableFuture.supplyAsync(
@@ -40,7 +40,7 @@ public class FingersRemoveProtocol extends ProtocolSupplier<Void> {
                     Socket socket = chord.send(s, new FingerRemoveMessage(chord.getNodeInfo(), r_, finalI));
                     socket.shutdownOutput();
                     byte[] response = socket.getInputStream().readAllBytes();
-                    return new Chord.NodeInfo(response);
+                    return chord.newNodeInfo(response);
                 } catch (IOException | InterruptedException e) {
                     throw new CompletionException(e);
                 } catch (ExecutionException e) {

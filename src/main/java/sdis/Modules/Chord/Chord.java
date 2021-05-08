@@ -13,10 +13,13 @@ import java.util.concurrent.Executor;
 
 public class Chord {
     public static class Key {
+        private final Chord chord;
         private final long k;
 
-        public Key(long k){
-            this.k = k % Chord.getMod();
+        private Key(Chord chord, long k){
+            this.chord = chord;
+            long MOD = chord.getMod();
+            this.k = ((k % MOD) + MOD) % MOD;
         }
 
         public long toLong(){
@@ -24,7 +27,7 @@ public class Chord {
         }
 
         public Key add(long l) {
-            return new Key(k + l);
+            return new Key(chord, k + l);
         }
 
         public long subtract(Key key){
@@ -32,7 +35,7 @@ public class Chord {
         }
 
         public Key subtract(long l){
-            return new Key(k - l);
+            return new Key(chord, k - l);
         }
 
         @Override
@@ -58,10 +61,10 @@ public class Chord {
             this.address = address;
         }
 
-        public NodeInfo(byte[] data) {
+        public NodeInfo(Chord chord, byte[] data) {
             String dataString = new String(data);
             String[] splitString = dataString.split(" ");
-            key = new Chord.Key(Long.parseLong(splitString[0]));
+            key = chord.newKey(Long.parseLong(splitString[0]));
             String[] splitAddress = splitString[1].split(":");
             address = new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1]));
         }
@@ -71,11 +74,11 @@ public class Chord {
         }
 
         public boolean equals(NodeInfo obj){
-            return (key == obj.key && address.equals(obj.address));
+            return (key.equals(obj.key) && address.equals(obj.address));
         }
     }
 
-    private static int m = 30;
+    private int keySize = 30;
 
     private final InetSocketAddress socketAddress;
     private final Executor executor;
@@ -83,11 +86,20 @@ public class Chord {
     private final NodeInfo[] fingers;
     private NodeInfo predecessor;
 
-    public Chord(InetSocketAddress socketAddress, Executor executor, Chord.Key key){
+    public Chord(InetSocketAddress socketAddress, Executor executor, int keySize, long key){
         this.socketAddress = socketAddress;
         this.executor = executor;
-        this.key = key;
-        fingers = new NodeInfo[m];
+        this.keySize = keySize;
+        this.key = newKey(key);
+        fingers = new NodeInfo[this.keySize];
+    }
+
+    public Chord.Key newKey(long k){
+        return new Chord.Key(this, k);
+    }
+
+    public NodeInfo newNodeInfo(byte[] response) {
+        return new Chord.NodeInfo(this, response);
     }
 
     public Executor getExecutor() {
@@ -123,15 +135,15 @@ public class Chord {
         return CompletableFuture.supplyAsync(getSuccessorProtocol, getExecutor());
     }
 
-    public static void setKeySize(int i) {
-        m = i;
+    public void setKeySize(int i) {
+        keySize = i;
     }
 
-    public static int getKeySize() {
-        return m;
+    public int getKeySize() {
+        return keySize;
     }
 
-    public static long getMod(){
+    public long getMod(){
         return (1L << getKeySize());
     }
 
@@ -139,7 +151,7 @@ public class Chord {
         return socketAddress;
     }
 
-    public NodeInfo getPeerInfo() {
+    public NodeInfo getNodeInfo() {
         return new NodeInfo(key, getSocketAddress());
     }
 
@@ -150,7 +162,7 @@ public class Chord {
      */
     public CompletableFuture<Void> join(){
         return CompletableFuture.runAsync(() -> {
-            NodeInfo nodeInfo = getPeerInfo();
+            NodeInfo nodeInfo = getNodeInfo();
             setPredecessor(nodeInfo);
             for(int i = 0; i < getKeySize(); ++i){
                 setFinger(i, nodeInfo);
@@ -175,6 +187,7 @@ public class Chord {
         OutputStream os = socket.getOutputStream();
         os.write(m.asByteArray());
         os.flush();
+        // System.out.println("    Peer " + getKey() + "\t sent      " + new String(m.asByteArray()) + " to " + to);
         return socket;
     }
 
@@ -182,8 +195,9 @@ public class Chord {
         return send(to.address, m);
     }
 
-    public long distance(Chord.Key a, Chord.Key b) {
-        long MOD = 1L << getKeySize();
+    public static long distance(Chord.Key a, Chord.Key b) {
+        assert(a.chord.getMod() == b.chord.getMod());
+        long MOD = a.chord.getMod();
         return (b.subtract(a) + MOD) % MOD;
     }
 }

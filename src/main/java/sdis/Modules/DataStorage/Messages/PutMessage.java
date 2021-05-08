@@ -22,11 +22,11 @@ public class PutMessage extends DataStorageMessage {
         this.data = data;
     }
 
-    public PutMessage(byte[] data){
+    public PutMessage(Chord chord, byte[] data){
         int headerSize = Utils.find_nth(data, "\n".getBytes(), 1);
         String dataString = new String(data, 0, headerSize);
         String[] splitString = dataString.split(" ");
-        nodeKey = new Chord.Key(Long.parseLong(splitString[1]));
+        nodeKey = chord.newKey(Long.parseLong(splitString[1]));
         id = new UUID(splitString[2]);
 
         int dataOffset = headerSize+1;

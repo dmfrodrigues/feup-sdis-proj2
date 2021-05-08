@@ -34,21 +34,21 @@ public class Peer implements PeerInterface {
 
     private final ServerSocketHandler serverSocketHandler;
 
-    public Peer(Chord.Key id, InetAddress ipAddress) throws IOException {
-        this.id = id;
-
+    public Peer(int keySize, long id, InetAddress ipAddress) throws IOException {
         serverSocket = new ServerSocket();
         serverSocket.bind(null);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
 
         System.out.println(
-            "Starting peer " + this.id +
+            "Starting peer " + id +
             " with address " + getSocketAddress()
         );
 
         String storagePath = id + "/storage/data";
-        chord = new Chord(getSocketAddress(), getExecutor(), id);
+        chord = new Chord(getSocketAddress(), getExecutor(), keySize, id);
         dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
+
+        this.id = chord.newKey(id);
 
         serverSocketHandler = new ServerSocketHandler(this, serverSocket);
         Thread serverSocketHandlerThread = new Thread(serverSocketHandler);
@@ -196,7 +196,7 @@ public class Peer implements PeerInterface {
             this.peer = peer;
             this.serverSocket = serverSocket;
 
-            messageFactory = new MessageFactory();
+            messageFactory = new MessageFactory(peer);
         }
 
         public ServerSocket getServerSocket() {
@@ -213,14 +213,14 @@ public class Peer implements PeerInterface {
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
             while (true) {
                 try {
-                    // System.out.println("Peer " + peer.getKey() + " waiting for message");
+                    // System.out.println("    Peer " + peer.getKey() + "\t waiting for message");
                     Socket socket = serverSocket.accept();
                     byte[] data = socket.getInputStream().readAllBytes();
-                    // System.out.println("Peer " + peer.getKey() + " got message " + new String(data));
+                    // System.out.println("    Peer " + peer.getKey() + "\t got       " + new String(data));
                     Message message = messageFactory.factoryMethod(data);
                     Message.Processor processor = message.getProcessor(peer, socket);
                     processor.get();
-                    // System.out.println("Peer " + peer.getKey() + " processed message " + new String(data));
+                    // System.out.println("    Peer " + peer.getKey() + "\t processed " + new String(data));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

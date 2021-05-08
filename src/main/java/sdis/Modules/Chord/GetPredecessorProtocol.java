@@ -41,7 +41,7 @@ public class GetPredecessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
             socket.shutdownOutput();
 
             byte[] response = socket.getInputStream().readAllBytes();
-            return new Chord.NodeInfo(response);
+            return chord.newNodeInfo(response);
         } catch (IOException e) {
             e.printStackTrace();
         }

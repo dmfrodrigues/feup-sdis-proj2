@@ -17,12 +17,12 @@ public class UpdatePredecessorMessage extends ChordMessage {
         this.predecessor = predecessor;
     }
 
-    public UpdatePredecessorMessage(byte[] data){
+    public UpdatePredecessorMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         String[] splitAddress = splitString[2].split(":");
         predecessor = new Chord.NodeInfo(
-            new Chord.Key(Long.parseLong(splitString[1])),
+            chord.newKey(Long.parseLong(splitString[1])),
             new InetSocketAddress(
                 splitAddress[0],
                 Integer.parseInt(splitAddress[1])

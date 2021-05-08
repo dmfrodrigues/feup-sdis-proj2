@@ -21,13 +21,13 @@ public class FingerRemoveMessage extends ChordMessage {
         this.fingerIndex = fingerIdx;
     }
 
-    public FingerRemoveMessage(byte[] data){
+    public FingerRemoveMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         String[] splitAddressOld = splitString[2].split(":");
         String[] splitAddressNew = splitString[4].split(":");
-        oldPeer = new Chord.NodeInfo(new Chord.Key(Long.parseLong(splitString[1])), new InetSocketAddress(splitAddressOld[0], Integer.parseInt(splitAddressOld[1])));
-        newPeer = new Chord.NodeInfo(new Chord.Key(Long.parseLong(splitString[3])), new InetSocketAddress(splitAddressNew[0], Integer.parseInt(splitAddressNew[1])));
+        oldPeer = new Chord.NodeInfo(chord.newKey(Long.parseLong(splitString[1])), new InetSocketAddress(splitAddressOld[0], Integer.parseInt(splitAddressOld[1])));
+        newPeer = new Chord.NodeInfo(chord.newKey(Long.parseLong(splitString[3])), new InetSocketAddress(splitAddressNew[0], Integer.parseInt(splitAddressNew[1])));
         fingerIndex = Integer.parseInt(splitString[5]);
     }
 

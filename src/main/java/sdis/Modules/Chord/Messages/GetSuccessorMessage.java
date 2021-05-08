@@ -17,10 +17,10 @@ public class GetSuccessorMessage extends ChordMessage {
         this.key = key;
     }
 
-    public GetSuccessorMessage(byte[] data){
+    public GetSuccessorMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
-        key = new Chord.Key(Long.parseLong(splitString[1]));
+        key = chord.newKey(Long.parseLong(splitString[1]));
     }
 
     private Chord.Key getKey() {

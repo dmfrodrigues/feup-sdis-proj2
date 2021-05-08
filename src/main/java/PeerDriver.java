@@ -15,9 +15,9 @@ public class PeerDriver {
             return;
         }
 
-        Chord.Key key = new Chord.Key(Long.parseLong(args[0]));
+        long key = Long.parseLong(args[0]);
         InetAddress ipAddress = InetAddress.getByName(args[2]);
-        Peer peer = new Peer(key, ipAddress);
+        Peer peer = new Peer(62, key, ipAddress);
 
         String serviceAccessPoint = args[1];
         peer.bindAsRemoteObject(serviceAccessPoint);
