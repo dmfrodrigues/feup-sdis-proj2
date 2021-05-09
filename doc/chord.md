@@ -39,7 +39,10 @@ If a new node joins the network, it can simply send a `GETSUCCESSOR` to its gate
 - **Arguments:** node we are asking to
 - **Returns:** predecessor of said node
 
-Any node $r$ can ask about the predecessor of any other node $s$, as long as it has the socket address of $s$. To do that, $r$ sends a message to $s$ with format
+This protocol allows any node to know the predecessor of any key $k$. Node $r$ first asks about $s = successor(k)$ using the GetSuccessor protocol, and then:
+
+1. If $s = k$, $r$ returns $k$.
+2. Otherwise, $r$ sends a message to $s$ with format
 
 ```
 GETPREDECESSOR

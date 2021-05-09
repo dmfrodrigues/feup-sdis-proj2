@@ -1,5 +1,6 @@
 package sdis.Modules.Chord;
 
+import sdis.Modules.Chord.Messages.GetPredecessorMessage;
 import sdis.Modules.Chord.Messages.GetSuccessorMessage;
 import sdis.Modules.ProtocolSupplier;
 
@@ -35,16 +36,22 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
                 byte[] response = socket.getInputStream().readAllBytes();
                 socket.close();
                 Chord.NodeInfo s = chord.newNodeInfo(response);
-                if(chord.distance(k, r.key) < chord.distance(k, s.key)) s = r;
+                if(Chord.distance(k, r.key) < Chord.distance(k, s.key)) s = r;
                 chord.setFinger(i, s);
             } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }
         // Get predecessor
-        GetPredecessorProtocol getPredecessorProtocol = new GetPredecessorProtocol(chord, chord.getSuccessor().address);
-        Chord.NodeInfo predecessor = getPredecessorProtocol.get();
-        chord.setPredecessor(predecessor);
+        try {
+            Socket socket = chord.send(chord.getSuccessor(), new GetPredecessorMessage());
+            socket.shutdownOutput();
+            byte[] response = socket.getInputStream().readAllBytes();
+            Chord.NodeInfo predecessor = chord.newNodeInfo(response);
+            chord.setPredecessor(predecessor);
+        } catch (IOException e) {
+            throw new CompletionException(e);
+        }
 
         // Update other nodes
         // Update predecessor of successor

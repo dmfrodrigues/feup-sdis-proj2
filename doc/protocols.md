@@ -30,7 +30,7 @@ The *distance* between nodes $a$ and $b$ is defined as the number of increments 
 
 The *successor* of a key $k$ ($successor(k)$) is the next node after or at $k$; technically, $s = successor(k)$ is the node that minimizes $distance(k, s)$.
 
-The *predecessor* of a key $k$ ($predecessor(k)$) is the previous node relative to $k$; technically, $p = precedessor(k)$ is the node that minimizes $distance(p, k)$.
+The *predecessor* of a key $k$ ($predecessor(k)$) is the previous node before or at $k$; technically, $p = precedessor(k)$ is the node that minimizes $distance(p, k)$.
 
 A node $r$ is responsible for all keys for which their successor is $r$.
 
