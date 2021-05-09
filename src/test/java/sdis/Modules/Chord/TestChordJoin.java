@@ -192,7 +192,12 @@ public class TestChordJoin {
         Chord chord3 = peer3.getChord();
         peer3.join(addressPeer1).get();
 
-        List<Long> peers = new ArrayList<>(){{ add(0L); add(100L); add(356L); }};
+        peers = new ArrayList<>(){{ add(0L); add(100L); add(356L); }};
+
+        assertEquals(356, chord1.getPredecessor().key.toLong());
+        assertEquals(  0, chord2.getPredecessor().key.toLong());
+        assertEquals(100, chord3.getPredecessor().key.toLong());
+        
         for(int i = 0; i < keySize; ++i){
             assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFinger(i).key.toLong());
             assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
