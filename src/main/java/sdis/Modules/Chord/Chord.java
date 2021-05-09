@@ -53,12 +53,18 @@ public class Chord {
     }
 
     public static class NodeInfo {
-        public final Chord.Key key;
-        public final InetSocketAddress address;
+        public Chord.Key key;
+        public InetSocketAddress address;
+
+        public NodeInfo(){}
 
         public NodeInfo(Chord.Key key, InetSocketAddress address){
             this.key = key;
             this.address = address;
+        }
+
+        public NodeInfo(NodeInfo nodeInfo){
+            this(nodeInfo.key, nodeInfo.address);
         }
 
         public NodeInfo(Chord chord, byte[] data) {
@@ -67,6 +73,11 @@ public class Chord {
             key = chord.newKey(Long.parseLong(splitString[0]));
             String[] splitAddress = splitString[1].split(":");
             address = new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1]));
+        }
+
+        public void copy(NodeInfo nodeInfo){
+            key     = nodeInfo.key;
+            address = nodeInfo.address;
         }
 
         public String toString() {
@@ -84,7 +95,7 @@ public class Chord {
     private final Executor executor;
     private final Chord.Key key;
     private final NodeInfo[] fingers;
-    private NodeInfo predecessor;
+    private final NodeInfo predecessor;
 
     public Chord(InetSocketAddress socketAddress, Executor executor, int keySize, long key){
         this.socketAddress = socketAddress;
@@ -92,6 +103,7 @@ public class Chord {
         this.keySize = keySize;
         this.key = newKey(key);
         fingers = new NodeInfo[this.keySize];
+        predecessor = new NodeInfo();
     }
 
     public Chord.Key newKey(long k){
@@ -111,19 +123,27 @@ public class Chord {
     }
 
     public NodeInfo getFinger(int i){
-        return fingers[i];
+        synchronized(fingers) {
+            return fingers[i];
+        }
     }
 
     public void setFinger(int i, NodeInfo peer){
-        fingers[i] = peer;
+        synchronized(fingers) {
+            fingers[i] = peer;
+        }
     }
 
     public NodeInfo getPredecessor(){
-        return predecessor;
+        synchronized(predecessor) {
+            return new NodeInfo(predecessor);
+        }
     }
 
     public void setPredecessor(NodeInfo peer){
-        predecessor = peer;
+        synchronized(predecessor) {
+            predecessor.copy(peer);
+        }
     }
 
     public NodeInfo getSuccessor() {
