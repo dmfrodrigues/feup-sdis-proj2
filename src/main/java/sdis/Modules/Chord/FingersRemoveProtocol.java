@@ -21,34 +21,33 @@ public class FingersRemoveProtocol extends ProtocolSupplier<Void> {
     public Void get() {
         CompletableFuture<?>[] futureList = new CompletableFuture[chord.getKeySize()];
         for(int i = 0; i < chord.getKeySize(); ++i){
-            Chord.Key k = chord.getKey().add(1L << i);
+            Chord.Key k = chord.getKey().subtract(1L << i);
             int finalI = i;
-            CompletableFuture<Chord.NodeInfo> sFuture = CompletableFuture.supplyAsync(
+            CompletableFuture<Void> f = CompletableFuture.supplyAsync(
                 new GetPredecessorProtocol(chord, k),
                 chord.getExecutor()
-            );
-            CompletableFuture<Chord.NodeInfo> r_Future = CompletableFuture.supplyAsync(
-                new GetSuccessorProtocol(chord, chord.getKey()),
-                chord.getExecutor()
-            );
-            CompletableFuture<Chord.NodeInfo> f = CompletableFuture.allOf(sFuture, r_Future)
-            .thenApplyAsync((ignored) -> {
+            )
+            .thenApplyAsync((Chord.NodeInfo predecessor) -> {
+                if(predecessor.equals(chord.getNodeInfo())) {
+                    return null;
+                }
                 try {
-                    Chord.NodeInfo s = sFuture.get();
-                    Chord.NodeInfo r_ = r_Future.get();
-
-                    Socket socket = chord.send(s, new FingerRemoveMessage(chord.getNodeInfo(), r_, finalI));
+                    FingerRemoveMessage m = new FingerRemoveMessage(chord.getNodeInfo(), chord.getSuccessor(), finalI);
+                    Socket socket = chord.send(predecessor, m);
                     socket.shutdownOutput();
-                    byte[] response = socket.getInputStream().readAllBytes();
+                    socket.getInputStream().readAllBytes();
                     socket.close();
-                    return chord.newNodeInfo(response);
-                } catch (IOException | InterruptedException e) {
+                    return null;
+                } catch (IOException e) {
                     throw new CompletionException(e);
-                } catch (ExecutionException e) {
-                    throw new CompletionException(e.getCause());
                 }
             });
             futureList[i] = f;
+            try {
+                f.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
         }
         CompletableFuture<Void> future = CompletableFuture.allOf(futureList);
         try {

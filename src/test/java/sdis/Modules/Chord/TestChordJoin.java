@@ -89,7 +89,7 @@ public class TestChordJoin {
         Chord chord1 = peer1.getChord();
 
         assertEquals(10, chord1.getPredecessor().key.toLong());
-
+        assertEquals(10, chord1.getSuccessor().key.toLong());
         assertEquals(10, chord1.getFinger(0).key.toLong());
         assertEquals(10, chord1.getFinger(1).key.toLong());
         assertEquals(10, chord1.getFinger(2).key.toLong());
@@ -102,7 +102,7 @@ public class TestChordJoin {
         Chord chord2 = peer2.getChord();
 
         assertEquals(0, chord2.getPredecessor().key.toLong());
-
+        assertEquals(0, chord2.getSuccessor().key.toLong());
         assertEquals(0, chord2.getFinger(0).key.toLong());
         assertEquals(0, chord2.getFinger(1).key.toLong());
         assertEquals(0, chord2.getFinger(2).key.toLong());
@@ -123,6 +123,7 @@ public class TestChordJoin {
         peer2.join(addressPeer1).get();
 
         Chord chord1 = peer1.getChord();
+
         assertEquals( 0, chord1.getSuccessor(chord1.newKey(  0)).get().key.toLong());
         assertEquals(10, chord1.getSuccessor(chord1.newKey(  1)).get().key.toLong());
         assertEquals(10, chord1.getSuccessor(chord1.newKey(  5)).get().key.toLong());

@@ -59,9 +59,20 @@ public class FingerRemoveMessage extends ChordMessage {
         @Override
         public Void get() {
             try {
-                Chord.NodeInfo s  = getChord().getNodeInfo();
+                Chord chord = getChord();
+                Chord.NodeInfo s  = chord.getNodeInfo();
                 Chord.NodeInfo r  = message.getOldPeerInfo();
                 Chord.NodeInfo r_ = message.getNewPeerInfo();
+                Chord.NodeInfo p  = chord.getPredecessor();
+
+                // If the new node to update the fingers table is itself, ignore
+                if(s.equals(r)){
+                    getSocket().shutdownOutput();
+                    getSocket().getInputStream().readAllBytes();
+                    getSocket().close();
+                    return null;
+                }
+
                 // Update fingers if necessary
                 int i = message.getFingerIndex();
                 boolean updatedFingers = false;
@@ -72,13 +83,22 @@ public class FingerRemoveMessage extends ChordMessage {
                     updatedFingers = true;
                     getChord().setFinger(i--, r_);
                 }
-                // If at least one finger was updated, redirect to predecessor
-                if(updatedFingers){
-                    getChord().send(getChord().getPredecessor(), message);
-                }
+
                 getSocket().shutdownOutput();
                 getSocket().getInputStream().readAllBytes();
                 getSocket().close();
+
+                // If at least one finger was updated, and the predecessor was
+                // not the one that sent the message, redirect to predecessor.
+                // (this is already prevented by the `s.equals(r)` check on
+                // arrival, but we can also check that on departure)
+                if(updatedFingers && !p.equals(r)){
+                    Socket predecessorSocket = chord.send(p, message);
+                    predecessorSocket.shutdownOutput();
+                    predecessorSocket.getInputStream().readAllBytes();
+                    predecessorSocket.close();
+                }
+
                 return null;
             } catch (IOException e) {
                 throw new CompletionException(e);
