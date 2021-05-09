@@ -30,6 +30,8 @@ public class LeaveProtocol extends ProtocolSupplier<Void> {
         // Move keys
         moveKeys.get();
 
+        System.out.println("Peer " + chord.getKey() + " done leaving");
+
         return null;
     }
 }
