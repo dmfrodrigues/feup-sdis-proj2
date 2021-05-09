@@ -81,10 +81,6 @@ public class FingerAddMessage extends ChordMessage {
                     chord.setFinger(i--, r);
                 }
 
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
-
                 // If at least one finger was updated, and the predecessor was
                 // not the one that sent the message, redirect to predecessor.
                 // (this is already prevented by the `s.equals(r)` check on
@@ -95,6 +91,10 @@ public class FingerAddMessage extends ChordMessage {
                     predecessorSocket.getInputStream().readAllBytes();
                     predecessorSocket.close();
                 }
+
+                getSocket().shutdownOutput();
+                getSocket().getInputStream().readAllBytes();
+                getSocket().close();
 
                 return null;
             } catch (IOException e) {

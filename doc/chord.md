@@ -76,6 +76,10 @@ FINGERADD <key> <IP>:<port> <fingerIdx>
 
 which instructs the node $s$ that receives this message to check if $r$ is the new $i$-finger of $s$. The node $s$ checks if $r$ is its new $i$-finger by testing if $distance(s, r) < distance(s, s.finger[i]$; if it's false, just ignore; if it's true, it updates $s.finger[i]$ and all indices before $i$ if necessary, and forwards the `FINGERADD` message to its predecessor without changing it.
 
+A node receiving a `FINGERADD` message currently only ends the request (i.e., closes the socket) after having performed all processing, including forwarding the `FINGERADD` message and waiting for taht request to be over; this is opposite to the most desirable option, where a node receiving a `FINGERADD` message would immediately close the corresponding socket so as not to exhaust the number of TCP connections.
+
+We decided to go with the first option, as it is better for testing, since the FingersAdd protocol will only ond once all nodes that had to update their fingers tables are done doing so; otherwise, it was relatively common for tests to begin before the network had stabilized.
+
 ### FingersRemove protocol
 
 - **Arguments:** -

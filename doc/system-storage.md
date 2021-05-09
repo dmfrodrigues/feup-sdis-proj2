@@ -65,7 +65,7 @@ TODO | what's better: full asynchronous, or sequential questioning and tests, wi
 
 ##### Get predecessor
 
-It is enough for $r$ to run the GetPredecessor protocol, as it has already built its fingers table so it knows it successor in $O(1)$; it can merely ask its successor about its predecessor (because the successor of $r$ was not yet told that $r$ joined the network, it will return what it thinks is its predecessor, when actually it is the predecessor of $r$).
+It is enough for $r$ to send a `GETPREDECESSOR` message to its newly-found successor, as it has already built its fingers table so it knows it successor in $O(1)$; it can merely ask its successor about its predecessor (because the successor of $r$ was not yet told that $r$ joined the network, it will return what it thinks is its predecessor, when actually it is the predecessor of $r$).
 
 #### Update other nodes
 
