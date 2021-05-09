@@ -154,10 +154,10 @@ public class TestChordLeave {
         long MOD = (1L << keySize);
 
         long[] ids = {
-            172, 716, 982, 540, 662,
-            284, 806, 185, 623, 427,
-            237, 55, 758, 785, 863,
-            727, 946, 203, 557, 308,
+            172, 284, 540, //662, 716,
+//            982, 806, 185, 623, 427,
+//            237, 55, 758, 785, 863,
+//            727, 946, 203, 557, 308,
         };
         Set<Long> set = new HashSet<>();
         for (Long l : ids) set.add(l);
@@ -197,6 +197,8 @@ public class TestChordLeave {
             idsSorted.remove(Collections.binarySearch(idsSorted, deletedPeer.getKey().toLong()));
             deletedPeer.leave().get();
             peers.remove(leaveIndexes[i]);
+
+            System.out.println("Deleted peer " + deletedPeer.getKey() + ", only ones left are " + Arrays.toString(idsSorted.toArray()));
             for (Peer peer : peers) {
                 Chord chord = peer.getChord();
                 for (int j = 0; j < keySize; ++j){
