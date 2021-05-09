@@ -154,10 +154,10 @@ public class TestChordLeave {
         long MOD = (1L << keySize);
 
         long[] ids = {
-            0, 100, 356, 662, 716,
-            982, 806, 185, 623, 427,
-            237, 55, 758, 785, 863,
-            727, 946, 203, 557, 308,
+            237, 716, 727, 758, 806,
+            55, 0, 100, 356, 662,
+            982, 185, 623, 427, 785,
+            863, 946, 203, 557, 308,
         };
         Set<Long> set = new HashSet<>();
         for (Long l : ids) set.add(l);
@@ -168,45 +168,39 @@ public class TestChordLeave {
             2, 8, 6, 1, 13,
             0, 13, 5, 7, 11,
         };
-        int[] leaveIndexes = new int[]{
-            0, 0, 0, 1, 3,
-            3, 1, 0, 0, 8,
-            5, 0, 7, 1, 13,
-            8, 0, 7, 3, 7,
-        };
 
+        List<Long> idsSorted = new ArrayList<>();
         List<Peer> peers = new ArrayList<>();
         for (int i = 0; i < ids.length; ++i) {
             Peer peer = new Peer(keySize, ids[i], InetAddress.getByName("localhost"));
             peers.add(peer);
+            idsSorted.add(ids[i]);
+            Collections.sort(idsSorted);
             if (i == 0) {
                 peer.join().get();
             } else {
                 InetSocketAddress gateway = peers.get(addressIndexes[i]).getSocketAddress();
                 peer.join(gateway).get();
             }
+
+            for (Peer p : peers) {
+                Chord chord = p.getChord();
+                for (int j = 0; j < keySize; ++j)
+                    assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << j), MOD), chord.getFinger(j).key.toLong());
+            }
         }
 
-        List<Long> idsSorted = new ArrayList<>();
-        for(Long l: ids) idsSorted.add(l);
-        Collections.sort(idsSorted);
-
-        int increment = 10;
         for (int i = ids.length - 1; i >= 0; i--) {
-            Peer deletedPeer = peers.get(leaveIndexes[i]);
+            Peer deletedPeer = peers.get(i);
             idsSorted.remove(Collections.binarySearch(idsSorted, deletedPeer.getKey().toLong()));
             deletedPeer.leave().get();
-            peers.remove(leaveIndexes[i]);
+            peers.remove(i);
 
-            System.out.println("Deleted peer " + deletedPeer.getKey() + ", only ones left are " + Arrays.toString(idsSorted.toArray()));
+            // System.out.println("Deleted peer " + deletedPeer.getKey() + ", only ones left are " + Arrays.toString(idsSorted.toArray()));
             for (Peer peer : peers) {
                 Chord chord = peer.getChord();
-                for (int j = 0; j < keySize; ++j){
-                    assertEquals(getExpectedSuccessor(idsSorted, peer.getKey().toLong() + (1L << j), MOD), chord.getFinger(j).key.toLong());
-                }
-                for (long key = 0; key < MOD; key += increment) {
-                    assertEquals(getExpectedSuccessor(idsSorted, key, MOD), chord.getSuccessor(chord.newKey(key)).get().key.toLong());
-                }
+                for (int j = 0; j < keySize; ++j)
+                    assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << j), MOD), chord.getFinger(j).key.toLong());
             }
         }
     }

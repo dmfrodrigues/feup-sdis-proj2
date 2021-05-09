@@ -6,6 +6,7 @@ import sdis.Peer;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
@@ -208,6 +209,46 @@ public class TestChordJoin {
             assertEquals(getExpectedSuccessor(peers, key, MOD), chord1.getSuccessor(chord1.newKey(key)).get().key.toLong());
             assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).get().key.toLong());
             assertEquals(getExpectedSuccessor(peers, key, MOD), chord3.getSuccessor(chord3.newKey(key)).get().key.toLong());
+        }
+    }
+
+    @Test(timeout=10000)
+    public void peer10_large() throws Exception {
+        int keySize = 10;
+        long MOD = (1L << keySize);
+
+        long[] ids = {
+                237, 716, 727, 758, 806,
+                55, 0, 100, 356, 662
+        };
+        Set<Long> set = new HashSet<>();
+        for (Long l : ids) set.add(l);
+        assertEquals(ids.length, set.size());
+        int[] addressIndexes = new int[]{
+                0, 0, 1, 2, 2,
+                3, 0, 2, 5, 4
+        };
+
+        List<Long> idsSorted = new ArrayList<>();
+        List<Peer> peers = new ArrayList<>();
+        for (int i = 0; i < ids.length; ++i) {
+            Peer peer = new Peer(keySize, ids[i], InetAddress.getByName("localhost"));
+            peers.add(peer);
+            idsSorted.add(ids[i]);
+            Collections.sort(idsSorted);
+            if (i == 0) {
+                peer.join().get();
+            } else {
+                InetSocketAddress gateway = peers.get(addressIndexes[i]).getSocketAddress();
+                peer.join(gateway).get();
+            }
+
+            for (Peer p : peers) {
+                Chord chord = p.getChord();
+                for (int j = 0; j < keySize; ++j) {
+                    assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << j), MOD), chord.getFinger(j).key.toLong());
+                }
+            }
         }
     }
 
