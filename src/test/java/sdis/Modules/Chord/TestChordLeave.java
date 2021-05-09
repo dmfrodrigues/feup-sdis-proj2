@@ -96,7 +96,7 @@ public class TestChordLeave {
 
     @Test(timeout=10000)
     public void peer3_large() throws Exception {
-        int keySize = 8;
+        int keySize = 10;
         long MOD = (1L << keySize);
 
         Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"));
@@ -105,15 +105,15 @@ public class TestChordLeave {
 
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(keySize, 50, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(keySize, 100, InetAddress.getByName("localhost"));
         Chord chord2 = peer2.getChord();
         peer2.join(addressPeer1).get();
 
-        Peer peer3 = new Peer(keySize, 150, InetAddress.getByName("localhost"));
+        Peer peer3 = new Peer(keySize, 356, InetAddress.getByName("localhost"));
         Chord chord3 = peer3.getChord();
         peer3.join(addressPeer1).get();
 
-        List<Long> peers = new ArrayList<>(){{ add(0L); add(50L); add(150L); }};
+        List<Long> peers = new ArrayList<>(){{ add(0L); add(100L); add(356L); }};
         for(int i = 0; i < keySize; ++i){
             assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFinger(i).key.toLong());
             assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
@@ -125,26 +125,26 @@ public class TestChordLeave {
             assertEquals(getExpectedSuccessor(peers, key, MOD), chord3.getSuccessor(chord3.newKey(key)).get().key.toLong());
         }
 
-        peer2.leave().get();
-
-        peers = new ArrayList<>(){{ add(0L); add(150L); }};
-        for(int i = 0; i < keySize; ++i){
-            assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFinger(i).key.toLong());
-            assertEquals(getExpectedSuccessor(peers, chord3.getKey().toLong() + (1L << i), MOD), chord3.getFinger(i).key.toLong());
-        }
-        for(long key = 0; key < peer1.getChord().getMod(); ++key){
-            assertEquals(getExpectedSuccessor(peers, key, MOD), chord1.getSuccessor(chord1.newKey(key)).get().key.toLong());
-            assertEquals(getExpectedSuccessor(peers, key, MOD), chord3.getSuccessor(chord3.newKey(key)).get().key.toLong());
-        }
-
         peer1.leave().get();
 
-        peers = new ArrayList<>(){{ add(150L); }};
+        peers = new ArrayList<>(){{ add(100L); add(356L); }};
         for(int i = 0; i < keySize; ++i){
+            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
             assertEquals(getExpectedSuccessor(peers, chord3.getKey().toLong() + (1L << i), MOD), chord3.getFinger(i).key.toLong());
         }
         for(long key = 0; key < peer1.getChord().getMod(); ++key){
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).get().key.toLong());
             assertEquals(getExpectedSuccessor(peers, key, MOD), chord3.getSuccessor(chord3.newKey(key)).get().key.toLong());
+        }
+
+        peer3.leave().get();
+
+        peers = new ArrayList<>(){{ add(100L); }};
+        for(int i = 0; i < keySize; ++i){
+            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
+        }
+        for(long key = 0; key < peer1.getChord().getMod(); ++key){
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).get().key.toLong());
         }
     }
 
@@ -154,25 +154,25 @@ public class TestChordLeave {
         long MOD = (1L << keySize);
 
         long[] ids = {
-            172, 284, 540, //662, 716,
-//            982, 806, 185, 623, 427,
-//            237, 55, 758, 785, 863,
-//            727, 946, 203, 557, 308,
+            0, 100, 356, 662, 716,
+            982, 806, 185, 623, 427,
+            237, 55, 758, 785, 863,
+            727, 946, 203, 557, 308,
         };
         Set<Long> set = new HashSet<>();
         for (Long l : ids) set.add(l);
         assertEquals(ids.length, set.size());
         int[] addressIndexes = new int[]{
-                0, 0, 1, 2, 2,
-                3, 0, 2, 5, 4,
-                2, 8, 6, 1, 13,
-                0, 13, 5, 7, 11,
+            0, 0, 1, 2, 2,
+            3, 0, 2, 5, 4,
+            2, 8, 6, 1, 13,
+            0, 13, 5, 7, 11,
         };
         int[] leaveIndexes = new int[]{
-                0, 0, 0, 1, 3,
-                3, 1, 0, 0, 8,
-                5, 0, 7, 1, 13,
-                8, 0, 7, 3, 7,
+            0, 0, 0, 1, 3,
+            3, 1, 0, 0, 8,
+            5, 0, 7, 1, 13,
+            8, 0, 7, 3, 7,
         };
 
         List<Peer> peers = new ArrayList<>();

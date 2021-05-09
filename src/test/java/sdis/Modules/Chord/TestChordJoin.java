@@ -169,7 +169,7 @@ public class TestChordJoin {
 
     @Test(timeout=10000)
     public void peer3_large() throws Exception {
-        int keySize = 8;
+        int keySize = 10;
         long MOD = (1L << keySize);
 
         Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"));
@@ -178,20 +178,15 @@ public class TestChordJoin {
 
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(keySize, 50, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(keySize, 100, InetAddress.getByName("localhost"));
         Chord chord2 = peer2.getChord();
         peer2.join(addressPeer1).get();
 
-        Peer peer3 = new Peer(keySize, 150, InetAddress.getByName("localhost"));
+        Peer peer3 = new Peer(keySize, 356, InetAddress.getByName("localhost"));
         Chord chord3 = peer3.getChord();
         peer3.join(addressPeer1).get();
 
-        List<Long> peers = new ArrayList<>(){{
-            add(0L);
-            add(50L);
-            add(150L);
-        }};
-
+        List<Long> peers = new ArrayList<>(){{ add(0L); add(100L); add(356L); }};
         for(int i = 0; i < keySize; ++i){
             assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFinger(i).key.toLong());
             assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
