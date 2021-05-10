@@ -135,3 +135,68 @@ A `FINGERREMOVE` message is processed in a very similar way to a `FINGERADD` mes
 In the non-trivial stage, all that changes is that, instead of the condition being related to distances, it merely checks if fingers with a certain index $i$ or less have the same value as $f_{old}$, and if so they are replaced by $f_{new}$.
 
 If at least one finger was changed, similarly to `FINGERADD`, the same `FINGERREMOVE` message is forwarded to the current node's predecessor, except if said predecessor is equal to $f_{old}$, in which case this step is ignored.
+
+
+### Join protocol
+
+- **Arguments:** gateway node
+- **Returns:** -
+
+The Join protocol allows a fresh node to join the system.
+
+On join, the joining node $r$ must perform three steps:
+
+1. Initialize its fingers table and predecessor
+2. Update the predecessors and fingers tables of other nodes
+3. Transfer objects from its successor to itself
+
+The joining node needs to know the socket address of at least one node that is already in the chord; we will call it the gateway node $g$, as it is the joining node's gateway into the chord while the joining node knows nothing about that.
+
+#### Initialize fingers table and predecessor
+
+##### Build fingers table
+
+To build its fingers table, $r$ asks to $g$ what is the successor of $k = r + 2^i$, for all values of $0 ≤ i < m$, using several `GETSUCCESSOR` messages directed at $g$.
+
+The joining node can asynchronously make all `GETSUCCESSOR` requests to $g$, but that yields $O(m \log N)$ time complexity, while [@stoica2001] states that, if requests are made sequentially, some trivial tests can be made to skip asking about some fingers.
+
+TODO | what's better: full asynchronous, or sequential questioning and tests, with less network usage but probably slower?
+
+##### Get predecessor
+
+It is enough for $r$ to send a `GETPREDECESSOR` message to its newly-found successor, as it has already built its fingers table so it knows it successor in $O(1)$; it can merely ask its successor about its predecessor (because the successor of $r$ was not yet told that $r$ joined the network, it will return what it thinks is its predecessor, when actually it is the predecessor of $r$).
+
+#### Update other nodes
+
+The joining node $r$ needs to notify other nodes in the system to update the information they have about the system.
+Node $r$ must namely notify its successor that $r$ is its new predecessor, using protocol SetPredecessor.
+It must also notify some of the other nodes in the system to update their fingers tables with its own key and socket address, by running one instance of the FingersAdd protocol.
+
+#### Move keys
+
+To move the keys (and perform any other operations the upper layer deems necessary), the Join protocol accepts a runnable, which the upper layer must provide, specifying how to move keys between nodes.
+
+The upper layer is likely to use an instance of the MoveKeys protocol.
+
+### Leave protocol
+
+The Leave protocol allows a node to leave the system, and is quite similar to the Join protocol.
+
+Let $s$ be the successor of the leaving node $r$.
+
+On leave, the leaving node $r$ must perform two steps:
+
+1. Update the predecessors and fingers tables of other nodes
+2. Transfer objects from itself to its successor
+
+#### Update predecessors and fingers tables of other nodes
+
+Node $r$ can achieve this by using first the SetPredecessor protocol, with its predecessor's key and socket address.
+
+To update other nodes' fingers tables, $r$ uses the FingersRemove protocol.
+
+#### Move keys again
+
+The upper layer must provide a runnable to execute whatever actions are required to move the keys from the leaving node to the rest of the system.
+
+The upper layer is likely to use an instance of the RemoveKeys protocol.
