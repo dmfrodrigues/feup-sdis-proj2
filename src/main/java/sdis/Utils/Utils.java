@@ -1,5 +1,7 @@
 package sdis.Utils;
 
+import java.io.File;
+
 public class Utils {
 
     /**
@@ -50,5 +52,15 @@ public class Utils {
 
     public static int log2(long n) {
         return 63 - Long.numberOfLeadingZeros(n);
+    }
+
+    public static boolean deleteRecursive(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteRecursive(file);
+            }
+        }
+        return directoryToBeDeleted.delete();
     }
 }

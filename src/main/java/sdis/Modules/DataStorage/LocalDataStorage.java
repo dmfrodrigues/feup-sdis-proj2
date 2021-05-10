@@ -1,6 +1,7 @@
 package sdis.Modules.DataStorage;
 
 import sdis.UUID;
+import sdis.Utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,9 +24,9 @@ public class LocalDataStorage extends DataStorageAbstract {
     private static final int BUFFER_SIZE = 80000;
 
     private int capacity;
-    private final String storagePath;
+    private final Path storagePath;
 
-    public LocalDataStorage(String storagePath, int capacity){
+    public LocalDataStorage(Path storagePath, int capacity){
         this.storagePath = storagePath;
         this.capacity = capacity;
         createStorage();
@@ -35,8 +36,12 @@ public class LocalDataStorage extends DataStorageAbstract {
      * @brief Creates a storage directory.
      **/
     private void createStorage(){
-        File file = new File(storagePath);
+        File file = storagePath.toFile();
 
+        // Delete existing folder
+        Utils.deleteRecursive(file);
+
+        // Create new folder
         if (file.mkdirs()) {
             System.out.println("Storage created");
         } else {
@@ -44,7 +49,7 @@ public class LocalDataStorage extends DataStorageAbstract {
         }
     }
 
-    public String getStoragePath() {
+    public Path getPath() {
         return storagePath;
     }
 
@@ -62,7 +67,7 @@ public class LocalDataStorage extends DataStorageAbstract {
      * @return List of IDs of stored datapieces
      */
     public Set<UUID> getAll(){
-        File storage = new File(storagePath);
+        File storage = storagePath.toFile();
         String[] list = Objects.requireNonNull(storage.list());
         Set<UUID> ret = new HashSet<>();
         for(String id: list){
@@ -77,7 +82,7 @@ public class LocalDataStorage extends DataStorageAbstract {
      * @return int representing the number of bytes stored.
      **/
     public CompletableFuture<Integer> getMemoryUsed(){
-        File storage = new File(storagePath);
+        File storage = storagePath.toFile();
         int size = 0;
         for (File file : Objects.requireNonNull(storage.listFiles()))
             size += file.length();
@@ -85,7 +90,7 @@ public class LocalDataStorage extends DataStorageAbstract {
     }
 
     public CompletableFuture<Boolean> canPut(int length){
-        return getMemoryUsed().thenApplyAsync(memoryUsed -> memoryUsed + length > getCapacity());
+        return getMemoryUsed().thenApplyAsync(memoryUsed -> memoryUsed + length <= getCapacity());
     }
 
     /**

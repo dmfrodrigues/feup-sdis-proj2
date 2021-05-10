@@ -10,10 +10,14 @@ import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.Message;
 import sdis.Modules.ProtocolSupplier;
+import sdis.Utils.Utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -45,7 +49,7 @@ public class Peer implements PeerInterface {
             " with address " + getSocketAddress()
         );
 
-        String storagePath = id + "/storage/data";
+        Path storagePath = Paths.get(id + "/storage/data");
         chord = new Chord(getSocketAddress(), getExecutor(), keySize, id);
         dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
 
@@ -96,7 +100,11 @@ public class Peer implements PeerInterface {
             public Void get() {
                 return null;
             }
-        });
+        })
+        .thenRun(() -> {
+            assert(Utils.deleteRecursive(new File(id.toString())));
+        })
+        ;
     }
 
     public Chord getChord() {

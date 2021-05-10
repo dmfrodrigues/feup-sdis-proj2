@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -24,7 +25,7 @@ public class DataStorage extends DataStorageAbstract {
     private final Executor executor;
     private final Chord chord;
 
-    public DataStorage(String storagePath, Executor executor, Chord chord){
+    public DataStorage(Path storagePath, Executor executor, Chord chord){
         localDataStorage = new LocalDataStorage(storagePath, INITIAL_STORAGE_SIZE);
         storedBySuccessor = new HashSet<>();
         this.executor = executor;

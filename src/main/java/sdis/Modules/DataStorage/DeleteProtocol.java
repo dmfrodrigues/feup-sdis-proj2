@@ -46,7 +46,7 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
         // If r has stored that datapiece
         if(hasStored) {
             try {
-                dataStorage.delete(id).get(); // Delete the datapiece
+                localDataStorage.delete(id).get(); // Delete the datapiece
                 return true;
             } catch (InterruptedException e) {
                 throw new CompletionException(e);
