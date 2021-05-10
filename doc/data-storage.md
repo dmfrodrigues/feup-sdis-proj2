@@ -64,19 +64,22 @@ The Get protocol allows a node to get a certain datapiece by its key, assuming i
 
 Upon calling the Get protocol locally, node $r$ does the following:
 
-1. If it has stored the datapiece
-     1. It returns the datapiece
-2. If it has not stored the datapiece but knows its successor has
-     1. It sends a message to its successor $s = successor(r)$ with format
-```
-GET <UUID>
-```
+1. Find its successor $s$
+2. If $r$ locally has the datapiece, return the datapiece
+3. If $r$ points to its successor
+     1. Send a `GET` message to $s$
+     2. Returns according to the response to the `GET` message:
+        1. If it fails, it returns `null`
+        2. It it succeeds, it returns an array of bytes with the datapiece contents
+4. It otherwise fails, and returns `null`
 
-     2. It returns according to the response from $s$.
-3. If it has not stored the datapiece nor points to its successor for further information
-     1. It fails
+#### `GET` message
 
-Upon receiving a `GET` message, a node starts the Get protocol locally, and responds to the message according to whatever the Get protocol returns.
+| **Request**  | | **Response**      |
+|--------------|-|-------------------|
+| `GET <UUID>` | | `<RetCode><Body>` |
+
+Upon receiving a `GET` message, a node starts the Get protocol locally, and responds to the message according to whatever the Get protocol returns: if the protocol fails (by returning `null`), the response has a `<RetCode>` of 0 and the body is empty; if the protocol succeeds, the response has a `<RetCode>` of 1 and the body contains the contents of the datapiece.
 
 <!--
 ### Hello protocol
