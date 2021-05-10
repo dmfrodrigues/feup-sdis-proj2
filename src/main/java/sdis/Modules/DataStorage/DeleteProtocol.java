@@ -8,6 +8,7 @@ import sdis.UUID;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 public class DeleteProtocol extends ProtocolSupplier<Boolean> {
 
@@ -25,28 +26,45 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
     public Boolean get() {
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
+        LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
-        boolean hasStored = false; // TODO: Fix boolean
-        boolean pointsToSuccessor = false; // TODO: Fix condition
+        boolean hasStored;
+        boolean pointsToSuccessor = dataStorage.successorHasStored(id);
+        try {
+            hasStored = localDataStorage.has(id).get();
+        } catch (InterruptedException e) {
+            throw new CompletionException(e);
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
+        }
+
         // If r has not stored that datapiece and has no pointer saying its successor stored it
         if(!hasStored && !pointsToSuccessor){
             return true;
         }
+
         // If r has stored that datapiece
         if(hasStored) {
-            // TODO: Delete the datapiece
-            return true;
-        }
-        // If r has not stored that datapiece but has a pointer to its successor reporting that it might have stored
-        if(!hasStored && pointsToSuccessor) {
             try {
-                Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
-                return Boolean.parseBoolean(new String(socket.getInputStream().readAllBytes()));
-            } catch (IOException e) {
+                dataStorage.delete(id).get(); // Delete the datapiece
+                return true;
+            } catch (InterruptedException e) {
                 throw new CompletionException(e);
+            } catch (ExecutionException e) {
+                throw new CompletionException(e.getCause());
             }
         }
+        // We may now assume the datapiece is not locally stored
 
-        return true;
+        // If r has a pointer to its successor reporting that it might have stored
+        try {
+            Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
+            socket.shutdownOutput();
+            byte[] response = socket.getInputStream().readAllBytes();
+            socket.close();
+            return Boolean.parseBoolean(new String(response));
+        } catch (IOException e) {
+            throw new CompletionException(e);
+        }
     }
 }

@@ -7,7 +7,9 @@ import sdis.Peer;
 import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.CompletionException;
 
 public class DeleteMessage extends DataStorageMessage {
 
@@ -44,7 +46,15 @@ public class DeleteMessage extends DataStorageMessage {
         @Override
         public Void get() {
             DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.getId());
-            deleteProtocol.get();
+            Boolean b = deleteProtocol.get();
+            try {
+                getSocket().getOutputStream().write(b ? 1 : 0);
+                getSocket().shutdownOutput();
+                getSocket().getInputStream().readAllBytes();
+                getSocket().close();
+            } catch (IOException e) {
+                throw new CompletionException(e);
+            }
             return null;
         }
     }
