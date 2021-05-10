@@ -8,30 +8,22 @@ import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class GetMessage extends DataStorageMessage {
 
-    private final Chord.Key nodeKey;
     private final UUID id;
 
-    public GetMessage(Chord.Key nodeKey, UUID id){
-        this.nodeKey = nodeKey;
+    public GetMessage(UUID id){
         this.id = id;
     }
 
     public GetMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
-        nodeKey = chord.newKey(Long.parseLong(splitString[1]));
         id = new UUID(splitString[2]);
-    }
-
-    private Chord.Key getNodeKey() {
-        return nodeKey;
     }
 
     private UUID getId() {
@@ -40,7 +32,7 @@ public class GetMessage extends DataStorageMessage {
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("GET " + getNodeKey() + " " + getId()).getBytes());
+        return new DataBuilder(("GET " + getId()).getBytes());
     }
 
     public byte[] parseResponse(byte[] response) {
@@ -63,7 +55,7 @@ public class GetMessage extends DataStorageMessage {
 
         @Override
         public Void get() {
-            GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.getNodeKey(), message.getId());
+            GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.getId());
             byte[] data = getProtocol.get();
             try {
                 OutputStream os = getSocket().getOutputStream();
