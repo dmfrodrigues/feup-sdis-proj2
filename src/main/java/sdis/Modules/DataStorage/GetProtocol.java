@@ -6,6 +6,7 @@ import sdis.Modules.ProtocolSupplier;
 import sdis.UUID;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -54,7 +55,12 @@ public class GetProtocol extends ProtocolSupplier<byte[]> {
         if(pointsToSuccessor){
             try {
                 Socket socket = dataStorage.send(s.address, new GetMessage(originalNodeKey, id));
-                byte[] ret = socket.getInputStream().readAllBytes();
+                socket.shutdownOutput();
+                byte[] ret;
+                InputStream is = socket.getInputStream();
+                int returnCode = is.read();
+                if(returnCode == 0) ret = null;
+                else                ret = is.readAllBytes();
                 socket.close();
                 return ret;
             } catch (IOException e) {
