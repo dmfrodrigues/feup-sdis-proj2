@@ -32,7 +32,7 @@ public class MessageFactory {
             case "SETPREDECESSOR": return new SetPredecessorMessage(chord, b);
 
             case "DELETE": return new DeleteMessage(b);
-            case "GET"   : return new GetMessage   (chord, b);
+            case "GET"   : return new GetMessage   (b);
             case "PUT"   : return new PutMessage   (chord, b);
         }
 

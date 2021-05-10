@@ -20,7 +20,7 @@ public class GetMessage extends DataStorageMessage {
         this.id = id;
     }
 
-    public GetMessage(Chord chord, byte[] data){
+    public GetMessage(byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         id = new UUID(splitString[2]);
