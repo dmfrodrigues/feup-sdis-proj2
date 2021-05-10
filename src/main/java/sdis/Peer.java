@@ -37,8 +37,6 @@ public class Peer implements PeerInterface {
     private final Chord chord;
     private final DataStorage dataStorage;
 
-    private final ServerSocketHandler serverSocketHandler;
-
     public Peer(int keySize, long id, InetAddress ipAddress) throws IOException {
         serverSocket = new ServerSocket();
         serverSocket.bind(null);
@@ -55,7 +53,7 @@ public class Peer implements PeerInterface {
 
         this.id = chord.newKey(id);
 
-        serverSocketHandler = new ServerSocketHandler(this, serverSocket);
+        ServerSocketHandler serverSocketHandler = new ServerSocketHandler(this, serverSocket);
         Thread serverSocketHandlerThread = new Thread(serverSocketHandler);
         serverSocketHandlerThread.start();
     }

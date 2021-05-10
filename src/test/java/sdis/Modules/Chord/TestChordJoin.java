@@ -6,7 +6,6 @@ import sdis.Peer;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;

@@ -7,7 +7,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
 
 public class TestChordLeave {

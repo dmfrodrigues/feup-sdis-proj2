@@ -6,7 +6,7 @@ import java.util.List;
 public class DataBuilder {
 
     private final byte[] data;
-    private List<DataBuilder> parts = new LinkedList<>();
+    private final List<DataBuilder> parts = new LinkedList<>();
 
     public DataBuilder(){
         this.data = new byte[0];

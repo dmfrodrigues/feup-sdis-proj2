@@ -5,17 +5,17 @@ import java.io.File;
 public class Utils {
 
     /**
-     * @brief Find n-th occurence of a string (needle) in another string (haystack).
+     * @brief Find n-th occurrence of a string (needle) in another string (haystack).
      *
-     * If n=1, this function finds the first occurence.
+     * If n=1, this function finds the first occurrence.
      *
      * It returns the index of the first character of the haystack where it matches the needle.
      * If a solution is not found, -1 is returned.
      *
      * @param haystack  String to search in
      * @param needle    String to search for
-     * @param n         Number of the occurence.
-     * @return          Index of the n-th occurence of needle in haystack
+     * @param n         Number of the occurrence.
+     * @return          Index of the n-th occurrence of needle in haystack
      */
     static public int find_nth(byte[] haystack, byte[] needle, int n){
         for(int i = 0; i+needle.length <= haystack.length; ++i){
