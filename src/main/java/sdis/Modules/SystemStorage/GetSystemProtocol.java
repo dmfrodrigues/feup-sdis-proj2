@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutionException;
 
 public class GetSystemProtocol extends ProtocolSupplier<byte[]> {
 
-    private SystemStorage systemStorage;
+    private final SystemStorage systemStorage;
     private final UUID id;
 
     public GetSystemProtocol(SystemStorage systemStorage, UUID id){
