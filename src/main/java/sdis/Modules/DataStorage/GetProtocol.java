@@ -6,7 +6,6 @@ import sdis.Modules.ProtocolSupplier;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -15,16 +14,11 @@ public class GetProtocol extends ProtocolSupplier<byte[]> {
 
     private final Chord chord;
     private final DataStorage dataStorage;
-    private final Chord.Key originalNodeKey;
     private final UUID id;
 
     public GetProtocol(Chord chord, DataStorage dataStorage, UUID id){
-        this(chord, dataStorage, chord.getKey(), id);
-    }
-    public GetProtocol(Chord chord, DataStorage dataStorage, Chord.Key originalNodeKey, UUID id){
         this.chord = chord;
         this.dataStorage = dataStorage;
-        this.originalNodeKey = originalNodeKey;
         this.id = id;
     }
 
@@ -54,7 +48,7 @@ public class GetProtocol extends ProtocolSupplier<byte[]> {
         boolean pointsToSuccessor = dataStorage.successorHasStored(id);
         if(pointsToSuccessor){
             try {
-                GetMessage m = new GetMessage(originalNodeKey, id);
+                GetMessage m = new GetMessage(id);
                 Socket socket = dataStorage.send(s.address, m);
                 socket.shutdownOutput();
                 byte[] response = socket.getInputStream().readAllBytes();
