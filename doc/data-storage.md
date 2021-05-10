@@ -5,37 +5,30 @@ This is a very simple data storage protocol, which is tasked with storing, retri
 ### Put protocol
 
 - **Arguments:** a node key, datafile key, data
-- **Returns:** -
+- **Returns:** boolean indicating success
 
 When the Put protocol is called without a node key, it defaults to the own node's key (because this node key corresponds to the original caller of the Put protocol; if the request wraps around the whole system and comes back to the node that initially called the Put protocol, the node must signal the error); when the Put protocol is called, said node has to save the datapiece using the specified key, using its successors if necessary.
 
 Upon starting this protocol, a node $r$ should perform the following actions:
 
-1. If the original key is equal to the successor of $r$, then it fails.
-2. If $r$ has not stored that datapiece and does not have space for another piece:
-     1. It registers locally that the datapiece is being stored in its successor.
-     2. It sends to its successor $s = successor(r)$ a message with format
-```
-PUT <NodeKey> <DataKey><LF><Body>
-```
-where NodeKey is the node key the protocol was called with
-     4. If $s$'s answer fails, $r$ removes its local registry saying that the datapiece was stored in its successor.
-     5. $r$ returns according to the answer it got from $s$.
-3. If $r$ has already stored that datapiece:
-     1. It returns with success.
-4. If $r$ has not stored that chunk but has a pointer to its successor reporting that it might have stored:
-     1. If it has space for that chunk:
-          1. It stores the chunk locally.
-          2. It asynchronously sends to its successor $s = successor(r)$ a `DELETE` message to delete that chunk.
-          3. It returns successfully
-     2. If it does not have space for that chunk:
-          1. It sends a `PUT` message to its successor $s = successor(r)$.
-          2. It replies to the original message with whatever $s$ replied.
-5. If $r$ has not yet stored that chunk and has available space:
-     1. It stores that chunk;
-     2. It returns with success.
+1. Find its successor $s$
+2. If $r$ has stored the datapiece locally, return true
+3. If $r$ has space for that datapiece
+   1. Store it locally
+   2. If it points to its successor, send a `DELETE` message to $s$
+   3. Return successfully
+4. If $s$ is the node that originally asked to put this datapiece, then return false
+5. If $r$ does not yet point to $s$, make it point to $s$
+6. Send a `PUT` message to $s$
+7. Wait for the response, and return according to the message's response
 
-Upon receiving a `PUT` message, the node should start the Put protocol locally using the node key it got from the `PUT` message (not its own key), and answer the `PUT` message according to what the Put protocol returns.
+#### `PUT` message
+
+| **Request**                      | | **Response** |
+|----------------------------------|-|--------------|
+| `PUT <NodeKey> <UUID><LF><Body>` | | `<RetCode>`  |
+
+Upon receiving a `PUT` message, the node should start the Put protocol locally using the node key it got from the `PUT` message (not its own key), and answer the `PUT` message according to what the Put protocol returns: `1` for successful, `0` otherwise.
 
 ### Delete protocol
 
@@ -44,30 +37,23 @@ Upon receiving a `PUT` message, the node should start the Put protocol locally u
 
 When the Delete protocol is called for a certain node, said node assumes it has that datapiece, and tries to delete it.
 
-Upon starting this protocol, a node $r$ should perform the following actions:
+Upon starting this protocol, a node $r$ performs the following actions:
 
-1. If $r$ has not stored that datapiece and has no pointer saying its successor stored it,
-     1. It replies with success.
-2. If $r$ has stored that datapiece:
-     1. It deletes the datapiece.
-     2. It replies with success.
-3. If $r$ has not stored that datapiece but has a pointer to its successor reporting that it might have stored:
-     1. It sends to its successor $s = successor(r)$ a message with format
-```
-DELETE <Key>
-```
-with the key of the file it intends to delete.
+1. Find its successor $s$
+2. If $r$ has not stored that datapiece and does not point to $s$, return true.
+3. If $r$ has the datapiece stored locally
+   1. Delete it locally
+   2. Return true
+4. Send a `DELETE` message to $s$
+5. Wait for the response, and return with the appropriate value according to the response
 
-     2. It replies to the original message according to what $s$ replied.
+#### `DELETE` message
 
-Upon receiving a `DELETE` message with a certain key, a node starts the Delete protocol for itself in order to delete the datapiece with the mentioned key.
+| **Request**     | | **Response** |
+|-----------------|-|--------------|
+| `DELETE <UUID>` | | `<RetCode>`  |
 
-TODO:
-
-We also have to take into account the scenario where a node is down; say a node is down and it was storing a certain replica, and afterwards it is requested for that chunk to be deleted:
-
-- If the node ran the chord leaving protocol, then on shutdown it contains no replicas at all, and all the replicas it had were transferred to another node; in this case we do not have to worry, as all replicas of a chunk are active in the system at all times, and upon running the Delete protocol it is guaranteed that all replicas will be deleted.
-- If the node did not run the chord leaving protocol, then the node that failed to contact another node and ask it to be deleted must remember that, so that it can retry to delete when the node rejoins the system.
+Upon receiving a `DELETE` message with a certain key, a node starts the Delete protocol for itself in order to delete the datapiece with the mentioned key. It responds with the boolean value returned by the Delete protocol it started.
 
 ### Get protocol
 
