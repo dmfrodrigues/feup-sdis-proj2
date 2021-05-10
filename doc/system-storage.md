@@ -2,12 +2,13 @@
 
 Supports the same operations as the data storage module (add, retrieve and delete datapieces) except when called the PutSystem, GetSystem and DeleteSystem protocols do not require to know where the datapieces should be stored according to their keys, and these protocols can be called from any node (while data storage protocols could only be called from the node it was supposed to apply).
 
+<!--
 DeleteSystem also handles the case where a peer that is essential to running the Delete protocol is down, using the Hello protocol to realise a node is online and retry to delete the datapiece.
+-->
 
 It additionally supports protocols to:
 
 - Join the system in an orderly fashion
-- Say hello to all nodes in the system
 - Change maximum allowed storage space for the current node
 - Leave the system in an orderly fashion
 

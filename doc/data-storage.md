@@ -78,7 +78,7 @@ GET <UUID>
 
 Upon receiving a `GET` message, a node starts the Get protocol locally, and responds to the message according to whatever the Get protocol returns.
 
-
+<!--
 ### Hello protocol
 
 - **Arguments:** -
@@ -102,3 +102,4 @@ When a node receives a `HELLO` message it should:
 - Close the socket to the successor.
 
 When a node receives a `HELLO` message with its own `<SenderId>` it ignores the message, as it means the message has gone all the way around the system.
+-->
