@@ -66,15 +66,15 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
                     socket.getInputStream().readAllBytes();
                     socket.close();
                 }
+                return true;
             } catch (InterruptedException | IOException e) {
                 throw new CompletionException(e);
             } catch (ExecutionException e) {
                 throw new CompletionException(e.getCause());
             }
-            return true;
         }
         // Everything beyond this point assumes the node does not have the datapiece locally,
-        // nor does it have anough space to store it
+        // nor does it have enough space to store it
 
         if(s.key == originalNodeKey) return false;
 
@@ -85,7 +85,9 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
             // if it already has it, this message just serves as a confirmation that the datapiece is in fact stored.
             Socket socket = dataStorage.send(s.address, new PutMessage(originalNodeKey, id, data));
             socket.shutdownOutput();
-            boolean response = Boolean.parseBoolean(new String(socket.getInputStream().readAllBytes()));
+            byte[] responseByte = socket.getInputStream().readAllBytes();
+            socket.close();
+            boolean response = (responseByte[0] != 0);
             if (!response) {
                 dataStorage.unregisterSuccessorStored(id);
             }

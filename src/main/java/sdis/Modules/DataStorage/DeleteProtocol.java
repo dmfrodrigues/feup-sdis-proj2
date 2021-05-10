@@ -60,9 +60,13 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
         try {
             Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
             socket.shutdownOutput();
-            byte[] response = socket.getInputStream().readAllBytes();
+            byte[] responseByte = socket.getInputStream().readAllBytes();
             socket.close();
-            return Boolean.parseBoolean(new String(response));
+            boolean response = (responseByte[0] != 0);
+            if(response){
+                dataStorage.unregisterSuccessorStored(id);
+            }
+            return response;
         } catch (IOException e) {
             throw new CompletionException(e);
         }
