@@ -83,11 +83,12 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
         try {
             // Send a PUT message to the successor; if it does not yet have that datapiece, the successor will store it;
             // if it already has it, this message just serves as a confirmation that the datapiece is in fact stored.
-            Socket socket = dataStorage.send(s.address, new PutMessage(originalNodeKey, id, data));
+            PutMessage m = new PutMessage(originalNodeKey, id, data);
+            Socket socket = dataStorage.send(s.address, m);
             socket.shutdownOutput();
             byte[] responseByte = socket.getInputStream().readAllBytes();
             socket.close();
-            boolean response = (responseByte[0] != 0);
+            boolean response = m.parseResponse(responseByte);
             if (!response) {
                 dataStorage.unregisterSuccessorStored(id);
             }

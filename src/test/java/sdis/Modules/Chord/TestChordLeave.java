@@ -145,6 +145,8 @@ public class TestChordLeave {
         for(long key = 0; key < peer1.getChord().getMod(); ++key){
             assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).get().key.toLong());
         }
+
+        peer2.leave().get();
     }
 
     @Test(timeout=10000)

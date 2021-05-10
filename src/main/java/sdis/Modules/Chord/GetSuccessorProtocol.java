@@ -49,7 +49,7 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
                 socket.shutdownOutput();
                 byte[] response = socket.getInputStream().readAllBytes();
                 socket.close();
-                ret = chord.newNodeInfo(response);
+                ret = m.parseResponse(chord, response);
             }
             return ret;
         } catch (IOException e) {

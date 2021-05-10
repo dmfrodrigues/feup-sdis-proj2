@@ -27,11 +27,12 @@ public class GetPredecessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
         }
 
         try {
-            Socket socket = chord.send(s.address, new GetPredecessorMessage());
+            GetPredecessorMessage message = new GetPredecessorMessage();
+            Socket socket = chord.send(s.address, message);
             socket.shutdownOutput();
             byte[] response = socket.getInputStream().readAllBytes();
             socket.close();
-            return chord.newNodeInfo(response);
+            return message.parseResponse(chord, response);
         } catch (IOException e) {
             e.printStackTrace();
         }
