@@ -35,9 +35,9 @@ public class PutSystemProtocol extends ProtocolSupplier<Boolean> {
             PutMessage putMessage = new PutMessage(s.key, id, data);
             Socket socket = dataStorage.send(s.address, putMessage);
             socket.shutdownOutput();
-            byte[] responseByte = socket.getInputStream().readAllBytes();
+            byte[] response = socket.getInputStream().readAllBytes();
             socket.close();
-            return (responseByte[0] != 0);
+            return putMessage.parseResponse(response);
         } catch (InterruptedException | IOException e) {
             throw new CompletionException(e);
         } catch (ExecutionException | CompletionException e) {
