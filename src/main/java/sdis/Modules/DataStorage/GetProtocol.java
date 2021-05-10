@@ -54,15 +54,12 @@ public class GetProtocol extends ProtocolSupplier<byte[]> {
         boolean pointsToSuccessor = dataStorage.successorHasStored(id);
         if(pointsToSuccessor){
             try {
-                Socket socket = dataStorage.send(s.address, new GetMessage(originalNodeKey, id));
+                GetMessage m = new GetMessage(originalNodeKey, id);
+                Socket socket = dataStorage.send(s.address, m);
                 socket.shutdownOutput();
-                byte[] ret;
-                InputStream is = socket.getInputStream();
-                int returnCode = is.read();
-                if(returnCode == 0) ret = null;
-                else                ret = is.readAllBytes();
+                byte[] response = socket.getInputStream().readAllBytes();
                 socket.close();
-                return ret;
+                return m.parseResponse(response);
             } catch (IOException e) {
                 throw new CompletionException(e);
             }

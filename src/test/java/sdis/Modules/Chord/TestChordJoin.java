@@ -37,6 +37,8 @@ public class TestChordJoin {
         assertEquals(0, chord1.getFinger(5).key.toLong());
         assertEquals(0, chord1.getFinger(6).key.toLong());
         assertEquals(0, chord1.getFinger(7).key.toLong());
+
+        peer1.leave().get();
     }
 
     @Test(timeout=10000)
@@ -54,6 +56,8 @@ public class TestChordJoin {
         assertEquals(0, chord.getSuccessor(chord.newKey(100)).get().key.toLong());
         assertEquals(0, chord.getSuccessor(chord.newKey(200)).get().key.toLong());
         assertEquals(0, chord.getSuccessor(chord.newKey(255)).get().key.toLong());
+
+        peer1.leave().get();
     }
 
     @Test(timeout=10000)
@@ -73,6 +77,8 @@ public class TestChordJoin {
                 chord1.getSuccessor(chord1.newKey(key)).get().key.toLong()
             );
         }
+
+        peer1.leave().get();
     }
 
     @Test(timeout=10000)
@@ -111,6 +117,9 @@ public class TestChordJoin {
         assertEquals(0, chord2.getFinger(5).key.toLong());
         assertEquals(0, chord2.getFinger(6).key.toLong());
         assertEquals(0, chord2.getFinger(7).key.toLong());
+
+        peer1.leave().get();
+        peer2.leave().get();
     }
 
     @Test(timeout=10000)
@@ -143,6 +152,9 @@ public class TestChordJoin {
         assertEquals( 0, chord2.getSuccessor(chord2.newKey(100)).get().key.toLong());
         assertEquals( 0, chord2.getSuccessor(chord2.newKey(200)).get().key.toLong());
         assertEquals( 0, chord2.getSuccessor(chord2.newKey(255)).get().key.toLong());
+
+        peer1.leave().get();
+        peer2.leave().get();
     }
 
     @Test(timeout=10000)
@@ -165,6 +177,9 @@ public class TestChordJoin {
             assertEquals(getExpectedSuccessor(peers, key, 1L<<8), chord1.getSuccessor(chord1.newKey(key)).get().key.toLong());
             assertEquals(getExpectedSuccessor(peers, key, 1L<<8), chord2.getSuccessor(chord2.newKey(key)).get().key.toLong());
         }
+
+        peer1.leave().get();
+        peer2.leave().get();
     }
 
     @Test(timeout=10000)
@@ -209,6 +224,10 @@ public class TestChordJoin {
             assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).get().key.toLong());
             assertEquals(getExpectedSuccessor(peers, key, MOD), chord3.getSuccessor(chord3.newKey(key)).get().key.toLong());
         }
+
+        peer1.leave().get();
+        peer2.leave().get();
+        peer3.leave().get();
     }
 
     @Test(timeout=10000)
@@ -249,6 +268,9 @@ public class TestChordJoin {
                 }
             }
         }
+
+        for (Peer p : peers)
+            p.leave().get();
     }
 
     @Test(timeout=10000)
@@ -305,5 +327,8 @@ public class TestChordJoin {
         long endTime = System.nanoTime();
         float Dt = (endTime-startTime)/1000000000.0f;
         System.err.println("Took " + Dt + " seconds (avg. per operation " + 1000.0f * Dt/(peers.length * MOD/increment) + "ms)");
+
+        for (Peer peer : peers)
+            peer.leave().get();
     }
 }

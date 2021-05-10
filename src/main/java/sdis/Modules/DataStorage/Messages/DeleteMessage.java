@@ -48,7 +48,7 @@ public class DeleteMessage extends DataStorageMessage {
             DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.getId());
             Boolean b = deleteProtocol.get();
             try {
-                getSocket().getOutputStream().write(b ? 1 : 0);
+                getSocket().getOutputStream().write(message.formatResponse(b));
                 getSocket().shutdownOutput();
                 getSocket().getInputStream().readAllBytes();
                 getSocket().close();
@@ -62,5 +62,15 @@ public class DeleteMessage extends DataStorageMessage {
     @Override
     public DeleteProcessor getProcessor(Peer peer, Socket socket) {
         return new DeleteProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
+    }
+
+    private byte[] formatResponse(boolean b) {
+        byte[] ret = new byte[1];
+        ret[0] = (byte) (b ? 1 : 0);
+        return ret;
+    }
+
+    public boolean parseResponse(byte[] response) {
+        return (response[0] != 0);
     }
 }

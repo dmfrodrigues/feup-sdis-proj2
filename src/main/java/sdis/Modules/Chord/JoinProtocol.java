@@ -31,11 +31,12 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
         for(int i = 0; i < chord.getKeySize(); ++i){
             Chord.Key k = r.key.add(1L << i);
             try {
-                Socket socket = chord.send(g, new GetSuccessorMessage(k));
+                GetSuccessorMessage m = new GetSuccessorMessage(k);
+                Socket socket = chord.send(g, m);
                 socket.shutdownOutput();
                 byte[] response = socket.getInputStream().readAllBytes();
                 socket.close();
-                Chord.NodeInfo s = chord.newNodeInfo(response);
+                Chord.NodeInfo s = m.parseResponse(chord, response);
                 if(Chord.distance(k, r.key) < Chord.distance(k, s.key)) s = r;
                 chord.setFinger(i, s);
             } catch (IOException e) {
@@ -44,10 +45,11 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
         }
         // Get predecessor
         try {
-            Socket socket = chord.send(chord.getSuccessor(), new GetPredecessorMessage());
+            GetPredecessorMessage m = new GetPredecessorMessage();
+            Socket socket = chord.send(chord.getSuccessor(), m);
             socket.shutdownOutput();
             byte[] response = socket.getInputStream().readAllBytes();
-            Chord.NodeInfo predecessor = chord.newNodeInfo(response);
+            Chord.NodeInfo predecessor = m.parseResponse(chord, response);
             chord.setPredecessor(predecessor);
         } catch (IOException e) {
             throw new CompletionException(e);

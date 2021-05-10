@@ -8,6 +8,7 @@ import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
@@ -40,6 +41,15 @@ public class GetMessage extends DataStorageMessage {
     @Override
     protected DataBuilder build() {
         return new DataBuilder(("GET " + getNodeKey() + " " + getId()).getBytes());
+    }
+
+    public byte[] parseResponse(byte[] response) {
+        if(response[0] == 0) return null;
+        else {
+            byte[] ret = new byte[response.length-1];
+            System.arraycopy(response, 1, ret, 0, ret.length);
+            return ret;
+        }
     }
 
     private static class GetProcessor extends Processor {

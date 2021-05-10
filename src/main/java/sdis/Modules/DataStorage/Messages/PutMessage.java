@@ -70,7 +70,7 @@ public class PutMessage extends DataStorageMessage {
             PutProtocol putProtocol = new PutProtocol(getChord(), getDataStorage(), message.getNodeKey(), message.getId(), message.getData());
             Boolean b = putProtocol.get();
             try {
-                getSocket().getOutputStream().write(b ? 1 : 0);
+                getSocket().getOutputStream().write(message.formatResponse(b));
                 getSocket().shutdownOutput();
                 getSocket().getInputStream().readAllBytes();
                 getSocket().close();
@@ -84,5 +84,15 @@ public class PutMessage extends DataStorageMessage {
     @Override
     public PutProcessor getProcessor(Peer peer, Socket socket) {
         return new PutProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
+    }
+
+    private byte[] formatResponse(boolean b) {
+        byte[] ret = new byte[1];
+        ret[0] = (byte) (b ? 1 : 0);
+        return ret;
+    }
+
+    public boolean parseResponse(byte[] response) {
+        return (response[0] != 0);
     }
 }

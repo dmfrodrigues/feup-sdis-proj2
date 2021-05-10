@@ -67,14 +67,6 @@ public class Chord {
             this(nodeInfo.key, nodeInfo.address);
         }
 
-        public NodeInfo(Chord chord, byte[] data) {
-            String dataString = new String(data);
-            String[] splitString = dataString.split(" ");
-            key = chord.newKey(Long.parseLong(splitString[0]));
-            String[] splitAddress = splitString[1].split(":");
-            address = new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1]));
-        }
-
         public void copy(NodeInfo nodeInfo){
             key     = nodeInfo.key;
             address = nodeInfo.address;
@@ -108,10 +100,6 @@ public class Chord {
 
     public Chord.Key newKey(long k){
         return new Chord.Key(this, k);
-    }
-
-    public NodeInfo newNodeInfo(byte[] response) {
-        return new Chord.NodeInfo(this, response);
     }
 
     public Executor getExecutor() {

@@ -58,11 +58,12 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
 
         // If r has a pointer to its successor reporting that it might have stored
         try {
-            Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
+            DeleteMessage m = new DeleteMessage(id);
+            Socket socket = dataStorage.send(s.address, m);
             socket.shutdownOutput();
             byte[] responseByte = socket.getInputStream().readAllBytes();
             socket.close();
-            boolean response = (responseByte[0] != 0);
+            boolean response = m.parseResponse(responseByte);
             if(response){
                 dataStorage.unregisterSuccessorStored(id);
             }
