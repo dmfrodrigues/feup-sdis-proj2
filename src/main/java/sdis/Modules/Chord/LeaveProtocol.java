@@ -21,8 +21,8 @@ public class LeaveProtocol extends ProtocolSupplier<Void> {
 
         // Update predecessors and fingers tables of other nodes
         // Update predecessor of successor
-        UpdatePredecessorProtocol updatePredecessorProtocol = new UpdatePredecessorProtocol(chord, chord.getPredecessor());
-        updatePredecessorProtocol.get();
+        SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getPredecessor());
+        setPredecessorProtocol.get();
         // Update other nodes' fingers tables
         FingersRemoveProtocol fingersRemoveProtocol = new FingersRemoveProtocol(chord);
         fingersRemoveProtocol.get();

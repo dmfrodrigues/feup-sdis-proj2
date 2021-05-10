@@ -4,13 +4,12 @@ import sdis.Modules.Chord.Messages.GetPredecessorMessage;
 import sdis.Modules.ProtocolSupplier;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class GetPredecessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
 
     private final Chord chord;
-    private Chord.Key key;
+    private final Chord.Key key;
 
     public GetPredecessorProtocol(Chord chord, Chord.Key key){
         this.chord = chord;

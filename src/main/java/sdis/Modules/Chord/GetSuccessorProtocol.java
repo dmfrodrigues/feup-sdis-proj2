@@ -32,7 +32,7 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
             return r;
         }
 
-        long d = Chord.distance(chord.getKey(), key);
+        long d = Chord.distance(r.key, key);
         int i = (d == 0 ? 0 : Utils.log2(d));
 
 

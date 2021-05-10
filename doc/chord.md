@@ -15,22 +15,31 @@ This module provides very basic interfaces to use the chord protocol. It allows 
 
 The GetSuccessor protocol allows to find the successor of a certain key $k$.
 
-Let $d = distance(r, s)$ be the distance from $r$ to $k$; $r' = r + 2^{\lfloor\log_2{d}\rfloor}$ is the key with the largest power of two that is less than or equal to $d$. It is trivial that $r' ≤ r \implies successor(r') ≤ successor(r)$; as such, by going to $successor(r')$ we are also getting closer to $successor(k)$.
+Let $d = distance(r, s)$ be the distance from $r$ to $k$ (assume $r \neq k$ to discard the trivial case); $r' = r + 2^{\lfloor\log_2{d}\rfloor}$ is the key with the largest power of two that is less than or equal to $d$.
 
-Thus, we use the fingers table of $r$, and jump to $successor(r')$, which is in the fingers table at index $i=\lfloor \log_2{d} \rfloor$; the base case is when $predecessor(r) < k ≤ r$, in which case node $r$ is responsible for key $k$.
+It is trivial that $r' ≤ r \implies successor(r') ≤ successor(r)$; as such, by going to $successor(r')$ we are also getting closer to $successor(k)$.
+Thus, we use the fingers table of $r$, and jump to $successor(r')$, which is in the fingers table at index $i=\lfloor \log_2{d} \rfloor$.
+The base case is when $distance(k, r) < distance(p, r)$ ($p = predecessor(r)$), in which case node $r$ is responsible for key $k$.
 
-When the GetSuccessor protocol is invoked in a node $r$ to find the successor of $k$, the node:
+When the GetSuccessor protocol is invoked in a node $r$ to find the successor of $k$, the node does the following:
 
-1. Checks if it is the successor of $k$, by checking if $predecessor(r) < k ≤ r$
-   1. If so, $r$ returns its key and socket address
-2. Determines the distance $d = distance(r, s)$ and consults its fingers table at index $i = \lfloor \log_2{d} \rfloor$, storing $r' = r.fingers[i]$
-3. Sends $r'$ a message with format
-```
-GETSUCCESSOR <UUID>
-```
-instructing $r'$ to reply with the key and socket address of the successor of `<UUID>` (which is $k$).
+1. If $r$ is alone in the system, return $r$
+2. If $r$ is the successor of $k$ (i.e., if $distance(k, r) < distance(p, r)$), return $r$
+3. Determine the distance $d = distance(r, s)$
+4. Find the finger table index $i = \lfloor \log_2{d} \rfloor$
+5. Store $r' = r.fingers[i]$
+6. Send $r'$ a `GETSUCCESSOR` message with $k$
+7. Get the answer and return it
 
-On receiving a `GETSUCCESSOR` message, $r'$ triggers the GetSuccessor protocol for itself. The response should be in format `<SuccessorId> <IP>:<Port>`, containing the key and socket address of the successor of key $k$.
+#### `GETSUCCESSOR` message
+
+| **Request**          | | **Response**            |
+|----------------------|-|-------------------------|
+| `GETSUCCESSOR <Key>` | | `<NodeKey> <IP>:<Port>` |
+
+Instructs $r'$ to reply with the key and socket address of the successor of `<Key>` (which is $k$).
+
+On receiving a `GETSUCCESSOR` message, $r'$ triggers the GetSuccessor protocol for itself, and responds to the message with the object returned by the GetSuccessor protocol.
 
 If a new node joins the network, it can simply send a `GETSUCCESSOR` to its gateway node without starting the GetSuccessor protocol locally; it would serve no purpose for the joining node to run the GetSuccessor protocol, as it has not yet built its fingers table.
 
@@ -39,58 +48,90 @@ If a new node joins the network, it can simply send a `GETSUCCESSOR` to its gate
 - **Arguments:** node we are asking to
 - **Returns:** predecessor of said node
 
-This protocol allows any node to know the predecessor of any key $k$. Node $r$ first asks about $s = successor(k)$ using the GetSuccessor protocol, and then:
+This protocol is very similar to the GetSuccessor protocol, except it yield the predecessor of a key.
 
-1. If $s = k$, $r$ returns $k$.
-2. Otherwise, $r$ sends a message to $s$ with format
+This protocol consists of some very simple steps, as most of the heavy-lifting is already done by GetSuccessor:
 
-```
-GETPREDECESSOR
-```
+1. Get $s = successor(k)$ using the GetSuccessor protocol
+2. If $s = k$ then return $s$
+3. Send $s$ a `GETPREDECESSOR` message
+4. Get the answer and return it
 
-to which $s$ answers in format `<Key> <IP>:<Port>`, containing the key and socket address of the predecessor of $s$.
+#### `GETPREDECESSOR` message
 
-### UpdatePredecessor protocol
+| **Request**      | | **Response**            |
+|------------------|-|-------------------------|
+| `GETPREDECESSOR` | | `<NodeKey> <IP>:<Port>` |
 
-- **Arguments:** key, node socket
+Instructs $s$ to answer with its predecessor, which it already knows and can access in constant time.
+
+### SetPredecessor protocol
+
+- **Arguments:** node key and socket
 - **Returns:** -
 
-Every node $r$ with a fingers table can run the UpdatePredecessor protocol. It sends a
+This protocol can be called to set the predecessor of the successor $s$ of a node $r$ to a specific node. It consists of sending a `SETPREDECESSOR` message to the successor $s$ of node $r$.
 
-```
-UPDATEPREDECESSOR <SenderId> <IP>:<Port>
-```
+#### `SETPREDECESSOR` message
 
-message to the current node's successor, containing a key and socket address, and the node receiving this message has to update its predecessor to correspond to the received key and socket address.
+| **Request**                            | | **Response** |
+|----------------------------------------|-|--------------|
+| `SETPREDECESSOR <NodeKey> <IP>:<Port>` | | None         |
+
+Instructs a node $s$ to set its predecessor to the values on the message.
+This message requires no response, only that the receiving end closes the connection.
 
 ### FingersAdd protocol
 
 - **Arguments:** -
 - **Returns:** -
 
-The joining node $r$ must deduce which nodes need to update their fingers tables. To do that, it will find each predecessor of $r - 2^i$ for $0 ≤ i < m$, and send to each of those nodes a message with format
+The joining node $r$ must deduce which nodes need to update their fingers tables. To do that, it will find each predecessor of $r - 2^i$ for $0 ≤ i < m$, and notify each of those nodes to the possibility that it might have to change its $i$-th finger given that $r$ is a possible candidate for that finger, using `FINGERADD` messages.
 
-```
-FINGERADD <key> <IP>:<port> <fingerIdx>
-```
+#### `FINGERADD` message
 
-which instructs the node $s$ that receives this message to check if $r$ is the new $i$-finger of $s$. The node $s$ checks if $r$ is its new $i$-finger by testing if $distance(s, r) < distance(s, s.finger[i]$; if it's false, just ignore; if it's true, it updates $s.finger[i]$ and all indices before $i$ if necessary, and forwards the `FINGERADD` message to its predecessor without changing it.
+| **Request**                                   | | **Response** |
+|-----------------------------------------------|-|--------------|
+| `FINGERADD <NodeKey> <IP>:<Port> <FingerIdx>` | | None         |
 
-A node receiving a `FINGERADD` message currently only ends the request (i.e., closes the socket) after having performed all processing, including forwarding the `FINGERADD` message and waiting for taht request to be over; this is opposite to the most desirable option, where a node receiving a `FINGERADD` message would immediately close the corresponding socket so as not to exhaust the number of TCP connections.
+Instructs a node $r$ receiving this message that it should check if the node $f$ referenced in the message is its new $i$-th finger.
+This message requires no answer, only that the socket is closed once the request is fulfilled.
 
-We decided to go with the first option, as it is better for testing, since the FingersAdd protocol will only ond once all nodes that had to update their fingers tables are done doing so; otherwise, it was relatively common for tests to begin before the network had stabilized.
+Upon receiving this message, $r$ first checks if the message is instructing it to check if it is itself its $i$-th finger;
+because this protocol is only called on joining, and in this case the sending node has already built its fingers table correctly it just ignores the message.
+
+We otherwise arrive at the non-trivial stage, where $r$ checks if $f$ is its new $i$-finger by testing if $distance(r + 2^i, f) < distance(r + 2^i, k)$;
+if it's false, just ignore;
+if it's true:
+
+1. Update $r.finger[i]$ and all indices before $i$ if they also comply to that condition
+2. Forward the `FINGERADD` message to its predecessor $p$ without changing it.
+
+One can also check if $p \neq f$ before performing step 2, as it already knows the message will be ignored by $p$ due to the initial check; however, this check avoids an additional TCP connection, thus we do both checks.
+
+A node receiving a `FINGERADD` message currently only closes the incoming socket after having performed all processing, including forwarding the `FINGERADD` message and waiting for that request to be over; this is opposite to the most desirable option, where a node receiving a `FINGERADD` message would immediately close the incoming socket so as not to exhaust the number of TCP connections.
+
+We decided to go with the first option, as it is better for testing, since the FingersAdd protocol will only end once all nodes that had to update their fingers tables are done; otherwise, it is relatively common for tests to begin running before the network stabilizes, and test results are unreliable unless the tests are performed after a sleep period (of about 100ms).
 
 ### FingersRemove protocol
 
 - **Arguments:** -
 - **Returns:** -
 
-The leaving node $r$ must deduce which nodes need to update their fingers tables. To do that, it will find each predecessor of $r - 2^i$ for $0 ≤ i < m$, and send to each of those nodes a message with format
+This protocol is meant to notify the network that a node $r$ is about to leave, and as such other nodes must update their fingers tables to remove any evidence that $r$ ever existed.
 
-```
-FINGERREMOVE <oldKey> <oldIP>:<oldPort> <newKey> <newIP>:<newPort> <fingerIdx>
-```
+The operation of this protocol is the same as FingersAdd, except it sends `FINGERREMOVE` messages.
 
-where `<oldKey>` and `<oldIP>:<oldPort>` are the key and socket address of $r$, `<newKey>` and `<newIP>:<newPort>` are the key and socket address of the successor of $r$ which is $r'$, and `<fingerIdx>` is $i$.
+#### `FINGERREMOVE` message
 
-This message instructs the node $s$ that receives this message to check if $r$ is the old $i$-finger of $s$. The node $s$ checks if $r$ is its old $i$-finger by testing if $s.finger[i] = r$; if it's false, just ignore; if it's true, it updates $s.finger[i]$ and all indices before $i$ if necessary to become $r'$, and forwards the `FINGERREMOVE` message to its predecessor without changing it.
+| **Request**                                                                      | | **Response** |
+|----------------------------------------------------------------------------------|-|--------------|
+| `FINGERREMOVE <OldKey> <OldIP>:<OldPort> <NewKey> <NewIP>:<NewPort> <FingerIdx>` | | None         |
+
+Instructs a node $r$ that, if it has a finger corresponding to the old node $f_{old}$ reported in the `FINGERREMOVE` message, that finger should be replaced by the new node $f_{new}$, as $f_{old}$ is being removed from the system.
+
+A `FINGERREMOVE` message is processed in a very similar way to a `FINGERADD` message, starting with a simple check if $f_{old}$ is equal to the current node.
+
+In the non-trivial stage, all that changes is that, instead of the condition being related to distances, it merely checks if fingers with a certain index $i$ or less have the same value as $f_{old}$, and if so they are replaced by $f_{new}$.
+
+If at least one finger was changed, similarly to `FINGERADD`, the same `FINGERREMOVE` message is forwarded to the current node's predecessor, except if said predecessor is equal to $f_{old}$, in which case this step is ignored.

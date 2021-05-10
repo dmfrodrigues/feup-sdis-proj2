@@ -60,13 +60,13 @@ public class FingerRemoveMessage extends ChordMessage {
         public Void get() {
             try {
                 Chord chord = getChord();
-                Chord.NodeInfo s  = chord.getNodeInfo();
-                Chord.NodeInfo r  = message.getOldPeerInfo();
-                Chord.NodeInfo r_ = message.getNewPeerInfo();
-                Chord.NodeInfo p  = chord.getPredecessor();
+                Chord.NodeInfo r = chord.getNodeInfo();
+                Chord.NodeInfo fOld = message.getOldPeerInfo();
+                Chord.NodeInfo fNew = message.getNewPeerInfo();
+                Chord.NodeInfo p = chord.getPredecessor();
 
                 // If the new node to update the fingers table is itself, ignore
-                if(s.equals(r)){
+                if(r.equals(fOld)){
                     getSocket().shutdownOutput();
                     getSocket().getInputStream().readAllBytes();
                     getSocket().close();
@@ -78,17 +78,17 @@ public class FingerRemoveMessage extends ChordMessage {
                 boolean updatedFingers = false;
                 while(
                     i >= 0 &&
-                    getChord().getFinger(i).equals(r)
+                    getChord().getFinger(i).equals(fOld)
                 ){
                     updatedFingers = true;
-                    getChord().setFinger(i--, r_);
+                    getChord().setFinger(i--, fNew);
                 }
 
                 // If at least one finger was updated, and the predecessor was
                 // not the one that sent the message, redirect to predecessor.
-                // (this is already prevented by the `s.equals(r)` check on
+                // (this is already prevented by the `r.equals(fOld)` check on
                 // arrival, but we can also check that on departure)
-                if(updatedFingers && !p.equals(r)){
+                if(updatedFingers && !p.equals(fOld)){
                     Socket predecessorSocket = chord.send(p, message);
                     predecessorSocket.shutdownOutput();
                     predecessorSocket.getInputStream().readAllBytes();

@@ -55,8 +55,8 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
 
         // Update other nodes
         // Update predecessor of successor
-        UpdatePredecessorProtocol updatePredecessorProtocol = new UpdatePredecessorProtocol(chord, chord.getNodeInfo());
-        updatePredecessorProtocol.get();
+        SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getNodeInfo());
+        setPredecessorProtocol.get();
         // Update other nodes' fingers tables
         FingersAddProtocol fingersAddProtocol = new FingersAddProtocol(chord);
         fingersAddProtocol.get();

@@ -70,7 +70,7 @@ It is enough for $r$ to send a `GETPREDECESSOR` message to its newly-found succe
 #### Update other nodes
 
 The joining node $r$ needs to notify other nodes in the system to update the information they have about the system.
-Node $r$ must namely notify its successor that $r$ is its new predecessor, using protocol UpdatePredecessor.
+Node $r$ must namely notify its successor that $r$ is its new predecessor, using protocol SetPredecessor.
 It must also notify some of the other nodes in the system to update their fingers tables with its own key and socket address, by running one instance of the FingersAdd protocol.
 
 #### MoveKeys protocol
@@ -127,7 +127,7 @@ On leave, the leaving node $r$ must perform two steps:
 
 #### Update predecessors and fingers tables of other nodes
 
-Node $r$ can achieve this by using first the UpdatePredecessor protocol, with its predecessor's key and socket address.
+Node $r$ can achieve this by using first the SetPredecessor protocol, with its predecessor's key and socket address.
 
 To update other nodes' fingers tables, $r$ uses the FingersRemove protocol.
 

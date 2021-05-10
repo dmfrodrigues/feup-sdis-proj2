@@ -9,15 +9,15 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class UpdatePredecessorMessage extends ChordMessage {
+public class SetPredecessorMessage extends ChordMessage {
 
     private final Chord.NodeInfo predecessor;
 
-    public UpdatePredecessorMessage(Chord.NodeInfo predecessor){
+    public SetPredecessorMessage(Chord.NodeInfo predecessor){
         this.predecessor = predecessor;
     }
 
-    public UpdatePredecessorMessage(Chord chord, byte[] data){
+    public SetPredecessorMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         String[] splitAddress = splitString[2].split(":");
@@ -36,14 +36,14 @@ public class UpdatePredecessorMessage extends ChordMessage {
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("UPDATEPREDECESSOR " + getPredecessor()).getBytes());
+        return new DataBuilder(("SETPREDECESSOR " + getPredecessor()).getBytes());
     }
 
     private static class UpdatePredecessorProcessor extends ChordMessage.Processor {
 
-        private final UpdatePredecessorMessage message;
+        private final SetPredecessorMessage message;
 
-        public UpdatePredecessorProcessor(Chord chord, Socket socket, UpdatePredecessorMessage message){
+        public UpdatePredecessorProcessor(Chord chord, Socket socket, SetPredecessorMessage message){
             super(chord, socket);
             this.message = message;
         }

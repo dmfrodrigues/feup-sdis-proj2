@@ -28,9 +28,11 @@ public class FingersAddProtocol extends ProtocolSupplier<Void> {
                 chord.getExecutor()
             )
             .thenApplyAsync((Chord.NodeInfo predecessor) -> {
+                /*
                 if(predecessor.equals(chord.getNodeInfo())) {
                     return null;
                 }
+                 */
                 try {
                     FingerAddMessage m = new FingerAddMessage(chord.getNodeInfo(), finalI);
                     Socket socket = chord.send(predecessor, m);
@@ -43,11 +45,13 @@ public class FingersAddProtocol extends ProtocolSupplier<Void> {
                 }
             });
             futureList[i] = f;
+            /*
             try {
                 f.get();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
+             */
         }
         CompletableFuture<Void> future = CompletableFuture.allOf(futureList);
         try {

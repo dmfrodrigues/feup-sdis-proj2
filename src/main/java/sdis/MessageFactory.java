@@ -25,11 +25,11 @@ public class MessageFactory {
         System.arraycopy(b, 0, start, 0, i);
         String startStr = new String(start);
         switch(startStr){
-            case "FINGERADD"        : return new FingerAddMessage        (chord, b);
-            case "FINGERREMOVE"     : return new FingerRemoveMessage     (chord, b);
-            case "GETPREDECESSOR"   : return new GetPredecessorMessage   ();
-            case "GETSUCCESSOR"     : return new GetSuccessorMessage     (chord, b);
-            case "UPDATEPREDECESSOR": return new UpdatePredecessorMessage(chord, b);
+            case "FINGERADD"     : return new FingerAddMessage        (chord, b);
+            case "FINGERREMOVE"  : return new FingerRemoveMessage     (chord, b);
+            case "GETPREDECESSOR": return new GetPredecessorMessage   ();
+            case "GETSUCCESSOR"  : return new GetSuccessorMessage     (chord, b);
+            case "SETPREDECESSOR": return new SetPredecessorMessage(chord, b);
 
             case "DELETE": return new DeleteMessage(b);
             case "GET"   : return new GetMessage   (chord, b);
