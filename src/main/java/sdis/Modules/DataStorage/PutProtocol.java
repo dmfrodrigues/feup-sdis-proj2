@@ -36,10 +36,11 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
-        if(s.key == originalNodeKey) return false;
+        if(r.key == originalNodeKey) return false;
 
         boolean hasStored;
         boolean hasSpace;
+        boolean pointsToSuccessor = dataStorage.successorHasStored(id);
         try {
             hasStored = localDataStorage.has(id).get();
             hasSpace = localDataStorage.canPut(data.length).get();
@@ -49,56 +50,48 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
             throw new CompletionException(e.getCause());
         }
 
-
-        // If r has not stored that datapiece and does not have space for another piece
-        if(!hasStored && !hasSpace){
-            dataStorage.registerSuccessorStored(id);
-            try {
-                Socket socket = dataStorage.send(s.address, new PutMessage(originalNodeKey, id, data));
-                socket.shutdownOutput();
-                boolean response = Boolean.parseBoolean(new String(socket.getInputStream().readAllBytes()));
-                if(!response) {
-                    dataStorage.unregisterSuccessorStored(id);
-                }
-                return response;
-            } catch (IOException e) {
-                throw new CompletionException(e);
-            }
-        }
-        // If r has already stored that datapiece
-        if(hasStored){
+        // If r has stored the datapiece, returns
+        if(hasStored) {
             return true;
         }
-        boolean pointsToSuccessor = dataStorage.successorHasStored(id);
-        // If r has not stored that chunk but has a pointer to its successor reporting that it might have stored
-        if(pointsToSuccessor){
-            // If it has space for that chunk
-            if(hasSpace){
-                try {
-                    dataStorage.put(id, data).get();
-                    Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
-                    socket.close();
-                } catch (InterruptedException | IOException e) {
-                    throw new CompletionException(e);
-                } catch (ExecutionException e) {
-                    throw new CompletionException(e.getCause());
-                }
-                return true;
-            } else { // If it does not have space for that chunk
-                try {
-                    Socket socket = dataStorage.send(s.address, new PutMessage(originalNodeKey, id, data));
-                    socket.shutdownOutput();
-                    boolean response = Boolean.parseBoolean(new String(socket.getInputStream().readAllBytes()));
-                    if (!response) {
-                        dataStorage.unregisterSuccessorStored(id);
-                    }
-                    return response;
-                } catch (IOException e) {
-                    throw new CompletionException(e);
-                }
-            }
-        }
+        // Everything beyond this point assumes the datapiece is not locally stored
 
-        return false;
+        // If r has space
+        if(hasSpace){
+            try {
+                dataStorage.put(id, data).get();    // Store the datapiece
+                if(pointsToSuccessor) {
+                    // If it was pointing to its successor, delete it from the successor
+                    // so that less steps are required to reach the datapiece
+                    Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
+                    socket.shutdownOutput();
+                    socket.getInputStream().readAllBytes();
+                    socket.close();
+                }
+            } catch (InterruptedException | IOException e) {
+                throw new CompletionException(e);
+            } catch (ExecutionException e) {
+                throw new CompletionException(e.getCause());
+            }
+            return true;
+        }
+        // Everything beyond this point assumes the node does not have the datapiece locally,
+        // nor does it have anough space to store it
+
+        // If it does not yet point to the successor, point to successor
+        if(!pointsToSuccessor) dataStorage.registerSuccessorStored(id);
+        try {
+            // Send a PUT message to the successor; if it does not yet have that datapiece, the successor will store it;
+            // if it already has it, this message just serves as a confirmation that the datapiece is in fact stored.
+            Socket socket = dataStorage.send(s.address, new PutMessage(originalNodeKey, id, data));
+            socket.shutdownOutput();
+            boolean response = Boolean.parseBoolean(new String(socket.getInputStream().readAllBytes()));
+            if (!response) {
+                dataStorage.unregisterSuccessorStored(id);
+            }
+            return response;
+        } catch (IOException e) {
+            throw new CompletionException(e);
+        }
     }
 }
