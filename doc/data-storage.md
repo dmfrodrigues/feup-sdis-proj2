@@ -91,3 +91,28 @@ GET <UUID>
      1. It fails
 
 Upon receiving a `GET` message, a node starts the Get protocol locally, and responds to the message according to whatever the Get protocol returns.
+
+
+### Hello protocol
+
+- **Arguments:** -
+- **Returns:** -
+
+The Hello protocol allows a node to notify all nodes in the network that it just joined the network. This is particularly useful if said node exited the chord without notifying other nodes and without moving its keys to its successor; the network can still answer queries because several replicas are probably stored in different nodes (they might also end up in the same node that is down, although it is highly unlikely), but when the shutdown node comes back online it might have issues with not having deleted files that were deleted while it was down.
+
+When called, the Hello protocol sends to the successor a message with format
+
+```
+HELLO <SenderId>
+```
+
+and closes the socket.
+
+When a node receives a `HELLO` message it should:
+
+- Close the incoming socket.
+- Open a new socket to its successor.
+- Forward the message to its successor.
+- Close the socket to the successor.
+
+When a node receives a `HELLO` message with its own `<SenderId>` it ignores the message, as it means the message has gone all the way around the system.
