@@ -10,6 +10,7 @@ import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.Message;
 import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Utils.Utils;
 
 import java.io.File;
@@ -36,6 +37,7 @@ public class Peer implements PeerInterface {
     private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(100);
     private final Chord chord;
     private final DataStorage dataStorage;
+    private final SystemStorage systemStorage;
 
     public Peer(int keySize, long id, InetAddress ipAddress) throws IOException {
         serverSocket = new ServerSocket();
@@ -50,6 +52,7 @@ public class Peer implements PeerInterface {
         Path storagePath = Paths.get(id + "/storage/data");
         chord = new Chord(getSocketAddress(), getExecutor(), keySize, id);
         dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
+        systemStorage = new SystemStorage(chord, dataStorage);
 
         this.id = chord.newKey(id);
 
@@ -127,6 +130,10 @@ public class Peer implements PeerInterface {
 
     public DataStorage getDataStorage() {
         return dataStorage;
+    }
+
+    public SystemStorage getSystemStorage() {
+        return systemStorage;
     }
 
     /**
