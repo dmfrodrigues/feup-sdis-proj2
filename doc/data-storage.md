@@ -83,6 +83,20 @@ Upon receiving a `GET` message, a node starts the Get protocol locally, and resp
 
 ### GetRedirects protocol
 
+- **Arguments:** -
+- **Returns:** List of UUIDs to be redirected
+
+This protocol allows a joining node to know which datapieces its predecessor is redirecting to its successor; before $r$ joined, $p$'s successor was $s$, but now it is $r$, so $r$ must learn which datapieces it should redirect to $s$.
+
+When executing this protocol, node $r$ does the following:
+
+1. Find its predecessor $p$
+2. Send a `GETREDIRECTS` message to $p$
+3. Wait for the response, and store the list of UUIDs in an array
+4. Save those UUIDs as redirections
+
+#### `GETREDIRECTS` message
+
 | **Request**    | | **Response**                                |
 |----------------|-|---------------------------------------------|
 | `GETREDIRECTS` | | `<RedirectUUID1><LF><RedirectUUID1><LF>...` |
