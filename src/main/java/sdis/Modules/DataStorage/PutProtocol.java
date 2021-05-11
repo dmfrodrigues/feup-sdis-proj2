@@ -35,12 +35,12 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
-        boolean hasStored;
-        boolean hasSpace;
+        boolean hasStoredLocally = localDataStorage.has(id);
+        boolean hasSpaceLocally;
         boolean pointsToSuccessor = dataStorage.successorHasStored(id);
+        boolean isBase = dataStorage.has(id);
         try {
-            hasStored = localDataStorage.has(id).get();
-            hasSpace = localDataStorage.canPut(data.length).get();
+            hasSpaceLocally = localDataStorage.canPut(data.length).get();
         } catch (InterruptedException e) {
             throw new CompletionException(e);
         } catch (ExecutionException e) {
@@ -48,15 +48,16 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
         }
 
         // If r has stored the datapiece, returns
-        if(hasStored) {
+        if(hasStoredLocally) {
             return true;
         }
         // Everything beyond this point assumes the datapiece is not locally stored
 
         // If r has space
-        if(hasSpace){
+        if(hasSpaceLocally){
             try {
                 localDataStorage.put(id, data).get();    // Store the datapiece
+                if(!isBase) dataStorage.storeBase(id);
                 if(pointsToSuccessor) {
                     // If it was pointing to its successor, delete it from the successor
                     // so that less steps are required to reach the datapiece
@@ -79,6 +80,7 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
 
         // If it does not yet point to the successor, point to successor
         if(!pointsToSuccessor) dataStorage.registerSuccessorStored(id);
+        if(!isBase) dataStorage.storeBase(id);
         try {
             // Send a PUT message to the successor; if it does not yet have that datapiece, the successor will store it;
             // if it already has it, this message just serves as a confirmation that the datapiece is in fact stored.
@@ -90,6 +92,7 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
             boolean response = m.parseResponse(responseByte);
             if (!response) {
                 dataStorage.unregisterSuccessorStored(id);
+                dataStorage.unstoreBase(id);
             }
             return response;
         } catch (IOException e) {

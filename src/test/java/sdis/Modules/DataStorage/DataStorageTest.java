@@ -21,7 +21,7 @@ public class DataStorageTest {
         DataStorage dataStorage1 = peer1.getDataStorage();
         LocalDataStorage localDataStorage1 = dataStorage1.getLocalDataStorage();
 
-        assertFalse(localDataStorage1.has(id).get());
+        assertFalse(localDataStorage1.has(id));
         assertTrue(localDataStorage1.canPut(7).get());
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -41,7 +41,7 @@ public class DataStorageTest {
 
         assertEquals(localDataStorage1.getMemoryUsed().get().intValue(), 0);
         assertTrue(localDataStorage1.canPut(7).get());
-        assertFalse(localDataStorage1.has(id).get());
+        assertFalse(localDataStorage1.has(id));
         assertNull(localDataStorage1.get(id).get());
         assertNull(dataStorage1.get(id).get());
         assertFalse(dataStorage1.successorHasStored(id));
@@ -50,7 +50,7 @@ public class DataStorageTest {
 
         assertEquals(localDataStorage1.getMemoryUsed().get().intValue(), 7);
         assertTrue(localDataStorage1.canPut(7).get());
-        assertTrue(localDataStorage1.has(id).get());
+        assertTrue(localDataStorage1.has(id));
         assertArrayEquals(localDataStorage1.get(id).get(), data);
         assertArrayEquals(dataStorage1.get(id).get(), data);
         assertFalse(dataStorage1.successorHasStored(id));
@@ -75,7 +75,7 @@ public class DataStorageTest {
 
         assertEquals(localDataStorage1.getMemoryUsed().get().intValue(), 0);
         assertTrue(localDataStorage1.canPut(7).get());
-        assertFalse(localDataStorage1.has(id).get());
+        assertFalse(localDataStorage1.has(id));
         assertNull(localDataStorage1.get(id).get());
         assertNull(dataStorage1.get(id).get());
         assertFalse(dataStorage1.successorHasStored(id));
@@ -101,7 +101,7 @@ public class DataStorageTest {
 
         assertEquals(localDataStorage1.getMemoryUsed().get().intValue(), 7);
         assertTrue(localDataStorage1.canPut(7).get());
-        assertTrue(localDataStorage1.has(id).get());
+        assertTrue(localDataStorage1.has(id));
         assertArrayEquals(localDataStorage1.get(id).get(), data);
         assertArrayEquals(dataStorage1.get(id).get(), data);
         assertFalse(dataStorage1.successorHasStored(id));
@@ -132,14 +132,14 @@ public class DataStorageTest {
 
         assertEquals(localDataStorage1.getMemoryUsed().get().intValue(), 0);
         assertFalse(localDataStorage1.canPut(7).get());
-        assertFalse(localDataStorage1.has(id).get());
+        assertFalse(localDataStorage1.has(id));
         assertNull(localDataStorage1.get(id).get());
         assertArrayEquals(dataStorage1.get(id).get(), data);
         assertTrue(dataStorage1.successorHasStored(id));
 
         assertEquals(localDataStorage2.getMemoryUsed().get().intValue(), 7);
         assertTrue(localDataStorage2.canPut(7).get());
-        assertTrue(localDataStorage2.has(id).get());
+        assertTrue(localDataStorage2.has(id));
         assertArrayEquals(localDataStorage2.get(id).get(), data);
         assertArrayEquals(dataStorage2.get(id).get(), data);
         assertFalse(dataStorage2.successorHasStored(id));
@@ -173,14 +173,14 @@ public class DataStorageTest {
 
         assertEquals(localDataStorage1.getMemoryUsed().get().intValue(), 0);
         assertFalse(localDataStorage1.canPut(7).get());
-        assertFalse(localDataStorage1.has(id).get());
+        assertFalse(localDataStorage1.has(id));
         assertNull(localDataStorage1.get(id).get());
         assertNull(dataStorage1.get(id).get());
         assertFalse(dataStorage1.successorHasStored(id));
 
         assertEquals(localDataStorage2.getMemoryUsed().get().intValue(), 0);
         assertTrue(localDataStorage2.canPut(7).get());
-        assertFalse(localDataStorage2.has(id).get());
+        assertFalse(localDataStorage2.has(id));
         assertNull(localDataStorage2.get(id).get());
         assertNull(dataStorage2.get(id).get());
         assertFalse(dataStorage2.successorHasStored(id));

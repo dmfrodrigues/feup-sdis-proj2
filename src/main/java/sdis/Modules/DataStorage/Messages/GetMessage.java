@@ -23,7 +23,7 @@ public class GetMessage extends DataStorageMessage {
     public GetMessage(byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
-        id = new UUID(splitString[2]);
+        id = new UUID(splitString[1]);
     }
 
     private UUID getId() {
