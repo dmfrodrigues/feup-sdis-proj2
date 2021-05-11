@@ -199,7 +199,7 @@ public class Peer implements PeerInterface {
         try {
             LocalDataStorage localDataStorage = getDataStorage().getLocalDataStorage();
             localDataStorage.setCapacity(spaceBytes);
-            if(localDataStorage.getCapacity() > localDataStorage.getMemoryUsed().get()) {
+            if(localDataStorage.getMemoryUsed().get() > localDataStorage.getCapacity()) {
                 ReclaimProtocol reclaimProtocol = new ReclaimProtocol(systemStorage);
                 reclaimProtocol.get();
             }

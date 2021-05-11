@@ -27,12 +27,12 @@ public class ReclaimProtocol extends ProtocolSupplier<Void> {
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         try {
-            AtomicInteger expectedSize = new AtomicInteger(localDataStorage.getMemoryUsed().get());
+            long expectedSize = localDataStorage.getMemoryUsed().get();
             int capacity = localDataStorage.getCapacity();
             List<UUID> storedLocally = new LinkedList<>(localDataStorage.getAll());
             Collections.shuffle(storedLocally);
             List<CompletableFuture<?>> futuresList = new LinkedList<>();
-            while (expectedSize.get() > capacity) {
+            while (expectedSize > capacity) {
                 if(futuresList.size() >= MAX_NUMBER_DATAPIECES){
                     CompletableFuture<Object> anyOfFuture = CompletableFuture.anyOf(futuresList.toArray(new CompletableFuture[0]));
                     anyOfFuture.get();
@@ -49,24 +49,28 @@ public class ReclaimProtocol extends ProtocolSupplier<Void> {
                 UUID id = storedLocally.get(0);
                 storedLocally.remove(0);
 
+                long datapieceSize = localDataStorage.getSize(id);
+                expectedSize -= datapieceSize;
+
                 CompletableFuture<Boolean> f = localDataStorage.get(id)
-                .thenComposeAsync((byte[] data) -> {
-                    expectedSize.addAndGet(-data.length);
-                    return systemStorage.delete(id)
-                        .thenCompose((Boolean deleteSuccessful) -> {
-                            if (!deleteSuccessful) {
-                                return localDataStorage.delete(id)
-                                    .thenApply((Boolean localDeleteSuccessful) -> {
-                                        if (!localDeleteSuccessful)
-                                            throw new CompletionException(new IOException("Failed to delete datapiece " + id));
-                                        return false;
-                                    });
-                            }
-                            return systemStorage.put(id, data);
-                        });
-                });
+                .thenComposeAsync((byte[] data) -> systemStorage.delete(id)
+                    .thenCompose((Boolean deleteSuccessful) -> {
+                        if (!deleteSuccessful) {
+                            return localDataStorage.delete(id)
+                                .thenApply((Boolean localDeleteSuccessful) -> {
+                                    if (!localDeleteSuccessful)
+                                        throw new CompletionException(new IOException("Failed to delete datapiece " + id));
+                                    return false;
+                                });
+                        }
+                        return systemStorage.put(id, data);
+                    }));
                 futuresList.add(f);
             }
+
+            CompletableFuture<?>[] futuresArray = futuresList.toArray(new CompletableFuture[0]);
+            CompletableFuture<Void> allOfFuture = CompletableFuture.allOf(futuresArray);
+            allOfFuture.get();
 
             if(localDataStorage.getMemoryUsed().get() > capacity) return get();
         } catch (InterruptedException e) {
