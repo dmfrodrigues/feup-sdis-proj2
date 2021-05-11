@@ -7,7 +7,6 @@ import sdis.UUID;
 
 import java.net.InetAddress;
 import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.Assert.*;
 
