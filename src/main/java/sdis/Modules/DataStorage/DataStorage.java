@@ -70,8 +70,4 @@ public class DataStorage extends DataStorageAbstract {
         os.flush();
         return socket;
     }
-
-    public void hello(Chord.NodeInfo nodeInfo) {
-        // TODO
-    }
 }

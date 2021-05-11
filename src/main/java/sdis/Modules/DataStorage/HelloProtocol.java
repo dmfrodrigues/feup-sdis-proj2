@@ -39,7 +39,7 @@ public class HelloProtocol extends ProtocolSupplier<Void> {
             throw new CompletionException(e);
         }
 
-        if(!r.equals(nodeInfo)) dataStorage.hello(nodeInfo);
+        // if(!r.equals(nodeInfo)) dataStorage.hello(nodeInfo);
         return null;
     }
 }
