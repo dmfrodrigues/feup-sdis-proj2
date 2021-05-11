@@ -81,6 +81,14 @@ Upon calling the Get protocol locally, node $r$ does the following:
 
 Upon receiving a `GET` message, a node starts the Get protocol locally, and responds to the message according to whatever the Get protocol returns: if the protocol fails (by returning `null`), the response has a `<RetCode>` of 0 and the body is empty; if the protocol succeeds, the response has a `<RetCode>` of 1 and the body contains the contents of the datapiece.
 
+### GetRedirects protocol
+
+| **Request**    | | **Response**                                |
+|----------------|-|---------------------------------------------|
+| `GETREDIRECTS` | | `<RedirectUUID1><LF><RedirectUUID1><LF>...` |
+
+$s$ responds to the message with the list of UUIDs of all datapieces that it is redirecting to its successor, so that $r$ can equally point to its successor.
+
 <!--
 ### Hello protocol
 

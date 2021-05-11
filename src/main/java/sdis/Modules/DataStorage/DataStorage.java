@@ -89,4 +89,8 @@ public class DataStorage extends DataStorageAbstract {
         os.flush();
         return socket;
     }
+
+    public Set<UUID> getRedirects() {
+        return storedBySuccessor;
+    }
 }

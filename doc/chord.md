@@ -176,7 +176,7 @@ It must also notify some of the other nodes in the system to update their finger
 
 To move the keys (and perform any other operations the upper layer deems necessary), the Join protocol accepts a runnable, which the upper layer must provide, specifying how to move keys between nodes.
 
-The upper layer is likely to use an instance of the MoveKeys protocol.
+The upper layers are likely to use an instance of the GetRedirects protocol, and another of the MoveKeys protocol.
 
 ### Leave protocol
 
