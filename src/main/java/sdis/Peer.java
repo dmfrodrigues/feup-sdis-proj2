@@ -8,8 +8,10 @@ import sdis.Protocols.Main.RestoreFileProtocol;
 */
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
+import sdis.Modules.DataStorage.LocalDataStorage;
 import sdis.Modules.Message;
 import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.SystemStorage.ReclaimProtocol;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Utils.Utils;
 
@@ -191,13 +193,19 @@ public class Peer implements PeerInterface {
     /**
      * Set space the peer may use to backup chunks from other machines.
      *
-     * @param space_kb  Amount of space, in kilobytes (KB, K=1000)
+     * @param spaceBytes    Amount of space, in bytes
      */
-    public void reclaim(int space_kb) {
-        /*
-        ReclaimProtocol callable = new ReclaimProtocol(this, space_kb);
-        executor.submit(callable);
-         */
+    public void reclaim(int spaceBytes) {
+        try {
+            LocalDataStorage localDataStorage = getDataStorage().getLocalDataStorage();
+            localDataStorage.setCapacity(spaceBytes);
+            if(localDataStorage.getCapacity() > localDataStorage.getMemoryUsed().get()) {
+                ReclaimProtocol reclaimProtocol = new ReclaimProtocol(systemStorage);
+                reclaimProtocol.get();
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 
     public static class ServerSocketHandler implements Runnable {
