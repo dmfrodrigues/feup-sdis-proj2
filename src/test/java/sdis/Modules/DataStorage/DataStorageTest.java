@@ -1,6 +1,7 @@
 package sdis.Modules.DataStorage;
 
 import org.junit.Test;
+import sdis.Modules.Chord.Chord;
 import sdis.Peer;
 import sdis.UUID;
 
@@ -208,6 +209,44 @@ public class DataStorageTest {
         assertFalse(dataStorage2.has(id));
         assertNull(dataStorage2.get(id).get());
         assertFalse(dataStorage2.successorHasStored(id));
+
+        peer1.leave().get();
+        peer2.leave().get();
+    }
+
+    @Test(timeout=10000)
+    public void redirects_2peer() throws Exception {
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        peer1.join().get();
+
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        peer2.join(peer1.getSocketAddress()).get();
+
+        UUID id1 = new UUID("1234567890-0-1");
+        byte[] data1 = "my data".getBytes();
+        UUID id2 = new UUID("0987654321-0-1");
+        byte[] data2 = "his data".getBytes();
+
+        Chord chord1 = peer1.getChord();
+        DataStorage dataStorage1 = peer1.getDataStorage();
+        LocalDataStorage localDataStorage1 = dataStorage1.getLocalDataStorage();
+
+        Chord chord2 = peer2.getChord();
+        DataStorage dataStorage2 = peer2.getDataStorage();
+        LocalDataStorage localDataStorage2 = dataStorage2.getLocalDataStorage();
+
+        localDataStorage1.setCapacity(0);
+
+        assertTrue(dataStorage1.put(id1, data1).get());
+        assertTrue(dataStorage1.put(id2, data2).get());
+
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord1, dataStorage1).get());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord1, dataStorage1, chord1.getSocketAddress()).get());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord1, dataStorage1, chord2.getSocketAddress()).get());
+
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord2, dataStorage2).get());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord2, dataStorage2, chord1.getSocketAddress()).get());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord2, dataStorage2, chord2.getSocketAddress()).get());
 
         peer1.leave().get();
         peer2.leave().get();

@@ -65,10 +65,10 @@ public class GetRedirectsMessage extends DataStorageMessage {
 
     public Set<UUID> parseResponse(byte[] data) {
         String s = new String(data);
-        String[] split = s.split("\n");
+        String[] split = s.split("\n", -1);
         Set<UUID> ret = new HashSet<>();
-        for(String idString: split){
-            ret.add(new UUID(idString));
+        for(int i = 0; i < split.length-1; ++i){
+            ret.add(new UUID(split[i]));
         }
         return ret;
     }
