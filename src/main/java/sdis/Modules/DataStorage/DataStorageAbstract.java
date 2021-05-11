@@ -46,5 +46,15 @@ public abstract class DataStorageAbstract {
      */
     abstract public CompletableFuture<byte[]> get(UUID id);
 
+    /**
+     * @brief Delete a datapiece.
+     *
+     * If a datapiece was not put, of if it was put and already deleted, returns false and does nothing.
+     *
+     * If a datapiece was put and was successfully deleted, returns true.
+     *
+     * @param id
+     * @return
+     */
     abstract public CompletableFuture<Boolean> delete(UUID id);
 }

@@ -10,7 +10,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -53,16 +52,24 @@ public class DataStorage extends DataStorageAbstract {
 
     @Override
     public CompletableFuture<Boolean> put(UUID id, byte[] data) {
-        return CompletableFuture.supplyAsync(new PutProtocol(chord, this, id, data), executor);
+        storeBase(id);
+        return CompletableFuture.supplyAsync(new PutProtocol(chord, this, id, data), executor)
+            .thenApplyAsync((success) -> {
+                if(!success) unstoreBase(id);
+                return success;
+            });
     }
 
     @Override
     public CompletableFuture<byte[]> get(UUID id) {
+        if(!has(id)) return CompletableFuture.completedFuture(null);
         return CompletableFuture.supplyAsync(new GetProtocol(chord, this, id), executor);
     }
 
     @Override
     public CompletableFuture<Boolean> delete(UUID id) {
+        if(!has(id)) return CompletableFuture.completedFuture(false);
+        unstoreBase(id);
         return CompletableFuture.supplyAsync(new DeleteProtocol(chord, this, id), executor);
     }
 
