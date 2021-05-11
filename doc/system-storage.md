@@ -12,32 +12,28 @@ It additionally supports protocols to:
 - Change maximum allowed storage space for the current node
 - Leave the system in an orderly fashion
 
+One assumption we make is that the vast majority of datapieces stored using the DataStorage layer are stored in the node they are meant to, and not in their successors due to widespread memory shortage. It is a pretty big assumption, however it 
+
 ### PutSystem protocol
 
-- **Arguments:** key, data
+- **Arguments:** UUID, data
 - **Returns:** -
 
-When a node $r$ calls the PutSystem protocol, it is telling the system it simply intends to store the datapiece somewhere in the system.
-
-The PutSystem protocol consists of calling the GetSuccessor protocol to find the successor $s$ of the datapiece key, and then send a `PUT` message to $s$ with `<NodeKey>`$= s$ and the corresponding datapiece key and data.
+Finds the successor $s$ of the key of the given UUID, sends a `PUT` message to $s$ and returns the response to that message.
 
 ### DeleteSystem protocol
 
-- **Arguments:** key
+- **Arguments:** UUID
 - **Returns:** -
 
-When a node $r$ calls the DeleteSystem protocol, it is telling the system it simply intends to delete the datapiece from wherever it is in the system.
-
-The DeleteSystem protocol consists of calling the GetSuccessor protocol to find the successor $s$ of the datapiece key, and then send a `DELETE` message to $s$.
+Finds the successor $s$ of the key of the given UUID, sends a `DELETE` message to $s$ and returns the response to that message.
 
 ### GetSystem protocol
 
-- **Arguments:** key
+- **Arguments:** UUID
 - **Returns:** data
 
-When a node $r$ calls the GetSystem protocol, it is telling the system it simply wants the data identified with a certain key from wherever the system stored it.
-
-The GetSystem protocol consists of calling the GetSuccessor protocol to find the successor $s$ of the datapiece key, and then send a `GET` message to $s$.
+Finds the successor $s$ of the key of the given UUID, sends a `GET` message to $s$ and returns the response to that message.
 
 ### MoveKeys protocol
 
@@ -55,6 +51,12 @@ This message tells $s$ that there is a new node $r$ in the system, and as such t
 1. Load the datapiece from secondary memory.
 2. Start the Delete protocol for that datapiece.
 3. Start the PutSystem protocol for that datapiece.
+
+TODO/TO-THINK:
+
+As for the datapieces that $s$ points to its successor, $r$ only has to point to its successor;
+
+As for the datapieces whose base is in $s$ and should be in $r$, we delete them and re-store them.
 
 ### RemoveKeys protocol
 
