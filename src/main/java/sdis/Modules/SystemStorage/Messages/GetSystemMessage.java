@@ -1,0 +1,85 @@
+package sdis.Modules.SystemStorage.Messages;
+
+import sdis.Modules.SystemStorage.SystemStorage;
+import sdis.Peer;
+import sdis.UUID;
+import sdis.Utils.DataBuilder;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.util.concurrent.CompletionException;
+
+public class GetSystemMessage extends SystemStorageMessage {
+
+    private final UUID id;
+
+    public GetSystemMessage(UUID id){
+        this.id = id;
+    }
+
+    public GetSystemMessage(byte[] data){
+        String dataString = new String(data);
+        String[] splitString = dataString.split(" ");
+        id = new UUID(splitString[1]);
+    }
+
+    private UUID getId() {
+        return id;
+    }
+
+    @Override
+    protected DataBuilder build() {
+        return new DataBuilder(("GETSYSTEM " + getId()).getBytes());
+    }
+
+    private static class GetSystemProcessor extends Processor {
+
+        private final GetSystemMessage message;
+
+        public GetSystemProcessor(SystemStorage systemStorage, Socket socket, GetSystemMessage message){
+            super(systemStorage, socket);
+            this.message = message;
+        }
+
+        @Override
+        public Void get() {
+            getSystemStorage().getDataStorage().get(message.getId())
+            .thenApplyAsync((byte[] data) -> {
+                try {
+                    getSocket().getOutputStream().write(message.formatResponse(data));
+                    getSocket().shutdownOutput();
+                    getSocket().getInputStream().readAllBytes();
+                    getSocket().close();
+                } catch (IOException e) {
+                    throw new CompletionException(e);
+                }
+
+                return null;
+            });
+
+            return null;
+        }
+    }
+
+    @Override
+    public GetSystemProcessor getProcessor(Peer peer, Socket socket) {
+        return new GetSystemProcessor(peer.getSystemStorage(), socket, this);
+    }
+
+    private byte[] formatResponse(byte[] data) {
+        if(data == null) return new byte[]{0};
+        byte[] ret = new byte[data.length+1];
+        ret[0] = 1;
+        System.arraycopy(data, 0, ret, 1, data.length);
+        return ret;
+    }
+
+    public byte[] parseResponse(byte[] response) {
+        if(response[0] == 0) return null;
+        else {
+            byte[] ret = new byte[response.length-1];
+            System.arraycopy(response, 1, ret, 0, ret.length);
+            return ret;
+        }
+    }
+}

@@ -7,6 +7,9 @@ import sdis.Modules.DataStorage.Messages.GetMessage;
 import sdis.Modules.DataStorage.Messages.GetRedirectsMessage;
 import sdis.Modules.DataStorage.Messages.PutMessage;
 import sdis.Modules.Message;
+import sdis.Modules.SystemStorage.Messages.DeleteSystemMessage;
+import sdis.Modules.SystemStorage.Messages.GetSystemMessage;
+import sdis.Modules.SystemStorage.Messages.PutSystemMessage;
 import sdis.Utils.Utils;
 
 public class MessageFactory {
@@ -36,6 +39,10 @@ public class MessageFactory {
             case "GET"         : return new GetMessage         (b);
             case "PUT"         : return new PutMessage         (chord, b);
             case "GETREDIRECTS": return new GetRedirectsMessage(b);
+
+            case "PUTSYSTEM"   : return new PutSystemMessage   (chord, b);
+            case "GETSYSTEM"   : return new GetSystemMessage   (b);
+            case "DELETESYSTEM": return new DeleteSystemMessage(b);
         }
 
         throw new ClassNotFoundException(startStr);

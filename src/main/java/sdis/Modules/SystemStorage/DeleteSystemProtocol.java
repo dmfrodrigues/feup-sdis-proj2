@@ -5,6 +5,7 @@ import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.Messages.DeleteMessage;
 import sdis.Modules.DataStorage.Messages.PutMessage;
 import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.SystemStorage.Messages.DeleteSystemMessage;
 import sdis.UUID;
 
 import java.io.IOException;
@@ -25,15 +26,14 @@ public class DeleteSystemProtocol extends ProtocolSupplier<Boolean> {
     @Override
     public Boolean get() {
         Chord chord = systemStorage.getChord();
-        DataStorage dataStorage = systemStorage.getDataStorage();
         try{
             Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord)).get();
-            DeleteMessage deleteMessage = new DeleteMessage(id);
-            Socket socket = dataStorage.send(s.address, deleteMessage);
+            DeleteSystemMessage deleteSystemMessage = new DeleteSystemMessage(id);
+            Socket socket = systemStorage.send(s.address, deleteSystemMessage);
             socket.shutdownOutput();
             byte[] response = socket.getInputStream().readAllBytes();
             socket.close();
-            return deleteMessage.parseResponse(response);
+            return deleteSystemMessage.parseResponse(response);
         } catch (InterruptedException | IOException e) {
             throw new CompletionException(e);
         } catch (ExecutionException | CompletionException e) {
