@@ -8,6 +8,7 @@ import sdis.Protocols.Main.RestoreFileProtocol;
 */
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
+import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
 import sdis.Modules.Message;
 import sdis.Modules.ProtocolSupplier;
@@ -34,6 +35,7 @@ public class Peer implements PeerInterface {
     private final Random random = new Random(System.currentTimeMillis());
 
     private final Chord.Key id;
+    private final Path baseStoragePath;
     private final InetSocketAddress socketAddress;
     private final ServerSocket serverSocket;
     private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(100);
@@ -55,9 +57,9 @@ public class Peer implements PeerInterface {
             " with address " + getSocketAddress()
         );
 
-        Path storagePath = Paths.get(baseStoragePath.toString(), id + "/storage/data");
+        this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
         chord = new Chord(getSocketAddress(), getExecutor(), keySize, id);
-        dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
+        dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), getExecutor(), getChord());
         systemStorage = new SystemStorage(chord, dataStorage, getExecutor());
 
         this.id = chord.newKey(id);
@@ -85,15 +87,23 @@ public class Peer implements PeerInterface {
     public CompletableFuture<Void> join(){
         System.out.println("Peer " + getKey() + " creating a new chord");
 
-        return getChord().join();
+        return chord.join();
     }
 
     public CompletableFuture<Void> join(InetSocketAddress gateway){
         System.out.println("Peer " + getKey() + " joining a chord");
 
-        return getChord().join(gateway, new ProtocolSupplier<>() {
+        return chord.join(gateway, new ProtocolSupplier<>() {
             @Override
             public Void get() {
+                // Get redirects
+                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(chord, dataStorage);
+                Set<UUID> redirects = getRedirectsProtocol.get();
+                for(UUID id : redirects)
+                    dataStorage.registerSuccessorStored(id);
+
+                // Move keys
+
                 return null;
             }
         });
@@ -102,16 +112,15 @@ public class Peer implements PeerInterface {
     public CompletableFuture<Void> leave(){
         System.out.println("Peer " + getKey() + " leaving its chord");
 
-        return getChord().leave(new ProtocolSupplier<>() {
+        return chord.leave(new ProtocolSupplier<>() {
             @Override
             public Void get() {
                 return null;
             }
         })
         .thenRun(() -> {
-            assert(Utils.deleteRecursive(new File(id.toString())));
-        })
-        ;
+            assert(Utils.deleteRecursive(baseStoragePath.toFile()));
+        });
     }
 
     public Chord getChord() {
@@ -197,7 +206,7 @@ public class Peer implements PeerInterface {
      */
     public void reclaim(int spaceBytes) {
         try {
-            LocalDataStorage localDataStorage = getDataStorage().getLocalDataStorage();
+            LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
             localDataStorage.setCapacity(spaceBytes);
             if(localDataStorage.getMemoryUsed().get() > localDataStorage.getCapacity()) {
                 ReclaimProtocol reclaimProtocol = new ReclaimProtocol(systemStorage);
@@ -209,8 +218,6 @@ public class Peer implements PeerInterface {
     }
 
     public static class ServerSocketHandler implements Runnable {
-        private static final int BUFFER_LENGTH = 80000;
-
         private final Peer peer;
         private final ServerSocket serverSocket;
 
@@ -233,7 +240,6 @@ public class Peer implements PeerInterface {
 
         @Override
         public void run() {
-            byte[] buf = new byte[BUFFER_LENGTH];
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Socket socket = serverSocket.accept();
