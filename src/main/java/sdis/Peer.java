@@ -40,6 +40,10 @@ public class Peer implements PeerInterface {
     private final SystemStorage systemStorage;
 
     public Peer(int keySize, long id, InetAddress ipAddress) throws IOException {
+        this(keySize, id, ipAddress, Paths.get("."));
+    }
+
+    public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException {
         serverSocket = new ServerSocket();
         serverSocket.bind(null);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
@@ -49,10 +53,10 @@ public class Peer implements PeerInterface {
             " with address " + getSocketAddress()
         );
 
-        Path storagePath = Paths.get(id + "/storage/data");
+        Path storagePath = Paths.get(baseStoragePath.toString(), id + "/storage/data");
         chord = new Chord(getSocketAddress(), getExecutor(), keySize, id);
         dataStorage = new DataStorage(storagePath, getExecutor(), getChord());
-        systemStorage = new SystemStorage(chord, dataStorage);
+        systemStorage = new SystemStorage(chord, dataStorage, getExecutor());
 
         this.id = chord.newKey(id);
 
