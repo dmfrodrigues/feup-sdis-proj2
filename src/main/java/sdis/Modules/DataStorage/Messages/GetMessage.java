@@ -35,15 +35,6 @@ public class GetMessage extends DataStorageMessage {
         return new DataBuilder(("GET " + getId()).getBytes());
     }
 
-    public byte[] parseResponse(byte[] response) {
-        if(response[0] == 0) return null;
-        else {
-            byte[] ret = new byte[response.length-1];
-            System.arraycopy(response, 1, ret, 0, ret.length);
-            return ret;
-        }
-    }
-
     private static class GetProcessor extends Processor {
 
         private final GetMessage message;
@@ -58,12 +49,9 @@ public class GetMessage extends DataStorageMessage {
             GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.getId());
             byte[] data = getProtocol.get();
             try {
-                OutputStream os = getSocket().getOutputStream();
-                if(data == null) os.write(0);
-                else {
-                    os.write(1);
-                    os.write(data);
-                }
+                getSocket().getOutputStream().write(message.formatResponse(data));
+                getSocket().shutdownOutput();
+                getSocket().getInputStream().readAllBytes();
                 getSocket().close();
             } catch (IOException e) {
                 throw new CompletionException(e);
@@ -75,5 +63,22 @@ public class GetMessage extends DataStorageMessage {
     @Override
     public GetProcessor getProcessor(Peer peer, Socket socket) {
         return new GetProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
+    }
+
+    private byte[] formatResponse(byte[] data) {
+        if(data == null) return new byte[]{0};
+        byte[] ret = new byte[data.length+1];
+        ret[0] = 1;
+        System.arraycopy(data, 0, ret, 1, data.length);
+        return ret;
+    }
+
+    public byte[] parseResponse(byte[] response) {
+        if(response[0] == 0) return null;
+        else {
+            byte[] ret = new byte[response.length-1];
+            System.arraycopy(response, 1, ret, 0, ret.length);
+            return ret;
+        }
     }
 }
