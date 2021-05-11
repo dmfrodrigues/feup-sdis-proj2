@@ -24,8 +24,6 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
 
     @Override
     public Boolean get() {
-        if(!dataStorage.has(id)) return false;
-
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
