@@ -40,31 +40,19 @@ Finds the successor $s$ of the key of the given UUID, sends a `GET` message to $
 - **Arguments:** -
 - **Returns:** -
 
-To move the keys from its successor $s$ to itself, the joining node $r$ sends a message to $s$ (which has keys that the joining node must now store instead of its successor), with format
+Requests the successor $s$ of node $r$ to re-store the keys that no longer belong to $s$ and now belong to $r$.
 
-```
-MOVEKEYS <SenderId> <IP>:<Port>
-```
+#### `MOVEKEYS` message
 
-This message tells $s$ that there is a new node $r$ in the system, and as such the node that receives this message must do the following for each datapiece it is storing with key $k$ such that $distance(k, r) < distance(k, s)$:
+| **Request**                       | | **Response** |
+|-----------------------------------|-|--------------|
+| `MOVEKEYS <SenderId> <IP>:<Port>` | | None         |
+
+$s$ does the following for each datapiece it is storing with key $k$ such that $distance(k, r) < distance(k, s)$:
 
 1. Load the datapiece from secondary memory.
 2. Start the Delete protocol for that datapiece.
 3. Start the PutSystem protocol for that datapiece.
-
-TODO/TO-THINK:
-
-As for the datapieces that $s$ points to its successor, $r$ only has to point to its successor;
-
-As for the datapieces whose base is in $s$ and should be in $r$, we delete them and re-store them.
-
-### RemoveKeys protocol
-
-By now the network has no trace of $r$, except that some datapieces are missing from $s$. To fix that, $r$ uses the RemoveKeys protocol to move the datapieces it still has to somewhere else in the network, by doing the following for each datapiece it is storing:
-
-1. Load that datapiece into memory
-2. Call the Delete protocol for that datapiece
-3. Send a `PUT` message to $s$, with the `<NodeKey>` being $s$ and the key and body corresponding to the datapiece that is being moved.
 
 ### Reclaim protocol
 
