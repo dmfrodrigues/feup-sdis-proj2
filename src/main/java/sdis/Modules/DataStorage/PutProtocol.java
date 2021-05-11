@@ -32,6 +32,7 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
 
     @Override
     public Boolean get() {
+        Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
@@ -57,7 +58,7 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
         if(hasSpaceLocally){
             try {
                 localDataStorage.put(id, data).get();    // Store the datapiece
-                if(!isBase) dataStorage.storeBase(id);
+                if(r.key.equals(originalNodeKey)) dataStorage.storeBase(id);
                 if(pointsToSuccessor) {
                     // If it was pointing to its successor, delete it from the successor
                     // so that less steps are required to reach the datapiece
@@ -80,7 +81,7 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
 
         // If it does not yet point to the successor, point to successor
         if(!pointsToSuccessor) dataStorage.registerSuccessorStored(id);
-        if(!isBase) dataStorage.storeBase(id);
+        if(r.key.equals(originalNodeKey)) dataStorage.storeBase(id);
         try {
             // Send a PUT message to the successor; if it does not yet have that datapiece, the successor will store it;
             // if it already has it, this message just serves as a confirmation that the datapiece is in fact stored.
