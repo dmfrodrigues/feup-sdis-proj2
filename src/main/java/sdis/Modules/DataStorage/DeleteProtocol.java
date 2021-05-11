@@ -24,19 +24,14 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
 
     @Override
     public Boolean get() {
+        if(!dataStorage.has(id)) return false;
+
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
-        boolean hasStored;
+        boolean hasStored = localDataStorage.has(id);
         boolean pointsToSuccessor = dataStorage.successorHasStored(id);
-        try {
-            hasStored = localDataStorage.has(id).get();
-        } catch (InterruptedException e) {
-            throw new CompletionException(e);
-        } catch (ExecutionException e) {
-            throw new CompletionException(e.getCause());
-        }
 
         // If r has not stored that datapiece and has no pointer saying its successor stored it
         if(!hasStored && !pointsToSuccessor){
@@ -47,6 +42,7 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
         if(hasStored) {
             try {
                 localDataStorage.delete(id).get(); // Delete the datapiece
+                dataStorage.unstoreBase(id);
                 return true;
             } catch (InterruptedException e) {
                 throw new CompletionException(e);

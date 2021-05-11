@@ -113,14 +113,11 @@ In the end, we just need to assemble the chunks.
 
 The DeleteAccount protocol allows a peer to delete its account, including all files tracked by that account. The account to be deleted is assumed to be the one the user logged-in.
 
-When calling the DeleteAccount protocol, the peer calls the BlockAccount protocol to avoid any further operations on the account, and waits to get the final version of the user metadata file.
+When calling the DeleteAccount protocol, the peer sends a `BLOCKACCOUNT` message to avoid any further operations on the account, and waits to get the final version of the user metadata file.
 
 The peer then starts by asynchronously calling DeleteFile protocols for each of the deleted files. After they all succeed, the peer calls a DeleteFile protocol to delete all the 10 replicas.
 
-### BlockAccount protocol
-
-- **Arguments:** -
-- **Returns:** -
+#### `BLOCKACCOUNT` message
 
 This protocol serves the purpose of blocking an account, meaning no more files can be manually added, removed or restored from this account. It mostly serves the purpose of stabilizing the user metadata file before deleting all files of the account.
 

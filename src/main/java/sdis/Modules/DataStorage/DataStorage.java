@@ -10,6 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -21,15 +22,33 @@ public class DataStorage extends DataStorageAbstract {
     private static final int INITIAL_STORAGE_SIZE = 1000000000;
 
     private final LocalDataStorage localDataStorage;
-    private final Set<UUID> storedBySuccessor;
+    private final Set<UUID> storedBase = new HashSet<>();
+    private final Set<UUID> storedBySuccessor = new HashSet<>();
     private final Executor executor;
     private final Chord chord;
 
     public DataStorage(Path storagePath, Executor executor, Chord chord){
-        localDataStorage = new LocalDataStorage(storagePath, INITIAL_STORAGE_SIZE);
-        storedBySuccessor = new HashSet<>();
+        localDataStorage = new LocalDataStorage(storagePath, executor, INITIAL_STORAGE_SIZE);
         this.executor = executor;
         this.chord = chord;
+    }
+
+    public void storeBase(UUID id) {
+        storedBase.add(id);
+    }
+
+    public void unstoreBase(UUID id){
+        storedBase.remove(id);
+    }
+
+    @Override
+    public Boolean has(UUID id){
+        return storedBase.contains(id);
+    }
+
+    @Override
+    public Set<UUID> getAll() {
+        return storedBase;
     }
 
     @Override
@@ -71,7 +90,7 @@ public class DataStorage extends DataStorageAbstract {
         return socket;
     }
 
-    public void hello(Chord.NodeInfo nodeInfo) {
-        // TODO
+    public Set<UUID> getRedirects() {
+        return storedBySuccessor;
     }
 }

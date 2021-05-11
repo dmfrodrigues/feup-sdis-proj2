@@ -24,17 +24,12 @@ public class GetProtocol extends ProtocolSupplier<byte[]> {
 
     @Override
     public byte[] get() {
+        if(!dataStorage.has(id)) return null;
+
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
-        boolean hasStored;
-        try {
-            hasStored = localDataStorage.has(id).get();
-        } catch (InterruptedException e) {
-            throw new CompletionException(e);
-        } catch (ExecutionException e) {
-            throw new CompletionException(e.getCause());
-        }
+        boolean hasStored = localDataStorage.has(id);
         if(hasStored){
             try {
                 return localDataStorage.get(id).get();

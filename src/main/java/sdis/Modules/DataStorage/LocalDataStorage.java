@@ -10,10 +10,7 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * Manage peer chunk storage.
@@ -23,11 +20,13 @@ import java.util.concurrent.Future;
 public class LocalDataStorage extends DataStorageAbstract {
     private static final int BUFFER_SIZE = 80000;
 
-    private int capacity;
     private final Path storagePath;
+    private final Executor executor;
+    private int capacity;
 
-    public LocalDataStorage(Path storagePath, int capacity){
+    public LocalDataStorage(Path storagePath, Executor executor, int capacity){
         this.storagePath = storagePath;
+        this.executor = executor;
         this.capacity = capacity;
         createStorage();
     }
@@ -62,21 +61,6 @@ public class LocalDataStorage extends DataStorageAbstract {
     }
 
     /**
-     * @brief Get list of IDs of stored datapieces
-     *
-     * @return List of IDs of stored datapieces
-     */
-    public Set<UUID> getAll(){
-        File storage = storagePath.toFile();
-        String[] list = Objects.requireNonNull(storage.list());
-        Set<UUID> ret = new HashSet<>();
-        for(String id: list){
-            ret.add(new UUID(id));
-        }
-        return ret;
-    }
-
-    /**
      * @brief Get occupied space in bytes.
      *
      * @return int representing the number of bytes stored.
@@ -91,6 +75,22 @@ public class LocalDataStorage extends DataStorageAbstract {
 
     public CompletableFuture<Boolean> canPut(int length){
         return getMemoryUsed().thenApplyAsync(memoryUsed -> memoryUsed + length <= getCapacity());
+    }
+
+    @Override
+    public Set<UUID> getAll(){
+        File storage = storagePath.toFile();
+        String[] list = Objects.requireNonNull(storage.list());
+        Set<UUID> ret = new HashSet<>();
+        for(String id: list){
+            ret.add(new UUID(id));
+        }
+        return ret;
+    }
+
+    public Boolean has(UUID id){
+        File file = new File(storagePath + "/" + id);
+        return file.canRead();
     }
 
     /**
@@ -116,15 +116,10 @@ public class LocalDataStorage extends DataStorageAbstract {
         });
     }
 
-    public CompletableFuture<Boolean> has(UUID id){
-        File file = new File(storagePath + "/" + id);
-        return CompletableFuture.completedFuture(file.canRead());
-    }
-
     @Override
     public CompletableFuture<byte[]> get(UUID id) {
-        return has(id).thenApplyAsync(hasId -> {
-            if (!hasId) return null;
+        return CompletableFuture.supplyAsync(() -> {
+            if (!has(id)) return null;
 
             AsynchronousFileChannel is;
             try {
@@ -145,7 +140,7 @@ public class LocalDataStorage extends DataStorageAbstract {
             } catch (Exception e) {
                 throw new CompletionException(e);
             }
-        });
+        }, executor);
     }
 
     /**
