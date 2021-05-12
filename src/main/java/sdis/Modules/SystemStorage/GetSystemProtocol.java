@@ -5,6 +5,7 @@ import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.Messages.DeleteMessage;
 import sdis.Modules.DataStorage.Messages.GetMessage;
 import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.SystemStorage.Messages.GetSystemMessage;
 import sdis.UUID;
 
 import java.io.IOException;
@@ -25,15 +26,14 @@ public class GetSystemProtocol extends ProtocolSupplier<byte[]> {
     @Override
     public byte[] get() {
         Chord chord = systemStorage.getChord();
-        DataStorage dataStorage = systemStorage.getDataStorage();
         try{
             Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord)).get();
-            GetMessage getMessage = new GetMessage(id);
-            Socket socket = dataStorage.send(s.address, getMessage);
+            GetSystemMessage getSystemMessage = new GetSystemMessage(id);
+            Socket socket = systemStorage.send(s.address, getSystemMessage);
             socket.shutdownOutput();
             byte[] response = socket.getInputStream().readAllBytes();
             socket.close();
-            return getMessage.parseResponse(response);
+            return getSystemMessage.parseResponse(response);
         } catch (InterruptedException | IOException e) {
             throw new CompletionException(e);
         } catch (ExecutionException | CompletionException e) {

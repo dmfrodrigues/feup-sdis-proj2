@@ -65,9 +65,9 @@ public class LocalDataStorage extends DataStorageAbstract {
      *
      * @return int representing the number of bytes stored.
      **/
-    public CompletableFuture<Integer> getMemoryUsed(){
+    public CompletableFuture<Long> getMemoryUsed(){
         File storage = storagePath.toFile();
-        int size = 0;
+        long size = 0;
         for (File file : Objects.requireNonNull(storage.listFiles()))
             size += file.length();
         return CompletableFuture.completedFuture(size);
@@ -153,5 +153,10 @@ public class LocalDataStorage extends DataStorageAbstract {
         File datapiece = new File(storagePath + "/" + id);
         boolean ret = datapiece.delete();
         return CompletableFuture.completedFuture(ret);
+    }
+
+    public long getSize(UUID id) {
+        File file = new File(storagePath + "/" + id);
+        return file.length();
     }
 }
