@@ -11,3 +11,4 @@ gradle/
 .gradle/
 gradlew
 gradlew.bat
+*.code-workspace
