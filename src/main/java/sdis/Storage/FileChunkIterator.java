@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutionException;
  * Iterator over chunks of an existing file.
  * Is used to read a file one chunk at a time.
  */
-public class FileChunkIterator extends ChunkIterator {
+public class FileChunkIterator extends AsynchronousChunkIterator {
     private final String fileId;
     private final File sourceFile;
     private final String destinationFile;

@@ -18,19 +18,14 @@ import java.util.concurrent.Future;
  */
 abstract public class ChunkIterator implements Iterator<CompletableFuture<byte[]>> {
     private final int chunkSize;
-    byte[] buffer;
-    AsynchronousFileChannel fileStream;
 
     /**
      * @brief Construct ChunkIterator.
      *
-     * @param fileStream    Asynchronous file channel to read from
      * @param chunkSize     Chunk size, in bytes
      */
-    public ChunkIterator(AsynchronousFileChannel fileStream, int chunkSize) throws IOException {
-        this.fileStream = fileStream;
+    public ChunkIterator(int chunkSize) throws IOException {
         this.chunkSize = chunkSize;
-        buffer = new byte[this.chunkSize];
     }
 
     public final int getChunkSize(){
@@ -46,42 +41,9 @@ abstract public class ChunkIterator implements Iterator<CompletableFuture<byte[]
      *
      * @return  Length of chunked file, in chunks
      */
-    public final long length() throws IOException {
-        long l = fileStream.size();
-        return l/chunkSize + 1;
-    }
+    abstract public long length() throws IOException;
 
-    long nextIndex = 0;
+    abstract public boolean hasNext();
 
-    @Override
-    public final synchronized boolean hasNext() {
-        try {
-            return nextIndex < length();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    @Override
-    public final synchronized CompletableFuture<byte[]> next() {
-        ByteBuffer buffer = ByteBuffer.allocate(chunkSize);
-        Future<Integer> f = fileStream.read(buffer, nextIndex*chunkSize);
-        ++nextIndex;
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                int size = f.get();
-                byte[] bufferArray = new byte[size];
-                buffer.flip();
-                buffer.get(bufferArray, 0, size);
-                return bufferArray;
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        }, Peer.getExecutor());
-    }
-
-    public final void close() throws IOException {
-        fileStream.close();
-    }
+    abstract public CompletableFuture<byte[]> next();
 }
