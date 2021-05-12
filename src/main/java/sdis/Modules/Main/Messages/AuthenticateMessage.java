@@ -1,15 +1,9 @@
 package sdis.Modules.Main.Messages;
 
-import sdis.Modules.Chord.Chord;
-import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.DataStorage.GetProtocol;
-import sdis.Modules.DataStorage.LocalDataStorage;
-import sdis.Modules.Main.Main;
-import sdis.Modules.Main.Password;
-import sdis.Modules.Main.UserMetadata;
-import sdis.Modules.Main.Username;
+import sdis.Modules.Main.*;
 import sdis.Peer;
-import sdis.UUID;
+import sdis.Storage.ChunkOutput;
+import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
 
 import java.io.*;
@@ -17,6 +11,8 @@ import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class AuthenticateMessage extends MainMessage {
+    private static final int BUFFER_SIZE = 10;
+    private static final int USER_METADATA_REPDEG = 10;
 
     private final Username username;
     private final Password password;
@@ -57,26 +53,30 @@ public class AuthenticateMessage extends MainMessage {
 
         @Override
         public Void get() {
-            UUID id = message.getUsername().getId();
+            String id = "u/" + message.getUsername().toString();
 
             try {
-                byte[] file = new RestoreFile(id).get();
+                UserMetadata userMetadata = null;
 
-                InputStream is = new ByteArrayInputStream(file);
-                ObjectInputStream ois = new ObjectInputStream(is);
-                UserMetadata userMetadata = (UserMetadata) ois.readObject();
-                ois.close();
-                is.close();
+                try {
+                    DataBuilder builder = new DataBuilder();
+                    ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, BUFFER_SIZE);
+                    RestoreUserFileProtocol restoreFileProtocol = new RestoreUserFileProtocol(getMain(), id, USER_METADATA_REPDEG, chunkOutput, BUFFER_SIZE);
 
-                if (!userMetadata.getPassword().authenticate(message.password)) {
-                    userMetadata = null;
+                    if(restoreFileProtocol.get()){
+                        byte[] data = builder.get();
+                        InputStream is = new ByteArrayInputStream(data);
+                        ObjectInputStream ois = new ObjectInputStream(is);
+                        userMetadata = (UserMetadata) ois.readObject();
+                    }
+                } catch(Throwable ignored){
                 }
 
                 getSocket().getOutputStream().write(message.formatResponse(userMetadata));
                 getSocket().shutdownOutput();
                 getSocket().getInputStream().readAllBytes();
                 getSocket().close();
-            } catch (IOException | ClassNotFoundException e) {
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
 

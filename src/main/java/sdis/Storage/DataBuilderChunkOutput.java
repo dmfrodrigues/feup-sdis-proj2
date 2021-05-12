@@ -1,5 +1,6 @@
 package sdis.Storage;
 
+import sdis.Utils.DataBuilder;
 import sdis.Utils.FixedSizeBuffer;
 
 import java.io.File;
@@ -11,28 +12,25 @@ import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
 
 /**
- * @brief File chunk output.
+ * @brief Data builder chunk output.
  *
  * Is used to reconstruct a file.
  * Is in sync with a local filesystem file.
  * Buffers chunks saved using FileChunkOutput#set(int, byte[]), and writes them to the file whenever possible.
  */
-public class FileChunkOutput implements ChunkOutput {
-    private final static int BUFFER_SIZE = 10;
-
-    private final AsynchronousFileChannel fileOutputStream;
-    private int filePosition = 0;
-    private final FixedSizeBuffer<ByteBuffer> buffer;
+public class DataBuilderChunkOutput implements ChunkOutput {
+    private final FixedSizeBuffer<byte[]> buffer;
+    private final DataBuilder builder;
 
     /**
      * Create FileChunkOutput.
      *
-     * @param file  File to sync with/write to
+     * @param builder  Data builder to write to
      * @throws FileNotFoundException If file is not found (never thrown, as file needs not exist)
      */
-    public FileChunkOutput(File file) throws IOException {
-        fileOutputStream = AsynchronousFileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-        buffer = new FixedSizeBuffer<>(BUFFER_SIZE);
+    public DataBuilderChunkOutput(DataBuilder builder, int bufferSize) {
+        this.buffer = new FixedSizeBuffer<>(bufferSize);
+        this.builder = builder;
     }
 
     /**
@@ -47,25 +45,17 @@ public class FileChunkOutput implements ChunkOutput {
      */
     @Override
     public boolean set(long i, byte[] e) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(e);
-        buffer.set(i, byteBuffer);
+        byte[] eCopy = new byte[e.length];
+        System.arraycopy(e, 0, eCopy, 0, e.length);
+        try {
+            buffer.set(i, eCopy);
+        } catch(ArrayIndexOutOfBoundsException ex){
+            return false;
+        }
         if(buffer.hasNext()){
-            ByteBuffer next = buffer.next();
-            try {
-                filePosition += fileOutputStream.write(next, filePosition).get();
-            } catch (InterruptedException | ExecutionException ex) {
-                return false;
-            }
+            byte[] next = buffer.next();
+            builder.append(next);
         }
         return true;
-    }
-
-    /**
-     * Close file.
-     *
-     * @throws IOException  If fails to close
-     */
-    public void close() throws IOException {
-        fileOutputStream.close();
     }
 }

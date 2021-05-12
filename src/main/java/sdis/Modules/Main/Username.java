@@ -11,8 +11,8 @@ public class Username implements Serializable {
         this.s = s;
     }
 
-    public UUID getId(){
-        return new UUID("u/" + s);
+    public String getId(){
+        return s;
     }
 
     public String toString(){
