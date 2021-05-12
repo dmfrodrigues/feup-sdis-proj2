@@ -10,6 +10,7 @@ import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
+import sdis.Modules.Main.Main;
 import sdis.Modules.Message;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.ReclaimProtocol;
@@ -42,6 +43,7 @@ public class Peer implements PeerInterface {
     private final Chord chord;
     private final DataStorage dataStorage;
     private final SystemStorage systemStorage;
+    private final Main main;
 
     public Peer(int keySize, long id, InetAddress ipAddress) throws IOException {
         this(keySize, id, ipAddress, Paths.get("."));
@@ -61,6 +63,7 @@ public class Peer implements PeerInterface {
         chord = new Chord(getSocketAddress(), getExecutor(), keySize, id);
         dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), getExecutor(), getChord());
         systemStorage = new SystemStorage(chord, dataStorage, getExecutor());
+        main = new Main(systemStorage);
 
         this.id = chord.newKey(id);
 
@@ -123,10 +126,6 @@ public class Peer implements PeerInterface {
         });
     }
 
-    public Chord getChord() {
-        return chord;
-    }
-
     public Random getRandom() {
         return random;
     }
@@ -143,12 +142,20 @@ public class Peer implements PeerInterface {
         return socketAddress;
     }
 
+    public Chord getChord() {
+        return chord;
+    }
+
     public DataStorage getDataStorage() {
         return dataStorage;
     }
 
     public SystemStorage getSystemStorage() {
         return systemStorage;
+    }
+
+    public Main getMain() {
+        return main;
     }
 
     /**

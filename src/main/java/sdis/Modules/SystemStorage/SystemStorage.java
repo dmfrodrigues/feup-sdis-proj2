@@ -2,6 +2,8 @@ package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
+import sdis.Modules.Main.Messages.AuthenticateMessage;
+import sdis.Modules.Message;
 import sdis.Modules.SystemStorage.Messages.SystemStorageMessage;
 import sdis.UUID;
 
@@ -10,6 +12,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 public class SystemStorage {
@@ -31,7 +34,7 @@ public class SystemStorage {
         return dataStorage;
     }
 
-    public Socket send(InetSocketAddress to, SystemStorageMessage m) throws IOException {
+    public Socket send(InetSocketAddress to, Message m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());
         OutputStream os = socket.getOutputStream();
         os.write(m.asByteArray());
@@ -49,5 +52,14 @@ public class SystemStorage {
 
     public CompletableFuture<Boolean> delete(UUID id) {
         return CompletableFuture.supplyAsync(new DeleteSystemProtocol(this, id), executor);
+    }
+
+    public Socket forward(UUID id, Message message) {
+        try {
+            Chord.NodeInfo to = chord.getSuccessor(id.getKey(chord)).get();
+            return send(to.address, message);
+        } catch (InterruptedException | IOException | ExecutionException e) {
+            return null;
+        }
     }
 }
