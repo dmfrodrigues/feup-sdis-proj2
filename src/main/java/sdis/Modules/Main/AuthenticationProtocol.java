@@ -4,16 +4,20 @@ import sdis.Modules.Chord.Chord;
 import sdis.Modules.Main.Messages.AuthenticateMessage;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.SystemStorage;
+import sdis.UUID;
+import sdis.Utils.Pair;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class AuthenticationProtocol extends ProtocolSupplier<UserMetadata> {
+    public static final int USER_METADATA_REPDEG = 10;
+    public static final int MAX_NUMBER_FUTURES = 10;
 
     private final Main main;
-    private Username username;
-    private Password password;
+    private final Username username;
+    private final Password password;
 
     public AuthenticationProtocol(Main main, Username username, Password password){
         this.main = main;
@@ -31,7 +35,22 @@ public class AuthenticationProtocol extends ProtocolSupplier<UserMetadata> {
             socket.shutdownOutput();
             byte[] response = socket.getInputStream().readAllBytes();
             socket.close();
-            return message.parseResponse(response);
+            Pair<AuthenticateMessage.Status, UserMetadata> reply = message.parseResponse(response);
+            switch(reply.first){
+                case SUCCESS:
+                    return reply.second;
+                case NOTFOUND:
+
+                    UserMetadata userMetadata = new UserMetadata(username, password);
+                    byte[] data = userMetadata.serialize();
+                    BackupFileProtocol backupFileProtocol = new BackupFileProtocol(main, "u/" + username, USER_METADATA_REPDEG, data, MAX_NUMBER_FUTURES);
+                    if(!backupFileProtocol.get()) return null;
+                    return userMetadata;
+
+                case BROKEN:
+                    return null;
+            }
+            return null;
         } catch (IOException e) {
             throw new CompletionException(e);
         }

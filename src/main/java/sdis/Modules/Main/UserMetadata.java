@@ -1,6 +1,6 @@
 package sdis.Modules.Main;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,5 +54,23 @@ public class UserMetadata implements Serializable {
 
     public void removeFile(String path){
         files.remove(path);
+    }
+
+    public byte[] serialize() throws IOException {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(os);
+        oos.writeObject(this);
+        oos.close();
+        os.close();
+        return os.toByteArray();
+    }
+
+    public static UserMetadata deserialize(byte[] response, int offset, int length) throws IOException, ClassNotFoundException {
+        InputStream is = new ByteArrayInputStream(response, offset, length);
+        ObjectInputStream ois = new ObjectInputStream(is);
+        UserMetadata ret = (UserMetadata) ois.readObject();
+        ois.close();
+        is.close();
+        return ret;
     }
 }

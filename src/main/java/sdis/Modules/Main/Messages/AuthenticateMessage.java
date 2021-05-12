@@ -5,14 +5,20 @@ import sdis.Peer;
 import sdis.Storage.ChunkOutput;
 import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
+import sdis.Utils.Pair;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
+import static sdis.Modules.Main.AuthenticationProtocol.USER_METADATA_REPDEG;
+
 public class AuthenticateMessage extends MainMessage {
-    private static final int BUFFER_SIZE = 10;
-    private static final int USER_METADATA_REPDEG = 10;
+    public enum Status {
+        SUCCESS,
+        NOTFOUND,
+        BROKEN
+    }
 
     private final Username username;
     private final Password password;
@@ -55,24 +61,29 @@ public class AuthenticateMessage extends MainMessage {
         public Void get() {
             String id = "u/" + message.getUsername().toString();
 
-            try {
-                UserMetadata userMetadata = null;
+            Status status = Status.SUCCESS;
+            UserMetadata userMetadata = null;
 
+            boolean b = false;
+            DataBuilder builder = new DataBuilder();
+
+            ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 1);
+            RestoreUserFileProtocol restoreFileProtocol = new RestoreUserFileProtocol(getMain(), id, USER_METADATA_REPDEG, chunkOutput);
+            if(!restoreFileProtocol.get()) {
+                status = Status.NOTFOUND;
+            } else {
                 try {
-                    DataBuilder builder = new DataBuilder();
-                    ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, BUFFER_SIZE);
-                    RestoreUserFileProtocol restoreFileProtocol = new RestoreUserFileProtocol(getMain(), id, USER_METADATA_REPDEG, chunkOutput, BUFFER_SIZE);
-
-                    if(restoreFileProtocol.get()){
-                        byte[] data = builder.get();
-                        InputStream is = new ByteArrayInputStream(data);
-                        ObjectInputStream ois = new ObjectInputStream(is);
-                        userMetadata = (UserMetadata) ois.readObject();
-                    }
-                } catch(Throwable ignored){
+                    byte[] data = builder.get();
+                    InputStream is = new ByteArrayInputStream(data);
+                    ObjectInputStream ois = new ObjectInputStream(is);
+                    userMetadata = (UserMetadata) ois.readObject();
+                } catch (ClassNotFoundException | IOException e) {
+                    status = Status.BROKEN;
                 }
+            }
 
-                getSocket().getOutputStream().write(message.formatResponse(userMetadata));
+            try {
+                getSocket().getOutputStream().write(message.formatResponse(status, userMetadata));
                 getSocket().shutdownOutput();
                 getSocket().getInputStream().readAllBytes();
                 getSocket().close();
@@ -89,32 +100,40 @@ public class AuthenticateMessage extends MainMessage {
         return new AuthenticateProcessor(peer.getMain(), socket, this);
     }
 
-    private byte[] formatResponse(UserMetadata userMetadata) {
+    private byte[] formatResponse(Status status, UserMetadata userMetadata) {
         try {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(os);
-            oos.writeObject(userMetadata);
-            oos.close();
-            os.close();
-            DataBuilder builder = new DataBuilder(new byte[]{1});
-            builder.append(os.toByteArray());
-            return builder.get();
+            switch(status){
+                case SUCCESS:
+                    DataBuilder builder = new DataBuilder(new byte[]{0});
+                    builder.append(userMetadata.serialize());
+                    return builder.get();
+                case NOTFOUND:
+                    return new byte[]{1};
+                case BROKEN:
+                    return new byte[]{2};
+                default:
+                    return new byte[]{2};
+            }
         } catch (IOException e) {
-            return new byte[]{0};
+            return new byte[]{2};
         }
     }
 
-    public UserMetadata parseResponse(byte[] response) {
+    public Pair<Status, UserMetadata> parseResponse(byte[] response) {
         try {
-            if(response[0] != 1) return null;
-            InputStream is = new ByteArrayInputStream(response, 1, response.length-1);
-            ObjectInputStream ois = new ObjectInputStream(is);
-            UserMetadata ret = (UserMetadata) ois.readObject();
-            ois.close();
-            is.close();
-            return ret;
+            switch(response[0]){
+                case 0:
+                    UserMetadata ret = UserMetadata.deserialize(response, 1, response.length-1);
+                    return new Pair<>(Status.SUCCESS, ret);
+                case 1:
+                    return new Pair<>(Status.NOTFOUND, null);
+                case 2:
+                    return new Pair<>(Status.BROKEN, null);
+                default:
+                    return new Pair<>(Status.BROKEN, null);
+            }
         } catch (IOException | ClassNotFoundException e) {
-            return null;
+            return new Pair<>(Status.BROKEN, null);
         }
     }
 }

@@ -16,15 +16,13 @@ public class RestoreUserFileProtocol extends ProtocolSupplier<Boolean> {
     private final Main main;
     private final String id;
     private final int replicationDegree;
-    private ChunkOutput destination;
-    private int maxNumberFutures;
+    private final ChunkOutput destination;
 
-    public RestoreUserFileProtocol(Main main, String id, int replicationDegree, ChunkOutput destination, int maxNumberFutures){
+    public RestoreUserFileProtocol(Main main, String id, int replicationDegree, ChunkOutput destination){
         this.main = main;
         this.id = id;
         this.replicationDegree = replicationDegree;
         this.destination = destination;
-        this.maxNumberFutures = maxNumberFutures;
     }
 
     private CompletableFuture<byte[]> getChunk(long chunkIndex) {
