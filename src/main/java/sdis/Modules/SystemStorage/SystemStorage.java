@@ -42,6 +42,11 @@ public class SystemStorage {
         return socket;
     }
 
+    public Socket sendAny(Message message) throws IOException {
+        Chord.NodeInfo to = chord.getSuccessor();
+        return send(to.address, message);
+    }
+
     public CompletableFuture<Boolean> put(UUID id, byte[] data) {
         return CompletableFuture.supplyAsync(new PutSystemProtocol(this, id, data), executor);
     }
@@ -52,14 +57,5 @@ public class SystemStorage {
 
     public CompletableFuture<Boolean> delete(UUID id) {
         return CompletableFuture.supplyAsync(new DeleteSystemProtocol(this, id), executor);
-    }
-
-    public Socket forward(UUID id, Message message) {
-        try {
-            Chord.NodeInfo to = chord.getSuccessor(id.getKey(chord)).get();
-            return send(to.address, message);
-        } catch (InterruptedException | IOException | ExecutionException e) {
-            return null;
-        }
     }
 }

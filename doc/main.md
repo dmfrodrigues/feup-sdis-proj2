@@ -28,19 +28,18 @@ For each user with username $u$, the system stores a file with ID $concatenate("
 - Password (hashed with some hash function)
 - A table with the complete list of all files backed-up by that user (the ID of that table is the file path), having for each file its:
   - Path
-  - ID
   - Number of chunks
   - Replication degree
 
 This allows all system data to be fully distributed. This file is stored, loaded, edited and deleted using the BackupFile, DeleteFile and RestoreFile protocols with a replication degree of 10; this means the user metadata file also benefits from redundancy and does not need to use lower-level protocols, including having to calculate the key from its ID. Ideally, this information would be stored in a distributed database, but to limit complexity we decided to use the same file backup system to store user metadata.
 
-Both when registering or logging-in, the peer calls the same Authenticate protocol, where the new peer sends to a known peer that is part of the system (the gateway peer) a message with format
+To authenticate, a peer sends an `AUTHENTICATE` message to any peer.
 
-```
-AUTHENTICATE <Username> <Password>
-```
+#### `AUTHENTICATE` message
 
-where `<Password>` is in plaintext.
+| **Request**                          | | **Response** |
+|--------------------------------------|-|--------------|
+| `AUTHENTICATE <Username> <Password>` | | `<Metadata>`  |
 
 Upon receiving this message, a peer calls the RestoreFile protocol for the corresponding user's metadata file:
 

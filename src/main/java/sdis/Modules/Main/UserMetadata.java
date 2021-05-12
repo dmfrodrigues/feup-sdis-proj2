@@ -26,6 +26,10 @@ public class UserMetadata implements Serializable {
         this.password = password;
     }
 
+    public Password getPassword() {
+        return password;
+    }
+
     public UserFileMetadata addFile(String path, long numberOfChunks, int replicationDegree){
         UserFileMetadata file = new UserFileMetadata(path, numberOfChunks, replicationDegree);
         files.put(path, file);

@@ -57,21 +57,28 @@ public class AuthenticateMessage extends MainMessage {
 
         @Override
         public Void get() {
-            LocalDataStorage localDataStorage = getMain().getSystemStorage().getDataStorage().getLocalDataStorage();
-
             UUID id = message.getUsername().getId();
-            localDataStorage.get(id)
-            .thenApplyAsync((byte[] data) -> {
-                try {
-                    getSocket().getOutputStream().write(message.formatResponse(data));
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
-                } catch (IOException e) {
-                    throw new CompletionException(e);
+
+            try {
+                byte[] file = new RestoreFile(id).get();
+
+                InputStream is = new ByteArrayInputStream(file);
+                ObjectInputStream ois = new ObjectInputStream(is);
+                UserMetadata userMetadata = (UserMetadata) ois.readObject();
+                ois.close();
+                is.close();
+
+                if (!userMetadata.getPassword().authenticate(message.password)) {
+                    userMetadata = null;
                 }
-                return null;
-            });
+
+                getSocket().getOutputStream().write(message.formatResponse(userMetadata));
+                getSocket().shutdownOutput();
+                getSocket().getInputStream().readAllBytes();
+                getSocket().close();
+            } catch (IOException | ClassNotFoundException e) {
+                throw new CompletionException(e);
+            }
 
             return null;
         }
@@ -82,13 +89,25 @@ public class AuthenticateMessage extends MainMessage {
         return new AuthenticateProcessor(peer.getMain(), socket, this);
     }
 
-    private byte[] formatResponse(byte[] data) {
-        return data;
+    private byte[] formatResponse(UserMetadata userMetadata) {
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(os);
+            oos.writeObject(userMetadata);
+            oos.close();
+            os.close();
+            DataBuilder builder = new DataBuilder(new byte[]{1});
+            builder.append(os.toByteArray());
+            return builder.get();
+        } catch (IOException e) {
+            return new byte[]{0};
+        }
     }
 
     public UserMetadata parseResponse(byte[] response) {
         try {
-            InputStream is = new ByteArrayInputStream(response);
+            if(response[0] != 1) return null;
+            InputStream is = new ByteArrayInputStream(response, 1, response.length-1);
             ObjectInputStream ois = new ObjectInputStream(is);
             UserMetadata ret = (UserMetadata) ois.readObject();
             ois.close();

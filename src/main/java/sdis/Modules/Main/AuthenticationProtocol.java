@@ -27,7 +27,7 @@ public class AuthenticationProtocol extends ProtocolSupplier<UserMetadata> {
 
         try {
             AuthenticateMessage message = new AuthenticateMessage(username, password);
-            Socket socket = systemStorage.forward(username.getId(), message);
+            Socket socket = systemStorage.sendAny(message);
             socket.shutdownOutput();
             byte[] response = socket.getInputStream().readAllBytes();
             socket.close();

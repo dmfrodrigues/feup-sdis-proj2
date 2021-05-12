@@ -33,6 +33,10 @@ public class Password {
         return (this.hashed.equals(hashPassword(password)));
     }
 
+    public boolean authenticate(Password password) {
+        return authenticate(password.getPlain());
+    }
+
     public String getHashed(){
         return hashed;
     }
