@@ -1,4 +1,4 @@
-package sdis.Modules.Main;
+package sdis.Storage;
 
 import sdis.Peer;
 import sdis.Utils.Utils;
@@ -23,8 +23,6 @@ import java.util.concurrent.Future;
  * Is used to read a file one chunk at a time.
  */
 public class FileChunkIterator implements Iterator<CompletableFuture<byte[]>> {
-    private static final int MAX_LENGTH = 1000000;
-
     private final File file;
     private final int chunkSize;
     private final String fileId;
@@ -35,28 +33,18 @@ public class FileChunkIterator implements Iterator<CompletableFuture<byte[]>> {
      * @brief Construct FileChunkIterator.
      *
      * @param file      File to parse
-     */
-    public FileChunkIterator(File file) throws IOException {
-        this(file, 64000);
-    }
-    /**
-     * @brief Construct FileChunkIterator.
-     *
-     * @param file      File to parse
      * @param chunkSize Chunk size, in bytes; defaults to 64kB = 64000B
      */
     public FileChunkIterator(File file, int chunkSize) throws IOException {
         this.file = file;
         this.chunkSize = chunkSize;
 
-        if(length() > MAX_LENGTH) throw new FileTooLargeException(file);
-
         buffer = new byte[this.chunkSize];
         fileStream = AsynchronousFileChannel.open(file.toPath(), StandardOpenOption.READ);
-        fileId = createFileId();
+        fileId = digest();
     }
 
-    private String createFileId() throws IOException {
+    private String digest() throws IOException {
         // Create digester
         MessageDigest digest = null;
         try {
