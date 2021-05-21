@@ -1,12 +1,19 @@
 package sdis.Modules.Main;
 
+import sdis.Modules.Main.Messages.MainMessage;
+import sdis.Modules.Message;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.UUID;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 public class Main {
     public static final int CHUNK_SIZE = 64000;
+    public static final int USER_METADATA_REPDEG = 10;
 
     private final SystemStorage systemStorage;
 
@@ -16,6 +23,14 @@ public class Main {
 
     public SystemStorage getSystemStorage(){
         return systemStorage;
+    }
+
+    public Socket send(InetSocketAddress to, MainMessage m) throws IOException {
+        Socket socket = new Socket(to.getAddress(), to.getPort());
+        OutputStream os = socket.getOutputStream();
+        os.write(m.asByteArray());
+        os.flush();
+        return socket;
     }
 
     public static class Path {
@@ -41,27 +56,21 @@ public class Main {
         }
     }
 
-    public static class File implements Serializable {
-        public class ID {
-            String s;
-            private ID(String s){
-                this.s = s;
-            }
-
-            @Override
-            public String toString(){
-                return s;
-            }
-        }
-
+    public static class File {
+        private final Username owner;
         private final Main.Path path;
         private final long numberOfChunks;
         private final int replicationDegree;
 
-        public File(Main.Path path, long numberOfChunks, int replicationDegree){
+        public File(Username owner, Main.Path path, long numberOfChunks, int replicationDegree){
+            this.owner = owner;
             this.path = path;
             this.numberOfChunks = numberOfChunks;
             this.replicationDegree = replicationDegree;
+        }
+
+        public Username getOwner() {
+            return owner;
         }
 
         public Main.Path getPath() {
@@ -100,7 +109,7 @@ public class Main {
 
         @Override
         public String toString() {
-            return path.toString();
+            return owner.toString() + "/" + path.toString();
         }
     }
 
@@ -121,6 +130,10 @@ public class Main {
         public String toString() {
             return file.toString() + "-" + chunkIndex;
         }
+
+        public Main.File getFile() {
+            return file;
+        }
     }
 
     public static class Replica {
@@ -138,7 +151,7 @@ public class Main {
         }
 
         public UUID getUUID() {
-            return new UUID("f/" + toString());
+            return new UUID(toString());
         }
     }
 }

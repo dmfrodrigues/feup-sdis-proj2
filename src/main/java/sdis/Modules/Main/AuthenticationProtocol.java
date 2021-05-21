@@ -1,10 +1,8 @@
 package sdis.Modules.Main;
 
-import sdis.Modules.Chord.Chord;
 import sdis.Modules.Main.Messages.AuthenticateMessage;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.SystemStorage;
-import sdis.UUID;
 import sdis.Utils.Pair;
 
 import java.io.IOException;
@@ -12,7 +10,6 @@ import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class AuthenticationProtocol extends ProtocolSupplier<UserMetadata> {
-    public static final int USER_METADATA_REPDEG = 10;
     public static final int MAX_NUMBER_FUTURES = 10;
 
     private final Main main;
@@ -42,8 +39,9 @@ public class AuthenticationProtocol extends ProtocolSupplier<UserMetadata> {
                 case NOTFOUND:
 
                     UserMetadata userMetadata = new UserMetadata(username, password);
+                    Main.File file = userMetadata.asFile();
                     byte[] data = userMetadata.serialize();
-                    BackupFileProtocol backupFileProtocol = new BackupFileProtocol(main, username.getPath(), USER_METADATA_REPDEG, data, MAX_NUMBER_FUTURES);
+                    BackupFileProtocol backupFileProtocol = new BackupFileProtocol(main, file, data, MAX_NUMBER_FUTURES);
                     if(!backupFileProtocol.get()) return null;
                     return userMetadata;
 

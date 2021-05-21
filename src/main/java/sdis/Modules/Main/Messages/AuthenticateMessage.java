@@ -8,11 +8,14 @@ import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
 import sdis.Utils.Pair;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-import static sdis.Modules.Main.AuthenticationProtocol.USER_METADATA_REPDEG;
+import static sdis.Modules.Main.Main.USER_METADATA_REPDEG;
 
 public class AuthenticateMessage extends MainMessage {
     public enum Status {

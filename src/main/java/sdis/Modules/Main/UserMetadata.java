@@ -1,5 +1,7 @@
 package sdis.Modules.Main;
 
+import sdis.Storage.ByteArrayChunkIterator;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +21,7 @@ public class UserMetadata implements Serializable {
     }
 
     public Main.File addFile(Main.Path path, long numberOfChunks, int replicationDegree){
-        Main.File file = new Main.File(path, numberOfChunks, replicationDegree);
+        Main.File file = new Main.File(username, path, numberOfChunks, replicationDegree);
         files.put(path, file);
         return file;
     }
@@ -48,5 +50,11 @@ public class UserMetadata implements Serializable {
         ois.close();
         is.close();
         return ret;
+    }
+
+    public Main.File asFile() throws IOException {
+        byte[] data = serialize();
+        ByteArrayChunkIterator chunkIterator = new ByteArrayChunkIterator(data, Main.CHUNK_SIZE);
+        return new Main.File(username, new Main.Path(username.toString()), chunkIterator.length(), Main.USER_METADATA_REPDEG);
     }
 }

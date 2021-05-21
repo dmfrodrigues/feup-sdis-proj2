@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 public class ByteArrayChunkIterator extends ChunkIterator {
-    private String id;
     private byte[] data;
 
     /**
@@ -14,15 +13,9 @@ public class ByteArrayChunkIterator extends ChunkIterator {
      * @param chunkSize Chunk size, in bytes
      * @brief Construct ChunkIterator.
      */
-    public ByteArrayChunkIterator(String id, byte[] data, int chunkSize) throws IOException {
+    public ByteArrayChunkIterator(byte[] data, int chunkSize) throws IOException {
         super(chunkSize);
-        this.id = id;
         this.data = data;
-    }
-
-    @Override
-    public String getFileId() {
-        return id;
     }
 
     @Override

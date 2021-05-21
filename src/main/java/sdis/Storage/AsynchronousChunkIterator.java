@@ -31,9 +31,6 @@ abstract public class AsynchronousChunkIterator extends ChunkIterator {
         buffer = new byte[getChunkSize()];
     }
 
-    @Override
-    abstract public String getFileId();
-
     /**
      * Length of chunked file, in chunks.
      *

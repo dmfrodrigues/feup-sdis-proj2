@@ -32,8 +32,6 @@ abstract public class ChunkIterator implements Iterator<CompletableFuture<byte[]
         return chunkSize;
     }
 
-    abstract public String getFileId();
-
     /**
      * Length of chunked file, in chunks.
      *

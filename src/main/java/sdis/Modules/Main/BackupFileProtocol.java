@@ -1,5 +1,7 @@
 package sdis.Modules.Main;
 
+import sdis.Modules.Chord.Chord;
+import sdis.Modules.Main.Messages.EnlistFileMessage;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Storage.ByteArrayChunkIterator;
@@ -7,6 +9,7 @@ import sdis.Storage.ChunkIterator;
 import sdis.UUID;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -18,27 +21,42 @@ import static sdis.Modules.Main.Main.CHUNK_SIZE;
 
 public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
     private final Main main;
-    private final int replicationDegree;
+    private final Main.File file;
     private final ChunkIterator chunkIterator;
-    private int maxNumberFutures;
+    private final int maxNumberFutures;
 
     public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures) throws IOException {
-        this(main, file.getPath(), file.getReplicationDegree(), data, maxNumberFutures);
+        this.main = main;
+        this.file = file;
+        this.chunkIterator = new ByteArrayChunkIterator(data, CHUNK_SIZE);
+        this.maxNumberFutures = maxNumberFutures;
+
     }
 
-    public BackupFileProtocol(Main main, Main.Path path, int replicationDegree, byte[] data, int maxNumberFutures) throws IOException {
-        this.main = main;
-        this.replicationDegree = replicationDegree;
-        this.chunkIterator = new ByteArrayChunkIterator(path.toString(), data, CHUNK_SIZE);
-        this.maxNumberFutures = maxNumberFutures;
+    private CompletableFuture<Boolean> enlistFile() {
+        SystemStorage systemStorage = main.getSystemStorage();
+        Chord chord = systemStorage.getChord();
+        return chord.getSuccessor(file.getOwner().toUUID().getKey(chord))
+        .thenApplyAsync((Chord.NodeInfo s) -> {
+            try {
+                EnlistFileMessage m = new EnlistFileMessage(file);
+                Socket socket = main.send(s.address, m);
+                socket.shutdownOutput();
+                byte[] response = socket.getInputStream().readAllBytes();
+                socket.close();
+                return m.parseResponse(response);
+            } catch (IOException e) {
+                throw new CompletionException(e);
+            }
+        });
     }
 
     private CompletableFuture<Boolean> putChunk(long chunkIndex, byte[] data) {
         SystemStorage systemStorage = main.getSystemStorage();
 
-        CompletableFuture<Boolean>[] futuresList = new CompletableFuture[replicationDegree];
-        for(int i = 0; i < replicationDegree; ++i){
-            UUID uuid = new UUID(chunkIterator.getFileId() + "-" + chunkIndex + "-" + i);
+        CompletableFuture<Boolean>[] futuresList = new CompletableFuture[file.getReplicationDegree()];
+        for(int i = 0; i < file.getReplicationDegree(); ++i){
+            UUID uuid = file.getChunk(chunkIndex).getReplica(i).getUUID();
             futuresList[i] = systemStorage.put(uuid, data);
         }
 
@@ -64,6 +82,16 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
         } catch (IOException e) {
             return false;
         }
+
+        Boolean enlistedFile;
+        try {
+            enlistedFile = enlistFile().get();
+        } catch (InterruptedException e) {
+            throw new CompletionException(e);
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
+        }
+        if(!enlistedFile) return false;
 
         List<CompletableFuture<Boolean>> futuresList = new LinkedList<>();
         for (long i = 0; i < numChunks; ++i) {
