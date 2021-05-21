@@ -14,34 +14,33 @@ import java.net.Socket;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
-public class EnlistFileMessage extends MainMessage {
+public class DelistFileMessage extends MainMessage {
 
-    private final Main.File file;
+    private final Username owner;
+    private final Main.Path path;
 
-    public EnlistFileMessage(Main.File file){
-        this.file = file;
+    public DelistFileMessage(Username owner, Main.Path path){
+        this.owner = owner;
+        this.path = path;
     }
 
-    public EnlistFileMessage(byte[] data){
+    public DelistFileMessage(byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
-        Username username = new Username(splitString[1]);
-        Main.Path path = new Main.Path(splitString[2]);
-        long numChunks = Integer.parseInt(splitString[3]);
-        int repDegree = Integer.parseInt(splitString[4]);
-        file = new Main.File(username, path, numChunks, repDegree);
+        owner = new Username(splitString[1]);
+        path = new Main.Path(splitString[2]);
     }
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("ENLISTFILE " + file.getOwner() + " " + file.getPath() + " " + file.getNumberOfChunks() + " " + file.getReplicationDegree()).getBytes());
+        return new DataBuilder(("DELISTFILE " + owner + " " + path).getBytes());
     }
 
-    private static class EnlistFileProcessor extends Processor {
+    private static class DelistFileProcessor extends Processor {
 
-        private final EnlistFileMessage message;
+        private final DelistFileMessage message;
 
-        public EnlistFileProcessor(Main main, Socket socket, EnlistFileMessage message){
+        public DelistFileProcessor(Main main, Socket socket, DelistFileMessage message){
             super(main, socket);
             this.message = message;
         }
@@ -52,12 +51,12 @@ public class EnlistFileMessage extends MainMessage {
             SystemStorage systemStorage = main.getSystemStorage();
             DataStorage dataStorage = systemStorage.getDataStorage();
             LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
-            Username owner = message.file.getOwner();
+            Username owner = message.owner;
 
             try {
                 byte[] data = localDataStorage.get(owner.toUUID()).get();
                 UserMetadata userMetadata = UserMetadata.deserialize(data);
-                userMetadata.addFile(message.file);
+                userMetadata.removeFile(message.path);
                 data = userMetadata.serialize();
                 localDataStorage.put(owner.toUUID(), data).get();
 
@@ -86,8 +85,8 @@ public class EnlistFileMessage extends MainMessage {
     }
 
     @Override
-    public EnlistFileProcessor getProcessor(Peer peer, Socket socket) {
-        return new EnlistFileProcessor(peer.getMain(), socket, this);
+    public DelistFileProcessor getProcessor(Peer peer, Socket socket) {
+        return new DelistFileProcessor(peer.getMain(), socket, this);
     }
 
     private byte[] formatResponse(boolean b) {

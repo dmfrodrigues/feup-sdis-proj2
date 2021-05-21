@@ -22,7 +22,11 @@ public class UserMetadata implements Serializable {
 
     public Main.File addFile(Main.Path path, long numberOfChunks, int replicationDegree){
         Main.File file = new Main.File(username, path, numberOfChunks, replicationDegree);
-        files.put(path, file);
+        return addFile(file);
+    }
+
+    public Main.File addFile(Main.File file){
+        files.put(file.getPath(), file);
         return file;
     }
 
@@ -41,6 +45,10 @@ public class UserMetadata implements Serializable {
         oos.close();
         os.close();
         return os.toByteArray();
+    }
+
+    public static UserMetadata deserialize(byte[] response) throws IOException, ClassNotFoundException {
+        return deserialize(response, 0, response.length);
     }
 
     public static UserMetadata deserialize(byte[] response, int offset, int length) throws IOException, ClassNotFoundException {
