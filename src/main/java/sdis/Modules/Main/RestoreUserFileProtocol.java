@@ -30,7 +30,7 @@ public class RestoreUserFileProtocol extends ProtocolSupplier<Boolean> {
 
         CompletableFuture<byte[]>[] futuresList = new CompletableFuture[replicationDegree];
         for(int i = 0; i < replicationDegree; ++i){
-            UUID uuid = new UUID(username.getId().toString() + "-" + chunkIndex + "-" + i);
+            UUID uuid = new UUID(username.getPath().toString() + "-" + chunkIndex + "-" + i);
             futuresList[i] = systemStorage.get(uuid);
         }
 
@@ -48,7 +48,7 @@ public class RestoreUserFileProtocol extends ProtocolSupplier<Boolean> {
                     for (int i = 0; i < replicationDegree; ++i) {
                         byte[] tmp = futuresList[i].get();
                         if (tmp == null) {
-                            UUID uuid = new UUID(username.getId().toString() + "-" + chunkIndex + "-" + i);
+                            UUID uuid = new UUID(username.getPath().toString() + "-" + chunkIndex + "-" + i);
                             systemStorage.put(uuid, ret);
                         }
                     }

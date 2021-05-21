@@ -12,15 +12,17 @@ public class Username implements Serializable {
         this.s = s;
     }
 
-    public String getId(){
-        return s;
+    public Main.Path getPath(){
+        return new Main.Path("u/" + s);
     }
 
     public String toString(){
         return s;
     }
 
+    /*
     public Chord.Key toKey(Chord chord) {
         return chord.newKey("u/" + toString());
     }
+     */
 }

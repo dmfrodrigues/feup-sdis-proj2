@@ -14,11 +14,11 @@ import java.util.concurrent.ExecutionException;
 
 public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
     private final Main main;
-    private final UserMetadata.File file;
+    private final Main.File file;
     private ChunkOutput destination;
     private int maxNumberFutures;
 
-    public RestoreFileProtocol(Main main, UserMetadata.File file, ChunkOutput destination, int maxNumberFutures){
+    public RestoreFileProtocol(Main main, Main.File file, ChunkOutput destination, int maxNumberFutures){
         this.main = main;
         this.file = file;
         this.destination = destination;

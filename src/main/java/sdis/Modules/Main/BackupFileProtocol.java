@@ -22,14 +22,14 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
     private final ChunkIterator chunkIterator;
     private int maxNumberFutures;
 
-    public BackupFileProtocol(Main main, UserMetadata.File file, byte[] data, int maxNumberFutures) throws IOException {
-        this(main, "u/" + file.getPath(), file.getReplicationDegree(), data, maxNumberFutures);
+    public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures) throws IOException {
+        this(main, file.getPath(), file.getReplicationDegree(), data, maxNumberFutures);
     }
 
-    public BackupFileProtocol(Main main, String id, int replicationDegree, byte[] data, int maxNumberFutures) throws IOException {
+    public BackupFileProtocol(Main main, Main.Path path, int replicationDegree, byte[] data, int maxNumberFutures) throws IOException {
         this.main = main;
         this.replicationDegree = replicationDegree;
-        this.chunkIterator = new ByteArrayChunkIterator(id, data, CHUNK_SIZE);
+        this.chunkIterator = new ByteArrayChunkIterator(path.toString(), data, CHUNK_SIZE);
         this.maxNumberFutures = maxNumberFutures;
     }
 
