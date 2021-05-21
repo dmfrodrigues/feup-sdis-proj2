@@ -1,6 +1,7 @@
 package sdis.Modules.Main;
 
 import sdis.Modules.SystemStorage.SystemStorage;
+import sdis.UUID;
 
 import java.io.Serializable;
 
@@ -75,8 +76,8 @@ public class Main {
             return replicationDegree;
         }
 
-        public File.ID getId(){
-            return new File.ID("f/" + path);
+        public Main.Chunk getChunk(long chunkIndex) {
+            return new Main.Chunk(this, chunkIndex);
         }
 
         @Override
@@ -95,6 +96,49 @@ public class Main {
         @Override
         public int hashCode() {
             return path.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return path.toString();
+        }
+    }
+
+    public static class Chunk {
+        private final Main.File file;
+        private final long chunkIndex;
+
+        private Chunk(Main.File file, long chunkIndex){
+            this.file = file;
+            this.chunkIndex = chunkIndex;
+        }
+
+        public Replica getReplica(int replicaIndex) {
+            return new Main.Replica(this, replicaIndex);
+        }
+
+        @Override
+        public String toString() {
+            return file.toString() + "-" + chunkIndex;
+        }
+    }
+
+    public static class Replica {
+        private final Main.Chunk chunk;
+        private final int replicaIndex;
+
+        private Replica(Main.Chunk chunk, int replicaIndex){
+            this.chunk = chunk;
+            this.replicaIndex = replicaIndex;
+        }
+
+        @Override
+        public String toString() {
+            return chunk.toString() + "-" + replicaIndex;
+        }
+
+        public UUID getUUID() {
+            return new UUID("f/" + toString());
         }
     }
 }

@@ -66,7 +66,6 @@ public class AuthenticateMessage extends MainMessage {
             Status status = Status.SUCCESS;
             UserMetadata userMetadata = null;
 
-            boolean b = false;
             DataBuilder builder = new DataBuilder();
 
             ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 1);

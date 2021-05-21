@@ -19,10 +19,4 @@ public class Username implements Serializable {
     public String toString(){
         return s;
     }
-
-    /*
-    public Chord.Key toKey(Chord chord) {
-        return chord.newKey("u/" + toString());
-    }
-     */
 }
