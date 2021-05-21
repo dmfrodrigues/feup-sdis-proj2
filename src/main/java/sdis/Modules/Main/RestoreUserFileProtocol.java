@@ -14,13 +14,13 @@ import java.util.concurrent.ExecutionException;
 
 public class RestoreUserFileProtocol extends ProtocolSupplier<Boolean> {
     private final Main main;
-    private final String id;
+    private final Username username;
     private final int replicationDegree;
     private final ChunkOutput destination;
 
-    public RestoreUserFileProtocol(Main main, String id, int replicationDegree, ChunkOutput destination){
+    public RestoreUserFileProtocol(Main main, Username username, int replicationDegree, ChunkOutput destination){
         this.main = main;
-        this.id = id;
+        this.username = username;
         this.replicationDegree = replicationDegree;
         this.destination = destination;
     }
@@ -30,7 +30,7 @@ public class RestoreUserFileProtocol extends ProtocolSupplier<Boolean> {
 
         CompletableFuture<byte[]>[] futuresList = new CompletableFuture[replicationDegree];
         for(int i = 0; i < replicationDegree; ++i){
-            UUID uuid = new UUID(id + "-" + chunkIndex + "-" + i);
+            UUID uuid = new UUID(username.getId().toString() + "-" + chunkIndex + "-" + i);
             futuresList[i] = systemStorage.get(uuid);
         }
 
@@ -48,7 +48,7 @@ public class RestoreUserFileProtocol extends ProtocolSupplier<Boolean> {
                     for (int i = 0; i < replicationDegree; ++i) {
                         byte[] tmp = futuresList[i].get();
                         if (tmp == null) {
-                            UUID uuid = new UUID(id + "-" + chunkIndex + "-" + i);
+                            UUID uuid = new UUID(username.getId().toString() + "-" + chunkIndex + "-" + i);
                             systemStorage.put(uuid, ret);
                         }
                     }

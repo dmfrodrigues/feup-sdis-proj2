@@ -1,5 +1,6 @@
 package sdis.Modules.Main;
 
+import sdis.Modules.Chord.Chord;
 import sdis.UUID;
 
 import java.io.Serializable;
@@ -17,5 +18,9 @@ public class Username implements Serializable {
 
     public String toString(){
         return s;
+    }
+
+    public Chord.Key toKey(Chord chord) {
+        return chord.newKey("u/" + toString());
     }
 }

@@ -43,7 +43,7 @@ public class AuthenticationProtocol extends ProtocolSupplier<UserMetadata> {
 
                     UserMetadata userMetadata = new UserMetadata(username, password);
                     byte[] data = userMetadata.serialize();
-                    BackupFileProtocol backupFileProtocol = new BackupFileProtocol(main, "u/" + username, USER_METADATA_REPDEG, data, MAX_NUMBER_FUTURES);
+                    BackupFileProtocol backupFileProtocol = new BackupFileProtocol(main, username.getId(), USER_METADATA_REPDEG, data, MAX_NUMBER_FUTURES);
                     if(!backupFileProtocol.get()) return null;
                     return userMetadata;
 

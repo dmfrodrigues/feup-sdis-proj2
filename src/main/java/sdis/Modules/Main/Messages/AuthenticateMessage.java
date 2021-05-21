@@ -1,5 +1,6 @@
 package sdis.Modules.Main.Messages;
 
+import sdis.Modules.Chord.Chord;
 import sdis.Modules.Main.*;
 import sdis.Peer;
 import sdis.Storage.ChunkOutput;
@@ -59,7 +60,8 @@ public class AuthenticateMessage extends MainMessage {
 
         @Override
         public Void get() {
-            String id = "u/" + message.getUsername().toString();
+            Chord chord = getMain().getSystemStorage().getChord();
+            Username username = message.getUsername();
 
             Status status = Status.SUCCESS;
             UserMetadata userMetadata = null;
@@ -68,7 +70,7 @@ public class AuthenticateMessage extends MainMessage {
             DataBuilder builder = new DataBuilder();
 
             ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 1);
-            RestoreUserFileProtocol restoreFileProtocol = new RestoreUserFileProtocol(getMain(), id, USER_METADATA_REPDEG, chunkOutput);
+            RestoreUserFileProtocol restoreFileProtocol = new RestoreUserFileProtocol(getMain(), username, USER_METADATA_REPDEG, chunkOutput);
             if(!restoreFileProtocol.get()) {
                 status = Status.NOTFOUND;
             } else {
