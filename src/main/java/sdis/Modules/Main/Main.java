@@ -111,6 +111,17 @@ public class Main {
         }
     }
 
+    public static class UserMetadataFile extends File {
+        public UserMetadataFile(Username owner, long numberOfChunks) {
+            super(owner, null, numberOfChunks, USER_METADATA_REPDEG);
+        }
+
+        @Override
+        public String toString() {
+            return getOwner().toString();
+        }
+    }
+
     public static class Chunk {
         private final Main.File file;
         private final long chunkIndex;
