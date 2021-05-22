@@ -109,6 +109,7 @@ public class AuthenticateMessage extends MainMessage {
                     ObjectInputStream ois = new ObjectInputStream(is);
                     userMetadata = (UserMetadata) ois.readObject();
                 } catch (ClassNotFoundException | IOException e) {
+                    e.printStackTrace();
                     status = Status.BROKEN;
                 }
             }
