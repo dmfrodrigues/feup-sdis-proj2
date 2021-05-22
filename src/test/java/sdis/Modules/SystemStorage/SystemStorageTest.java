@@ -73,7 +73,7 @@ public class SystemStorageTest {
         for(int i = 0; i < peers.length; ++i)
             assertArrayEquals(data, peers[0].getSystemStorage().get(id).get());
 
-        DataStorage dataStorage = peers[5].getDataStorage();
+        DataStorage dataStorage = peers[2].getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         assertEquals(7, localDataStorage.getMemoryUsed().get().intValue());
@@ -88,7 +88,7 @@ public class SystemStorageTest {
         assertArrayEquals(data, dataStorage.get(id).get());
         assertFalse(dataStorage.successorHasStored(id));
 
-        for(int i : new int[]{0, 1, 2, 3, 4, 6, 7, 8, 9}) {
+        for(int i : new int[]{0, 1, 3, 4, 5, 6, 7, 8, 9}) {
             assertNull(peers[i].getDataStorage().get(id).get());
 
             dataStorage = peers[i].getDataStorage();
@@ -124,7 +124,7 @@ public class SystemStorageTest {
             peers[i].join(address).get();
         }
 
-        peers[5].getDataStorage().getLocalDataStorage().setCapacity(0);
+        peers[2].getDataStorage().getLocalDataStorage().setCapacity(0);
 
         UUID id = new UUID("0123456789-0-1");
         byte[] data = "my data".getBytes();
@@ -133,7 +133,7 @@ public class SystemStorageTest {
         for(int i = 0; i < peers.length; ++i)
             assertArrayEquals(data, peers[0].getSystemStorage().get(id).get());
 
-        DataStorage dataStorage = peers[5].getDataStorage();
+        DataStorage dataStorage = peers[2].getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
@@ -148,7 +148,7 @@ public class SystemStorageTest {
         assertArrayEquals(data, dataStorage.get(id).get());
         assertTrue(dataStorage.successorHasStored(id));
 
-        dataStorage = peers[6].getDataStorage();
+        dataStorage = peers[3].getDataStorage();
         localDataStorage = dataStorage.getLocalDataStorage();
 
         assertEquals(7, localDataStorage.getMemoryUsed().get().intValue());
@@ -164,22 +164,22 @@ public class SystemStorageTest {
         assertFalse(dataStorage.successorHasStored(id));
 
         for(int i : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) {
-            if(i != 5) assertNull(peers[i].getDataStorage().get(id).get());
+            if(i != 2) assertNull(peers[i].getDataStorage().get(id).get());
 
             dataStorage = peers[i].getDataStorage();
             localDataStorage = dataStorage.getLocalDataStorage();
 
-            if(i != 6) assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
-            if(i != 5) assertTrue(localDataStorage.canPut(7).get());
-            if(i != 6) assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
-            if(i != 6) assertFalse(localDataStorage.has(id));
-            if(i != 6) assertNull(localDataStorage.get(id).get());
+            if(i != 3) assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
+            if(i != 2) assertTrue(localDataStorage.canPut(7).get());
+            if(i != 3) assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
+            if(i != 3) assertFalse(localDataStorage.has(id));
+            if(i != 3) assertNull(localDataStorage.get(id).get());
 
-            if(i != 5) assertEquals(new HashSet<>(), dataStorage.getRedirects());
-            if(i != 5) assertEquals(new HashSet<UUID>(), dataStorage.getAll());
-            if(i != 5) assertFalse(dataStorage.has(id));
-            if(i != 5) assertNull(dataStorage.get(id).get());
-            if(i != 5) assertFalse(dataStorage.successorHasStored(id));
+            if(i != 2) assertEquals(new HashSet<>(), dataStorage.getRedirects());
+            if(i != 2) assertEquals(new HashSet<UUID>(), dataStorage.getAll());
+            if(i != 2) assertFalse(dataStorage.has(id));
+            if(i != 2) assertNull(dataStorage.get(id).get());
+            if(i != 2) assertFalse(dataStorage.successorHasStored(id));
         }
 
         for(Peer p: peers) p.leave().get();
@@ -203,7 +203,7 @@ public class SystemStorageTest {
         byte[] data = "my data".getBytes();
 
         assertTrue(peers[0].getSystemStorage().put(id, data).get());
-        assertArrayEquals(data, peers[5].getDataStorage().get(id).get());
+        assertArrayEquals(data, peers[2].getDataStorage().get(id).get());
         assertTrue(peers[0].getSystemStorage().delete(id).get());
 
         for(int i = 1; i < peers.length; ++i)
@@ -254,12 +254,12 @@ public class SystemStorageTest {
 
         assertTrue(peers[0].getSystemStorage().put(id, data).get());
 
-        peers[5].reclaim(0);
+        peers[2].reclaim(0);
 
         for(int i = 0; i < peers.length; ++i)
             assertArrayEquals(data, peers[0].getSystemStorage().get(id).get());
 
-        DataStorage dataStorage = peers[5].getDataStorage();
+        DataStorage dataStorage = peers[2].getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
@@ -274,7 +274,7 @@ public class SystemStorageTest {
         assertArrayEquals(data, dataStorage.get(id).get());
         assertTrue(dataStorage.successorHasStored(id));
 
-        dataStorage = peers[6].getDataStorage();
+        dataStorage = peers[3].getDataStorage();
         localDataStorage = dataStorage.getLocalDataStorage();
 
         assertEquals(7, localDataStorage.getMemoryUsed().get().intValue());
@@ -290,22 +290,22 @@ public class SystemStorageTest {
         assertFalse(dataStorage.successorHasStored(id));
 
         for(int i : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) {
-            if(i != 5) assertNull(peers[i].getDataStorage().get(id).get());
+            if(i != 2) assertNull(peers[i].getDataStorage().get(id).get());
 
             dataStorage = peers[i].getDataStorage();
             localDataStorage = dataStorage.getLocalDataStorage();
 
-            if(i != 6) assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
-            if(i != 5) assertTrue(localDataStorage.canPut(7).get());
-            if(i != 6) assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
-            if(i != 6) assertFalse(localDataStorage.has(id));
-            if(i != 6) assertNull(localDataStorage.get(id).get());
+            if(i != 3) assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
+            if(i != 2) assertTrue(localDataStorage.canPut(7).get());
+            if(i != 3) assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
+            if(i != 3) assertFalse(localDataStorage.has(id));
+            if(i != 3) assertNull(localDataStorage.get(id).get());
 
-            if(i != 5) assertEquals(new HashSet<>(), dataStorage.getRedirects());
-            if(i != 5) assertEquals(new HashSet<UUID>(), dataStorage.getAll());
-            if(i != 5) assertFalse(dataStorage.has(id));
-            if(i != 5) assertNull(dataStorage.get(id).get());
-            if(i != 5) assertFalse(dataStorage.successorHasStored(id));
+            if(i != 2) assertEquals(new HashSet<>(), dataStorage.getRedirects());
+            if(i != 2) assertEquals(new HashSet<UUID>(), dataStorage.getAll());
+            if(i != 2) assertFalse(dataStorage.has(id));
+            if(i != 2) assertNull(dataStorage.get(id).get());
+            if(i != 2) assertFalse(dataStorage.successorHasStored(id));
         }
 
         for(Peer p: peers) p.leave().get();
