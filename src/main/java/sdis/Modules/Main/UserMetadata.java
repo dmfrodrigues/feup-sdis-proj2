@@ -5,6 +5,7 @@ import sdis.Storage.ByteArrayChunkIterator;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class UserMetadata implements Serializable {
     private final Username username;
@@ -14,6 +15,10 @@ public class UserMetadata implements Serializable {
     public UserMetadata(Username username, Password password){
         this.username = username;
         this.password = password;
+    }
+
+    public Username getUsername() {
+        return username;
     }
 
     public Password getPassword() {
@@ -28,6 +33,10 @@ public class UserMetadata implements Serializable {
     public Main.File addFile(Main.File file){
         files.put(file.getPath(), file);
         return file;
+    }
+
+    public Set<Main.Path> getFiles(){
+        return files.keySet();
     }
 
     public Main.File getFile(Main.Path path){
