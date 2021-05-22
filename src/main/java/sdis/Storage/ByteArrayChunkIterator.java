@@ -19,8 +19,9 @@ public class ByteArrayChunkIterator extends ChunkIterator {
     }
 
     @Override
-    public long length() {
-        return data.length;
+    public int length() {
+        long l = data.length;
+        return (int)(l/getChunkSize() + 1);
     }
 
     long nextIndex = 0;

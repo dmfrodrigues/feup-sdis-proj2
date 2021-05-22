@@ -39,9 +39,9 @@ abstract public class AsynchronousChunkIterator extends ChunkIterator {
      * @return  Length of chunked file, in chunks
      */
     @Override
-    public final long length() throws IOException {
+    public final int length() throws IOException {
         long l = fileStream.size();
-        return l/getChunkSize() + 1;
+        return (int)(l/getChunkSize() + 1);
     }
 
     long nextIndex = 0;

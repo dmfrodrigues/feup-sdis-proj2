@@ -39,7 +39,7 @@ abstract public class ChunkIterator implements Iterator<CompletableFuture<byte[]
      *
      * @return  Length of chunked file, in chunks
      */
-    abstract public long length() throws IOException;
+    abstract public int length() throws IOException;
 
     abstract public boolean hasNext();
 
