@@ -10,9 +10,7 @@ import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
-import sdis.Modules.Main.Main;
-import sdis.Modules.Main.Password;
-import sdis.Modules.Main.Username;
+import sdis.Modules.Main.*;
 import sdis.Modules.Message;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.ReclaimProtocol;
@@ -224,6 +222,11 @@ public class Peer implements PeerInterface {
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
+    }
+
+    public UserMetadata authenticate(Username username, Password password) {
+        AuthenticationProtocol authenticationProtocol = new AuthenticationProtocol(main, username, password);
+        return authenticationProtocol.get();
     }
 
     public static class ServerSocketHandler implements Runnable {
