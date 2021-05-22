@@ -24,19 +24,24 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
     private final Main.File file;
     private final ChunkIterator chunkIterator;
     private final int maxNumberFutures;
+    private final boolean enlist;
 
     public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures) throws IOException {
+        this(main, file, data, maxNumberFutures, true);
+    }
+
+    public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures, boolean enlist) throws IOException {
         this.main = main;
         this.file = file;
         this.chunkIterator = new ByteArrayChunkIterator(data, CHUNK_SIZE);
         this.maxNumberFutures = maxNumberFutures;
-
+        this.enlist = enlist;
     }
 
     private CompletableFuture<Boolean> enlistFile() {
         SystemStorage systemStorage = main.getSystemStorage();
         Chord chord = systemStorage.getChord();
-        return chord.getSuccessor(file.getOwner().toUUID().getKey(chord))
+        return chord.getSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord))
         .thenApplyAsync((Chord.NodeInfo s) -> {
             try {
                 EnlistFileMessage m = new EnlistFileMessage(file);
@@ -83,15 +88,17 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
             return false;
         }
 
-        Boolean enlistedFile;
-        try {
-            enlistedFile = enlistFile().get();
-        } catch (InterruptedException e) {
-            throw new CompletionException(e);
-        } catch (ExecutionException e) {
-            throw new CompletionException(e.getCause());
+        if(enlist) {
+            Boolean enlistedFile;
+            try {
+                enlistedFile = enlistFile().get();
+            } catch (InterruptedException e) {
+                throw new CompletionException(e);
+            } catch (ExecutionException e) {
+                throw new CompletionException(e.getCause());
+            }
+            if (!enlistedFile) return false;
         }
-        if(!enlistedFile) return false;
 
         List<CompletableFuture<Boolean>> futuresList = new LinkedList<>();
         for (long i = 0; i < numChunks; ++i) {
