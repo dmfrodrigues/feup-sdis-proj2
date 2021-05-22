@@ -20,7 +20,6 @@ import static sdis.Modules.Main.Main.USER_METADATA_REPDEG;
 public class AuthenticateMessage extends MainMessage {
     public enum Status {
         SUCCESS,
-        NOTFOUND,
         BROKEN
     }
 
@@ -111,12 +110,10 @@ public class AuthenticateMessage extends MainMessage {
                     DataBuilder builder = new DataBuilder(new byte[]{0});
                     builder.append(userMetadata.serialize());
                     return builder.get();
-                case NOTFOUND:
-                    return new byte[]{1};
                 case BROKEN:
-                    return new byte[]{2};
+                    return new byte[]{1};
                 default:
-                    return new byte[]{2};
+                    return new byte[]{1};
             }
         } catch (IOException e) {
             return new byte[]{2};
@@ -130,8 +127,6 @@ public class AuthenticateMessage extends MainMessage {
                     UserMetadata ret = UserMetadata.deserialize(response, 1, response.length-1);
                     return new Pair<>(Status.SUCCESS, ret);
                 case 1:
-                    return new Pair<>(Status.NOTFOUND, null);
-                case 2:
                     return new Pair<>(Status.BROKEN, null);
                 default:
                     return new Pair<>(Status.BROKEN, null);

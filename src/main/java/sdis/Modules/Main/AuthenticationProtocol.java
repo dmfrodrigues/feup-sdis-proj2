@@ -36,15 +36,6 @@ public class AuthenticationProtocol extends ProtocolSupplier<UserMetadata> {
             switch(reply.first){
                 case SUCCESS:
                     return reply.second;
-                case NOTFOUND:
-
-                    UserMetadata userMetadata = new UserMetadata(username, password);
-                    Main.File file = userMetadata.asFile();
-                    byte[] data = userMetadata.serialize();
-                    BackupFileProtocol backupFileProtocol = new BackupFileProtocol(main, file, data, MAX_NUMBER_FUTURES);
-                    if(!backupFileProtocol.get()) return null;
-                    return userMetadata;
-
                 case BROKEN:
                     return null;
             }
