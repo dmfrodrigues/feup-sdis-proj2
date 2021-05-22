@@ -6,6 +6,9 @@ import sdis.Modules.DataStorage.Messages.DeleteMessage;
 import sdis.Modules.DataStorage.Messages.GetMessage;
 import sdis.Modules.DataStorage.Messages.GetRedirectsMessage;
 import sdis.Modules.DataStorage.Messages.PutMessage;
+import sdis.Modules.Main.Messages.AuthenticateMessage;
+import sdis.Modules.Main.Messages.DelistFileMessage;
+import sdis.Modules.Main.Messages.EnlistFileMessage;
 import sdis.Modules.Message;
 import sdis.Modules.SystemStorage.Messages.DeleteSystemMessage;
 import sdis.Modules.SystemStorage.Messages.GetSystemMessage;
@@ -43,6 +46,10 @@ public class MessageFactory {
             case "PUTSYSTEM"   : return new PutSystemMessage   (chord, b);
             case "GETSYSTEM"   : return new GetSystemMessage   (b);
             case "DELETESYSTEM": return new DeleteSystemMessage(b);
+
+            case "AUTHENTICATE": return new AuthenticateMessage(b);
+            case "ENLISTFILE"  : return new EnlistFileMessage  (b);
+            case "DELISTFILE"  : return new DelistFileMessage  (b);
         }
 
         throw new ClassNotFoundException(startStr);
