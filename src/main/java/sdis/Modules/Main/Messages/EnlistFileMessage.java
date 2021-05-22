@@ -2,11 +2,10 @@ package sdis.Modules.Main.Messages;
 
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.LocalDataStorage;
-import sdis.Modules.Main.Main;
-import sdis.Modules.Main.UserMetadata;
-import sdis.Modules.Main.Username;
+import sdis.Modules.Main.*;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;
+import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
@@ -53,13 +52,21 @@ public class EnlistFileMessage extends MainMessage {
             DataStorage dataStorage = systemStorage.getDataStorage();
             LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
             Username owner = message.file.getOwner();
+            Main.File file = owner.asFile();
 
             try {
-                byte[] data = localDataStorage.get(owner.toUUID()).get();
+                DataBuilder builder = new DataBuilder();
+                DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
+                RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(getMain(), file, chunkOutput, 10);
+                restoreFileProtocol.get();
+                byte[] data = builder.get();
                 UserMetadata userMetadata = UserMetadata.deserialize(data);
                 userMetadata.addFile(message.file);
                 data = userMetadata.serialize();
-                localDataStorage.put(owner.toUUID(), data).get();
+//                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), file, 10, false);
+//                deleteFileProtocol.get();
+                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, 10, false);
+                backupFileProtocol.get();
 
                 try {
                     getSocket().getOutputStream().write(message.formatResponse(true));
@@ -70,7 +77,7 @@ public class EnlistFileMessage extends MainMessage {
                     throw new CompletionException(ex);
                 }
 
-            } catch (InterruptedException | IOException | ClassNotFoundException | ExecutionException e) {
+            } catch (IOException | ClassNotFoundException e) { // InterruptedException | ExecutionException
                 try {
                     getSocket().getOutputStream().write(message.formatResponse(false));
                     getSocket().shutdownOutput();

@@ -2,7 +2,10 @@ package sdis.Modules.Main.Messages;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.Main.*;
+import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;
+import sdis.Storage.ByteArrayChunkIterator;
+import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
@@ -38,14 +41,6 @@ public class AuthenticateMessage extends MainMessage {
         password = new Password(splitString[2]);
     }
 
-    private Username getUsername() {
-        return username;
-    }
-
-    private Password getPassword(){
-        return password;
-    }
-
     @Override
     protected DataBuilder build() {
         return new DataBuilder(("AUTHENTICATE " + username + " " + password.getPlain()).getBytes());
@@ -60,10 +55,39 @@ public class AuthenticateMessage extends MainMessage {
             this.message = message;
         }
 
+        private boolean putUserMetadata(SystemStorage systemStorage, UserMetadata userMetadata) {
+            int numChunks;
+            byte[] data;
+            try {
+                data = userMetadata.serialize();
+                ChunkIterator chunkIterator = new ByteArrayChunkIterator(data, Main.CHUNK_SIZE);
+                numChunks = chunkIterator.length();
+            } catch (IOException e) {
+                throw new CompletionException(e);
+            }
+            Main.File file = message.username.asFile(numChunks);
+
+            boolean success;
+            try {
+                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, 10, false); System.out.println("START");
+                success = backupFileProtocol.get(); System.out.println("END");
+            } catch (IOException e) {
+                success = false;
+            }
+            if(!success){
+                /*
+                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), file, 10, false);
+                deleteFileProtocol.get();
+                 */
+            }
+
+            return success;
+        }
+
         @Override
         public Void get() {
-            Chord chord = getMain().getSystemStorage().getChord();
-            Username username = message.getUsername();
+            SystemStorage systemStorage = getMain().getSystemStorage();
+            Chord chord = systemStorage.getChord();
 
             Status status = Status.SUCCESS;
             UserMetadata userMetadata = null;
@@ -71,9 +95,13 @@ public class AuthenticateMessage extends MainMessage {
             DataBuilder builder = new DataBuilder();
 
             ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 1);
-            RestoreUserFileProtocol restoreFileProtocol = new RestoreUserFileProtocol(getMain(), username, USER_METADATA_REPDEG, chunkOutput);
-            if(!restoreFileProtocol.get()) {
-                status = Status.NOTFOUND;
+            RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), message.username, USER_METADATA_REPDEG, chunkOutput);
+            boolean b = restoreUserFileProtocol.get();
+
+            if(!b) {
+                userMetadata = new UserMetadata(message.username, message.password);
+                putUserMetadata(systemStorage, userMetadata);
+                return get();
             } else {
                 try {
                     byte[] data = builder.get();
