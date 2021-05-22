@@ -1,8 +1,14 @@
 package sdis;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Utils.Utils;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class UUID implements Comparable<UUID> {
+    private static final String HASH_ALGORITHM = "SHA-256";
+
     private final String s;
 
     public UUID(String s){
@@ -14,7 +20,16 @@ public class UUID implements Comparable<UUID> {
     }
 
     public Chord.Key getKey(Chord chord){
-        return chord.newKey(s.hashCode());
+        long l = 0;
+        try {
+            MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
+            byte[] hash = digest.digest(s.getBytes());
+            l = Utils.bytesToLong(hash);
+        } catch (NoSuchAlgorithmException e) {
+            l = s.hashCode();
+        }
+
+        return chord.newKey(l);
     }
 
     @Override
