@@ -50,6 +50,16 @@ public class Utils {
         return hexString.toString();
     }
 
+    public static long bytesToLong(byte[] array) {
+        int sz = Math.min(array.length, 8);
+        long l = 0;
+        for(int i = 0; i < sz; ++i){
+            l <<= 8;
+            l ^= (long) array[i] & 0xff;
+        }
+        return l;
+    }
+
     public static int log2(long n) {
         return 63 - Long.numberOfLeadingZeros(n);
     }
