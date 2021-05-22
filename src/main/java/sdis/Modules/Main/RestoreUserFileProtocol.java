@@ -65,7 +65,8 @@ public class RestoreUserFileProtocol extends ProtocolSupplier<Boolean> {
 
     @Override
     public Boolean get() {
-        for (long i = 0; ; ++i) {
+        long i;
+        for (i = 0; ; ++i) {
             long finalI = i;
             CompletableFuture<Boolean> f = getChunk(i)
                 .thenApplyAsync((byte[] data) -> {
@@ -76,10 +77,11 @@ public class RestoreUserFileProtocol extends ProtocolSupplier<Boolean> {
 
             try {
                 if(!f.get())
-                    return true;
+                    break;
             } catch (InterruptedException | ExecutionException e) {
                 return false;
             }
         }
+        return (i != 0);
     }
 }
