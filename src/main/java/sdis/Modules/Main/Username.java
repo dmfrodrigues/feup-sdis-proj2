@@ -20,8 +20,12 @@ public class Username implements Serializable {
         return s;
     }
 
-    public UUID toUUID() {
-        return new UUID(s);
+    public Main.File asFile(long numberOfChunks){
+        return new Main.UserMetadataFile(this, numberOfChunks);
+    }
+
+    public Main.File asFile(){
+        return asFile(0);
     }
 
     @Override
