@@ -2,10 +2,11 @@ package sdis.Modules.Main;
 
 import sdis.Utils.Utils;
 
+import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class Password {
+public class Password implements Serializable {
     private static final String HASH_ALGORITHM = "SHA-256";
     private String hashed;
     private transient String plain;
@@ -43,5 +44,14 @@ public class Password {
 
     public String getPlain(){
         return plain;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(this == obj) return true;
+        if(obj == null) return false;
+        if(getClass() != obj.getClass()) return false;
+        Password password = (Password) obj;
+        return hashed.equals(password.hashed);
     }
 }

@@ -74,4 +74,17 @@ public class UserMetadata implements Serializable {
         ByteArrayChunkIterator chunkIterator = new ByteArrayChunkIterator(data, Main.CHUNK_SIZE);
         return new Main.File(username, new Main.Path(username.toString()), chunkIterator.length(), Main.USER_METADATA_REPDEG);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(this == obj) return true;
+        if(obj == null) return false;
+        if(getClass() != obj.getClass()) return false;
+        UserMetadata userMetadata = (UserMetadata) obj;
+        return
+            username.equals(userMetadata.username) &&
+            password.equals(userMetadata.password) &&
+            files.equals(userMetadata.files)
+        ;
+    }
 }

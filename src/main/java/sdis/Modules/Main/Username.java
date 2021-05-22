@@ -23,4 +23,13 @@ public class Username implements Serializable {
     public UUID toUUID() {
         return new UUID(s);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(this == obj) return true;
+        if(obj == null) return false;
+        if(getClass() != obj.getClass()) return false;
+        Username username = (Username) obj;
+        return s.equals(username.s);
+    }
 }
