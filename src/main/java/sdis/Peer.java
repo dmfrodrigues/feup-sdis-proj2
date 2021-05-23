@@ -1,11 +1,5 @@
 package sdis;
 
-/*
-import sdis.Protocols.DataStorage.ReclaimProtocol;
-import sdis.Protocols.Main.BackupFileProtocol;
-import sdis.Protocols.Main.DeleteFileProtocol;
-import sdis.Protocols.Main.RestoreFileProtocol;
-*/
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
@@ -15,9 +9,10 @@ import sdis.Modules.Message;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.ReclaimProtocol;
 import sdis.Modules.SystemStorage.SystemStorage;
+import sdis.Storage.ChunkIterator;
+import sdis.Storage.ChunkOutput;
 import sdis.Utils.Utils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
@@ -33,7 +28,6 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class Peer implements PeerInterface {
-    private final Random random = new Random(System.currentTimeMillis());
 
     private final Chord.Key id;
     private final Path baseStoragePath;
@@ -60,10 +54,10 @@ public class Peer implements PeerInterface {
         );
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
-        chord = new Chord(getSocketAddress(), getExecutor(), keySize, id);
-        dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), getExecutor(), getChord());
-        systemStorage = new SystemStorage(chord, dataStorage, getExecutor());
-        main = new Main(systemStorage);
+        chord = new Chord(getSocketAddress(), executor, keySize, id);
+        dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), executor, getChord());
+        systemStorage = new SystemStorage(chord, dataStorage, executor);
+        main = new Main(systemStorage, executor);
 
         this.id = chord.newKey(id);
 
@@ -126,10 +120,6 @@ public class Peer implements PeerInterface {
         });
     }
 
-    public Random getRandom() {
-        return random;
-    }
-
     public static ScheduledExecutorService getExecutor(){
         return executor;
     }
@@ -159,62 +149,92 @@ public class Peer implements PeerInterface {
     }
 
     /**
-     * Backup file specified by pathname, with a certain replication degree.
-     *
-     * @param pathname          Pathname of file to be backed up
-     * @param replicationDegree Replication degree (number of copies of each file chunk over all machines in the network)
+     * Backup file.
      */
-    public void backup(String pathname, int replicationDegree) throws IOException {
-        /*
-        File file = new File(pathname);
-        FileChunkIterator fileChunkIterator;
+    public void backup(Username username, Password password, Main.Path path, int replicationDegree, ChunkIterator chunkIterator) {
         try {
-            fileChunkIterator = new FileChunkIterator(file);
-        } catch (NoSuchFileException e) {
-            System.err.println("File " + pathname + " not found");
-            return;
+            UserMetadata userMetadata = authenticate(username, password);
+            if(userMetadata == null){
+                System.err.println("Failed to authenticate");
+                return;
+            }
+
+            Main.File file = new Main.File(username, path, chunkIterator.length(), replicationDegree);
+
+            main.backupFile(file, chunkIterator).get();
+
+        } catch (IOException | ExecutionException | InterruptedException e) {
+            e.printStackTrace();
         }
-        getFileTable().insert(file.getName(), fileChunkIterator.getFileId(), fileChunkIterator.length());
-        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(this, fileChunkIterator, replicationDegree);
-        CompletableFuture.runAsync(backupFileProtocol);
-         */
     }
 
     /**
-     * Restore file specified by pathname.
-     *
-     * That file's chunks are retrieved from peers, assembled and then saved to the provided pathname.
-     *
-     * @param pathname  Pathname of file to be restored
+     * Restore file.
      */
-    public void restore(String pathname) throws IOException {
-        /*
-        RestoreFileProtocol callable = new RestoreFileProtocol(this, pathname);
-        executor.submit(callable);
-         */
+    public void restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput) {
+        try {
+            UserMetadata userMetadata = authenticate(username, password);
+            if(userMetadata == null){
+                System.err.println("Failed to authenticate");
+                return;
+            }
+
+            Main.File file = userMetadata.getFile(path);
+            if(file == null){
+                System.err.println("No such file with path " + path);
+                Set<Main.Path> files = userMetadata.getFiles();
+                System.err.println("Available files (" + files.size() + "):");
+                for(Main.Path f: files){
+                    System.err.println("    " + f);
+                }
+                return;
+            }
+
+            main.restoreFile(file, chunkOutput).get();
+
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
-     * Delete file specified by pathname.
-     *
-     * @param pathname  Pathname of file to be deleted over all peers
+     * Delete file.
      */
-    public void delete(String pathname) {
-        /*
-        DeleteFileProtocol callable = new DeleteFileProtocol(this, pathname);
-        executor.submit(callable);
-         */
+    public void delete(Username username, Password password, Main.Path path) {
+        try {
+            UserMetadata userMetadata = authenticate(username, password);
+            if(userMetadata == null){
+                System.err.println("Failed to authenticate");
+                return;
+            }
+
+            Main.File file = userMetadata.getFile(path);
+            if(file == null){
+                System.err.println("No such file with path " + path);
+                Set<Main.Path> files = userMetadata.getFiles();
+                System.err.println("Available files (" + files.size() + "):");
+                for(Main.Path f: files){
+                    System.err.println("    " + f);
+                }
+                return;
+            }
+
+            main.deleteFile(file).get();
+
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * Set space the peer may use to backup chunks from other machines.
      *
-     * @param spaceBytes    Amount of space, in bytes
+     * @param space_bytes   Amount of space, in bytes
      */
-    public void reclaim(int spaceBytes) {
+    public void reclaim(int space_bytes) {
         try {
             LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
-            localDataStorage.setCapacity(spaceBytes);
+            localDataStorage.setCapacity(space_bytes);
             if(localDataStorage.getMemoryUsed().get() > localDataStorage.getCapacity()) {
                 ReclaimProtocol reclaimProtocol = new ReclaimProtocol(systemStorage);
                 reclaimProtocol.get();
@@ -240,10 +260,6 @@ public class Peer implements PeerInterface {
             this.serverSocket = serverSocket;
 
             messageFactory = new MessageFactory(peer);
-        }
-
-        public ServerSocket getServerSocket() {
-            return serverSocket;
         }
 
         public Peer getPeer() {

@@ -67,13 +67,8 @@ public class AuthenticateMessage extends MainMessage {
             }
             Main.File file = message.username.asFile(numChunks);
 
-            boolean success;
-            try {
-                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, 10, false); System.out.println("START");
-                success = backupFileProtocol.get(); System.out.println("END");
-            } catch (IOException e) {
-                success = false;
-            }
+            BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, 10, false);
+            boolean success = backupFileProtocol.get();
             if(!success){
                 /*
                 DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), file, 10, false);

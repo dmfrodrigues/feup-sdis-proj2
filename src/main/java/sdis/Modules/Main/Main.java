@@ -2,21 +2,27 @@ package sdis.Modules.Main;
 
 import sdis.Modules.Main.Messages.MainMessage;
 import sdis.Modules.SystemStorage.SystemStorage;
+import sdis.Storage.ChunkIterator;
+import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class Main {
     public static final int CHUNK_SIZE = 64000;
     public static final int USER_METADATA_REPDEG = 10;
 
     private final SystemStorage systemStorage;
+    private Executor executor;
 
-    public Main(SystemStorage systemStorage){
+    public Main(SystemStorage systemStorage, Executor executor){
         this.systemStorage = systemStorage;
+        this.executor = executor;
     }
 
     public SystemStorage getSystemStorage(){
@@ -29,6 +35,19 @@ public class Main {
         os.write(m.asByteArray());
         os.flush();
         return socket;
+    }
+
+    public CompletableFuture<Boolean> backupFile(Main.File file, ChunkIterator chunkIterator) {
+        return CompletableFuture.supplyAsync(new BackupFileProtocol(this, file, chunkIterator, 10), executor);
+    }
+
+    public CompletableFuture<Boolean> restoreFile(Main.File file, ChunkOutput destination) {
+        return CompletableFuture.supplyAsync(new RestoreFileProtocol(this, file, destination, 10), executor);
+    }
+
+    public CompletableFuture<Boolean> deleteFile(Main.File file) {
+//        return CompletableFuture.supplyAsync(new DeleteFileProtocol(this, file, 10), executor);
+        return CompletableFuture.completedFuture(true);
     }
 
     public static class Path {

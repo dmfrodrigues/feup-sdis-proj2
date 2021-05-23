@@ -2,6 +2,8 @@ package sdis.Modules.Main;
 
 import org.junit.Test;
 import sdis.Peer;
+import sdis.Storage.ByteArrayChunkIterator;
+import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
@@ -15,7 +17,7 @@ import static org.junit.Assert.*;
 public class MainTest {
 
     @Test(timeout=10000)
-    public void backupFileProtocol_1peer() throws Exception {
+    public void backupFileProtocol_noEnlist_1peer() throws Exception {
         int KEY_SIZE = 10;
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
@@ -39,7 +41,7 @@ public class MainTest {
     }
 
     @Test(timeout=10000)
-    public void backupFileProtocol_10peer() throws Exception {
+    public void backupFileProtocol_noEnlist_10peer() throws Exception {
         int KEY_SIZE = 10;
 
         int[] ids = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
@@ -112,16 +114,84 @@ public class MainTest {
         for(int i = 1; i < ids.length; ++i)
             peers[i].join(peers[0].getSocketAddress()).join();
 
-        Username username = new Username("user1");
-        Password password = new Password("1234");
-        UserMetadata userMetadata = peers[0].authenticate(username, password);
+        for(int i = 0; i < ids.length; ++i) {
+            Username username = new Username("user" + i);
+            Password password = new Password("1234");
+            UserMetadata userMetadata = peers[i].authenticate(username, password);
 
-        assertNotNull(userMetadata);
-        assertEquals(username, userMetadata.getUsername());
-        assertEquals(password, userMetadata.getPassword());
-        assertEquals(new HashSet<Main.Path>(), userMetadata.getFiles());
+            assertNotNull(userMetadata);
+            assertEquals(username, userMetadata.getUsername());
+            assertEquals(password, userMetadata.getPassword());
+            assertEquals(new HashSet<Main.Path>(), userMetadata.getFiles());
+        }
+        for(int i = 0; i < ids.length; ++i){
+            int j = (i+ids.length/2)%ids.length;
+
+            Username username = new Username("user" + j);
+            Password password = new Password("1234");
+            UserMetadata userMetadata = peers[i].authenticate(username, password);
+
+            assertNotNull(userMetadata);
+            assertEquals(username, userMetadata.getUsername());
+            assertEquals(password, userMetadata.getPassword());
+            assertEquals(new HashSet<Main.Path>(), userMetadata.getFiles());
+        }
 
         for(Peer p: peers) p.leave().get();
     }
+
+    @Test(timeout=10000)
+    public void backupFileProtocol_1peer() throws Exception {
+        int KEY_SIZE = 10;
+
+        Username username = new Username("user1");
+        Password password = new Password("1234");
+        byte[] data1 = "my data".getBytes();
+        Main.Path path = new Main.Path("mydata");
+        ChunkIterator iterator1 = new ByteArrayChunkIterator(data1, Main.CHUNK_SIZE);
+
+        Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        peer.join().get();
+
+        peer.backup(username, password, path, 1, iterator1);
+
+        DataBuilder builder = new DataBuilder();
+        ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
+        peer.restore(username, password, path, chunkOutput);
+
+        assertArrayEquals(data1, builder.get());
+
+        peer.leave().get();
+    }
+
+    @Test(timeout=10000)
+    public void backupFileProtocol_10peer() throws Exception {
+        int KEY_SIZE = 10;
+
+        int[] ids = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+
+        Peer[] peers = new Peer[ids.length];
+        for(int i = 0; i < ids.length; ++i)
+            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
+        peers[0].join().get();
+        for(int i = 1; i < ids.length; ++i)
+            peers[i].join(peers[0].getSocketAddress()).join();
+
+        byte[] data = "my data".getBytes();
+        Main.File file = new Username("user1").asFile(1);
+
+        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(peers[0].getMain(), file, data, 10, false);
+        assertTrue(backupFileProtocol.get());
+
+        DataBuilder dataBuilder = new DataBuilder();
+        ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
+        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput, 10);
+        assertTrue(restoreFileProtocol.get());
+
+        assertArrayEquals(data, dataBuilder.get());
+
+        for(Peer p: peers) p.leave().get();
+    }
+
 
 }

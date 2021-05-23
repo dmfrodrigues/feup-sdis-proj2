@@ -24,7 +24,7 @@ abstract public class ChunkIterator implements Iterator<CompletableFuture<byte[]
      *
      * @param chunkSize     Chunk size, in bytes
      */
-    public ChunkIterator(int chunkSize) throws IOException {
+    public ChunkIterator(int chunkSize) {
         this.chunkSize = chunkSize;
     }
 

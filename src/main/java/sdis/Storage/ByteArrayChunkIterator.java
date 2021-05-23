@@ -13,7 +13,7 @@ public class ByteArrayChunkIterator extends ChunkIterator {
      * @param chunkSize Chunk size, in bytes
      * @brief Construct ChunkIterator.
      */
-    public ByteArrayChunkIterator(byte[] data, int chunkSize) throws IOException {
+    public ByteArrayChunkIterator(byte[] data, int chunkSize) {
         super(chunkSize);
         this.data = data;
     }

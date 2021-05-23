@@ -26,16 +26,24 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
     private final int maxNumberFutures;
     private final boolean enlist;
 
+    public BackupFileProtocol(Main main, Main.File file, ChunkIterator chunkIterator, int maxNumberFutures) {
+        this(main, file, chunkIterator, maxNumberFutures, true);
+    }
+
+    public BackupFileProtocol(Main main, Main.File file, ChunkIterator chunkIterator, int maxNumberFutures, boolean enlist) {
+        this.main = main;
+        this.file = file;
+        this.chunkIterator = chunkIterator;
+        this.maxNumberFutures = maxNumberFutures;
+        this.enlist = enlist;
+    }
+
     public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures) throws IOException {
         this(main, file, data, maxNumberFutures, true);
     }
 
-    public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures, boolean enlist) throws IOException {
-        this.main = main;
-        this.file = file;
-        this.chunkIterator = new ByteArrayChunkIterator(data, CHUNK_SIZE);
-        this.maxNumberFutures = maxNumberFutures;
-        this.enlist = enlist;
+    public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures, boolean enlist) {
+        this(main, file, new ByteArrayChunkIterator(data, CHUNK_SIZE), maxNumberFutures, enlist);
     }
 
     private CompletableFuture<Boolean> enlistFile() {
