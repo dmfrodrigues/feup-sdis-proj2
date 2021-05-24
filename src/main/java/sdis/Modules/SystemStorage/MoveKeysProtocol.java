@@ -1,16 +1,12 @@
 package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.DataStorage.Messages.GetMessage;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.Messages.MoveKeysMessage;
-import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
 public class MoveKeysProtocol extends ProtocolSupplier<Void> {
 

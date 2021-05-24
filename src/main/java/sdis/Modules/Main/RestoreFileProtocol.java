@@ -5,13 +5,13 @@ import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
     private final Main main;
@@ -34,10 +34,10 @@ public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
         SystemStorage systemStorage = main.getSystemStorage();
         int replicationDegree = file.getReplicationDegree();
 
-        CompletableFuture<byte[]>[] futuresList = new CompletableFuture[replicationDegree];
+        List<CompletableFuture<byte[]>> futuresList = new ArrayList<>();
         for(int i = 0; i < replicationDegree; ++i){
             UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
-            futuresList[i] = systemStorage.get(id);
+            futuresList.add(systemStorage.get(id));
         }
 
         return CompletableFuture.supplyAsync(() -> {
@@ -51,7 +51,7 @@ public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
                     }
                     if(ret == null) return null;
                     for (int i = 0; i < replicationDegree; ++i) {
-                        byte[] tmp = futuresList[i].get();
+                        byte[] tmp = futuresList.get(i).get();
                         if (tmp == null) {
                             UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
                             systemStorage.put(id, ret);

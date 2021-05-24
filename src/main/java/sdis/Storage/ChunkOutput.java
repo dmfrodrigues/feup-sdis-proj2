@@ -1,7 +1,5 @@
 package sdis.Storage;
 
-import java.io.IOException;
-
 /**
  * @brief Chunk output.
  *
@@ -17,8 +15,6 @@ public interface ChunkOutput {
      *
      * @param i     Index of the chunk in the file
      * @param e     Chunk
-     * @throws IOException                      If write to file fails
-     * @throws ArrayIndexOutOfBoundsException   If chunk index was not accepted
      */
     boolean set(long i, byte[] e);
 }

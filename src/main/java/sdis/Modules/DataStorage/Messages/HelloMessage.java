@@ -3,17 +3,14 @@ package sdis.Modules.DataStorage.Messages;
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.HelloProtocol;
-import sdis.Modules.DataStorage.PutProtocol;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.CompletionException;
 
 public class HelloMessage extends DataStorageMessage {
-    private Chord.NodeInfo nodeInfo;
+    private final Chord.NodeInfo nodeInfo;
 
     public HelloMessage(Chord.NodeInfo nodeInfo){
         this.nodeInfo = nodeInfo;

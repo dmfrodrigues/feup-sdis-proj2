@@ -1,11 +1,6 @@
 package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.DataStorage.LocalDataStorage;
-import sdis.Modules.DataStorage.Messages.DeleteMessage;
-import sdis.Modules.DataStorage.Messages.PutMessage;
-import sdis.Modules.DataStorage.PutProtocol;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.Messages.PutSystemMessage;
 import sdis.UUID;
@@ -17,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 
 public class PutSystemProtocol extends ProtocolSupplier<Boolean> {
 
-    private SystemStorage systemStorage;
+    private final SystemStorage systemStorage;
     private final UUID id;
     private final byte[] data;
 

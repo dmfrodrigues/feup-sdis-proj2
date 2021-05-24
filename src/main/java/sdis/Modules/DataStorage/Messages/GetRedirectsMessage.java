@@ -2,7 +2,6 @@ package sdis.Modules.DataStorage.Messages;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.DataStorage.GetProtocol;
 import sdis.Peer;
 import sdis.UUID;
 import sdis.Utils.DataBuilder;

@@ -1,9 +1,6 @@
 package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.DataStorage.Messages.DeleteMessage;
-import sdis.Modules.DataStorage.Messages.PutMessage;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.Messages.DeleteSystemMessage;
 import sdis.UUID;
@@ -15,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 
 public class DeleteSystemProtocol extends ProtocolSupplier<Boolean> {
 
-    private SystemStorage systemStorage;
+    private final SystemStorage systemStorage;
     private final UUID id;
 
     public DeleteSystemProtocol(SystemStorage systemStorage, UUID id){

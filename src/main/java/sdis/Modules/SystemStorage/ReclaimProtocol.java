@@ -10,12 +10,11 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ReclaimProtocol extends ProtocolSupplier<Void> {
     private static final int MAX_NUMBER_DATAPIECES = 10;
 
-    private SystemStorage systemStorage;
+    private final SystemStorage systemStorage;
 
     public ReclaimProtocol(SystemStorage systemStorage){
         this.systemStorage = systemStorage;

@@ -6,7 +6,6 @@ import sdis.Modules.Main.Username;
 import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 
-import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 

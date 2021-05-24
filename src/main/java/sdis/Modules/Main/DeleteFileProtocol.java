@@ -2,13 +2,12 @@ package sdis.Modules.Main;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.Main.Messages.DelistFileMessage;
-import sdis.Modules.Main.Messages.EnlistFileMessage;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.SystemStorage;
-import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -53,19 +52,14 @@ public class DeleteFileProtocol extends ProtocolSupplier<Boolean> {
 
     public CompletableFuture<Boolean> deleteReplica(Main.Replica replica) {
         SystemStorage systemStorage = main.getSystemStorage();
-        return systemStorage.delete(replica.getUUID())
-                .thenApply((Boolean b) -> {
-                    return b;
-                });
+        return systemStorage.delete(replica.getUUID());
     }
 
     public CompletableFuture<Boolean> deleteChunk(Main.Chunk chunk) {
-        SystemStorage systemStorage = main.getSystemStorage();
-
-        CompletableFuture<Boolean>[] futuresList = new CompletableFuture[file.getReplicationDegree()];
+        List<CompletableFuture<Boolean>> futuresList = new ArrayList<>();
         for(int i = 0; i < file.getReplicationDegree(); ++i){
             Main.Replica replica = chunk.getReplica(i);
-            futuresList[i] = deleteReplica(replica);
+            futuresList.add(deleteReplica(replica));
         }
 
         return CompletableFuture.supplyAsync(() -> {
@@ -128,7 +122,7 @@ public class DeleteFileProtocol extends ProtocolSupplier<Boolean> {
             } catch (ExecutionException e) {
                 throw new CompletionException(e.getCause());
             }
-            if (!delistedFile) return false;
+            return delistedFile;
         }
 
         return true;

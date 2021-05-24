@@ -9,6 +9,7 @@ import sdis.Storage.ChunkIterator;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -37,7 +38,7 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
         this.enlist = enlist;
     }
 
-    public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures) throws IOException {
+    public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures) {
         this(main, file, data, maxNumberFutures, true);
     }
 
@@ -69,10 +70,10 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
     }
 
     private CompletableFuture<Boolean> putChunk(Main.Chunk chunk, byte[] data) {
-        CompletableFuture<Boolean>[] futuresList = new CompletableFuture[file.getReplicationDegree()];
+        List<CompletableFuture<Boolean>> futuresList = new ArrayList<>();
         for(int i = 0; i < file.getReplicationDegree(); ++i){
             Main.Replica replica = chunk.getReplica(i);
-            futuresList[i] = putReplica(replica, data);
+            futuresList.add(putReplica(replica, data));
         }
 
         return CompletableFuture.supplyAsync(() -> {

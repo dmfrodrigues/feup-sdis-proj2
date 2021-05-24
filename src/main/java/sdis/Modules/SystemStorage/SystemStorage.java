@@ -2,9 +2,7 @@ package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.Main.Messages.AuthenticateMessage;
 import sdis.Modules.Message;
-import sdis.Modules.SystemStorage.Messages.SystemStorageMessage;
 import sdis.UUID;
 
 import java.io.IOException;
@@ -12,13 +10,12 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 public class SystemStorage {
     private final Chord chord;
     private final DataStorage dataStorage;
-    private Executor executor;
+    private final Executor executor;
 
     public SystemStorage(Chord chord, DataStorage dataStorage, Executor executor){
         this.chord = chord;

@@ -1,14 +1,8 @@
 package sdis.Storage;
 
-import sdis.Peer;
-
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Future;
 
 /**
  * @brief Chunk iterator.

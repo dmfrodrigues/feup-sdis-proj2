@@ -53,8 +53,8 @@ public abstract class DataStorageAbstract {
      *
      * If a datapiece was put and was successfully deleted, returns true.
      *
-     * @param id
-     * @return
+     * @param id    UUID of the datapiece to be deleted
+     * @return      A future resolving to a boolean, true if the deletion succeeded, false otherwise
      */
     abstract public CompletableFuture<Boolean> delete(UUID id);
 }

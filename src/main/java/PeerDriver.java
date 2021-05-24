@@ -1,5 +1,3 @@
-import sdis.Modules.Main.Password;
-import sdis.Modules.Main.Username;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Peer;
 

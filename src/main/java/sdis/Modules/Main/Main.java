@@ -19,7 +19,7 @@ public class Main {
     public static final int USER_METADATA_REPDEG = 10;
 
     private final SystemStorage systemStorage;
-    private Executor executor;
+    private final Executor executor;
 
     public Main(SystemStorage systemStorage, Executor executor){
         this.systemStorage = systemStorage;
@@ -55,7 +55,7 @@ public class Main {
     }
 
     public static class Path implements Serializable {
-        String s;
+        final String s;
 
         public Path(String s){
             this.s = s;

@@ -94,7 +94,7 @@ public class Peer implements PeerInterface {
             @Override
             public Void get() {
                 // Get redirects
-                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(chord, dataStorage);
+                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(dataStorage, chord);
                 Set<UUID> redirects = getRedirectsProtocol.get();
                 for(UUID id : redirects)
                     dataStorage.registerSuccessorStored(id);

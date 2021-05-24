@@ -20,7 +20,7 @@ public class UUID implements Comparable<UUID> {
     }
 
     public Chord.Key getKey(Chord chord){
-        long l = 0;
+        long l;
         try {
             MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
             byte[] hash = digest.digest(s.getBytes());

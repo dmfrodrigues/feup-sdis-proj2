@@ -239,13 +239,13 @@ public class DataStorageTest {
         assertTrue(dataStorage1.put(id1, data1).get());
         assertTrue(dataStorage1.put(id2, data2).get());
 
-        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord1, dataStorage1).get());
-        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord1, dataStorage1, chord1.getSocketAddress()).get());
-        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord1, dataStorage1, chord2.getSocketAddress()).get());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(dataStorage1, chord1).get());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(dataStorage1, chord1.getSocketAddress()).get());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(dataStorage1, chord2.getSocketAddress()).get());
 
-        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord2, dataStorage2).get());
-        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord2, dataStorage2, chord1.getSocketAddress()).get());
-        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord2, dataStorage2, chord2.getSocketAddress()).get());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(dataStorage2, chord2).get());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(dataStorage2, chord1.getSocketAddress()).get());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(dataStorage2, chord2.getSocketAddress()).get());
 
         peer1.leave().get();
         peer2.leave().get();

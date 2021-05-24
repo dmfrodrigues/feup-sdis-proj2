@@ -35,16 +35,6 @@ public class FileChunkOutput implements ChunkOutput {
         buffer = new FixedSizeBuffer<>(BUFFER_SIZE);
     }
 
-    /**
-     * @brief Add a chunk.
-     *
-     * Fails if the chunk index is too far ahead of the first missing chunk.
-     *
-     * @param i     Index of the chunk in the file
-     * @param e     Chunk
-     * @throws IOException                      If write to file fails
-     * @throws ArrayIndexOutOfBoundsException   If chunk index was not accepted
-     */
     @Override
     public boolean set(long i, byte[] e) {
         ByteBuffer byteBuffer = ByteBuffer.wrap(e);
