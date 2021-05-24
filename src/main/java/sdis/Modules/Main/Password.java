@@ -8,14 +8,10 @@ import java.security.NoSuchAlgorithmException;
 
 public class Password implements Serializable {
     private static final String HASH_ALGORITHM = "SHA-256";
-    private String hashed;
-    private transient String plain;
+    private final String hashed;
+    private final transient String plain;
 
     public Password(String s) {
-        set(s);
-    }
-
-    public void set(String s) {
         this.plain = s;
         this.hashed = hashPassword(s);
     }
