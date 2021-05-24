@@ -23,6 +23,7 @@ header-includes:
     - \usepackage{newunicodechar}
     - \newunicodechar{≤}{\ensuremath{\leq}}
     - \usepackage{multicol}
+    - \usepackage[binary-units=true]{siunitx}
 
 toc: 1
 csl: apa.csl
