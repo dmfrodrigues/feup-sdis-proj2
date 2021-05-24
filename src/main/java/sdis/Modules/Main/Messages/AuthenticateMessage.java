@@ -55,7 +55,7 @@ public class AuthenticateMessage extends MainMessage {
             this.message = message;
         }
 
-        private boolean putUserMetadata(SystemStorage systemStorage, UserMetadata userMetadata) {
+        private boolean putUserMetadata(UserMetadata userMetadata) {
             int numChunks;
             byte[] data;
             try {
@@ -93,7 +93,7 @@ public class AuthenticateMessage extends MainMessage {
 
             if(!b) {
                 userMetadata = new UserMetadata(message.username, message.password);
-                putUserMetadata(systemStorage, userMetadata);
+                putUserMetadata(userMetadata);
                 return get();
             } else {
                 try {
