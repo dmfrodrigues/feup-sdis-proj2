@@ -1,9 +1,6 @@
 package sdis.Modules.Main.Messages;
 
-import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.DataStorage.LocalDataStorage;
 import sdis.Modules.Main.*;
-import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;
 import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
@@ -54,7 +51,6 @@ public class EnlistFileMessage extends MainMessage {
         @Override
         public Void get() {
             Username owner = message.file.getOwner();
-            Main.File file = owner.asFile();
 
             try {
                 // Get user metadata
@@ -66,17 +62,17 @@ public class EnlistFileMessage extends MainMessage {
                 // Parse user metadata
                 byte[] data = builder.get();
                 UserMetadata userMetadata = UserMetadata.deserialize(data);
-                file = userMetadata.asFile();
+                Main.File userMetadataFile = userMetadata.asFile();
                 // Add file
                 userMetadata.addFile(message.file);
 
                 // Delete old user metadata
-                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), file, 10, false);
+                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), userMetadataFile, 10, false);
                 if(!deleteFileProtocol.get()){ end(false); return null; }
 
                 // Save new user metadata
                 data = userMetadata.serialize();
-                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, 10, false);
+                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), userMetadataFile, data, 10, false);
                 if(!backupFileProtocol.get()){ end(false); return null; }
 
                 try {
