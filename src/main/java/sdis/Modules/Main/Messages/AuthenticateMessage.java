@@ -1,6 +1,5 @@
 package sdis.Modules.Main.Messages;
 
-import sdis.Modules.Chord.Chord;
 import sdis.Modules.Main.*;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;
@@ -16,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.concurrent.CompletionException;
 
 import static sdis.Modules.Main.Main.USER_METADATA_REPDEG;
@@ -79,9 +79,6 @@ public class AuthenticateMessage extends MainMessage {
 
         @Override
         public Void get() {
-            SystemStorage systemStorage = getMain().getSystemStorage();
-            Chord chord = systemStorage.getChord();
-
             Status status = Status.SUCCESS;
             UserMetadata userMetadata = null;
 
