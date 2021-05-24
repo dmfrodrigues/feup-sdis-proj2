@@ -373,4 +373,48 @@ public class MainTest {
         for(Peer p: peers) p.leave().get();
     }
 
+    @Test(timeout=10000)
+    public void delete_manyFiles_10peer() throws Exception {
+        int KEY_SIZE = 10;
+
+        int[] ids = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+
+        Peer[] peers = new Peer[ids.length];
+        for(int i = 0; i < ids.length; ++i)
+            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
+        peers[0].join().get();
+        for(int i = 1; i < ids.length; ++i)
+            peers[i].join(peers[0].getSocketAddress()).join();
+
+        for(int i = 0; i < ids.length; ++i){
+            Username username = new Username("user" + i);
+            Password password = new Password(Integer.toString(i));
+
+            Main.Path path = new Main.Path("data");
+            byte[] data = ("data" + i).getBytes();
+
+            assertTrue(peers[i].backup(username, password, path, 1, new ByteArrayChunkIterator(data, Main.CHUNK_SIZE)));
+        }
+
+        int[] toDelete = {8, 3, 0, 9, 6, 1, 5, 7, 2, 4};
+        for(int i = 0; i < ids.length; ++i){
+            System.out.println("i=" + i);
+
+            int j = toDelete[i];
+
+            Username username = new Username("user" + j);
+            Password password = new Password(Integer.toString(j));
+
+            Main.Path path = new Main.Path("data");
+            DataBuilder builder = new DataBuilder();
+            ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
+
+            assertTrue(peers[i].delete(username, password, path));
+            assertFalse(peers[i].restore(username, password, path, chunkOutput));
+            assertEquals(0, builder.get().length);
+        }
+
+        for(Peer p: peers) p.leave().get();
+    }
+
 }
