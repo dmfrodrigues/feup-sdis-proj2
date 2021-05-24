@@ -11,7 +11,6 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
 public class DelistFileMessage extends MainMessage {
 
@@ -41,44 +40,49 @@ public class DelistFileMessage extends MainMessage {
             this.message = message;
         }
 
+        private void end(boolean b) throws IOException {
+            getSocket().getOutputStream().write(message.formatResponse(b));
+            getSocket().shutdownOutput();
+            getSocket().getInputStream().readAllBytes();
+            getSocket().close();
+        }
+
         @Override
         public Void get() {
-            Main main = getMain();
-            SystemStorage systemStorage = main.getSystemStorage();
-            DataStorage dataStorage = systemStorage.getDataStorage();
-            LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
             Username owner = message.file.getOwner();
-            Main.File userFile = owner.asFile();
 
             try {
+                // Get user metadata
                 DataBuilder builder = new DataBuilder();
                 DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
-                RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(getMain(), userFile, chunkOutput, 10);
-                restoreFileProtocol.get();
+                RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), owner, Main.USER_METADATA_REPDEG, chunkOutput);
+                if(!restoreUserFileProtocol.get()){ end(false); return null; }
+
+                // Parse user metadata
                 byte[] data = builder.get();
                 UserMetadata userMetadata = UserMetadata.deserialize(data);
+                Main.File userMetadataFile = userMetadata.asFile();
+                // Remove file
                 userMetadata.removeFile(message.file.getPath());
+
+                // Delete old user metadata
+                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), userMetadataFile, 10, false);
+                if(!deleteFileProtocol.get()){ end(false); return null; }
+
+                // Save new user metadata
                 data = userMetadata.serialize();
-                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), userFile, 10, false);
-                deleteFileProtocol.get();
-                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), userFile, data, 10, false);
-                backupFileProtocol.get();
+                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), userMetadataFile, data, 10, false);
+                if(!backupFileProtocol.get()){ end(false); return null; }
 
                 try {
-                    getSocket().getOutputStream().write(message.formatResponse(true));
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
+                    end(true);
                 } catch (IOException ex) {
                     throw new CompletionException(ex);
                 }
 
             } catch (IOException | ClassNotFoundException e) { // InterruptedException | ExecutionException
                 try {
-                    getSocket().getOutputStream().write(message.formatResponse(false));
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
+                    end(false);
                 } catch (IOException ex) {
                     throw new CompletionException(ex);
                 }
