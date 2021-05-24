@@ -23,7 +23,8 @@ import static sdis.Modules.Main.Main.USER_METADATA_REPDEG;
 public class AuthenticateMessage extends MainMessage {
     public enum Status {
         SUCCESS,
-        BROKEN
+        BROKEN,
+        UNAUTHORIZED
     }
 
     private final Username username;
@@ -98,6 +99,9 @@ public class AuthenticateMessage extends MainMessage {
                     InputStream is = new ByteArrayInputStream(data);
                     ObjectInputStream ois = new ObjectInputStream(is);
                     userMetadata = (UserMetadata) ois.readObject();
+                    if(!userMetadata.getPassword().authenticate(message.password)){
+                        status = Status.UNAUTHORIZED;
+                    }
                 } catch (ClassNotFoundException | IOException e) {
                     e.printStackTrace();
                     status = Status.BROKEN;
@@ -131,8 +135,9 @@ public class AuthenticateMessage extends MainMessage {
                     return builder.get();
                 case BROKEN:
                     return new byte[]{1};
+                case UNAUTHORIZED:
                 default:
-                    return new byte[]{1};
+                    return new byte[]{2};
             }
         } catch (IOException e) {
             return new byte[]{2};
@@ -147,8 +152,9 @@ public class AuthenticateMessage extends MainMessage {
                     return new Pair<>(Status.SUCCESS, ret);
                 case 1:
                     return new Pair<>(Status.BROKEN, null);
+                case 2:
                 default:
-                    return new Pair<>(Status.BROKEN, null);
+                    return new Pair<>(Status.UNAUTHORIZED, null);
             }
         } catch (IOException | ClassNotFoundException e) {
             return new Pair<>(Status.BROKEN, null);
