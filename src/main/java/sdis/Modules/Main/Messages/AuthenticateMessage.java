@@ -86,7 +86,7 @@ public class AuthenticateMessage extends MainMessage {
             DataBuilder builder = new DataBuilder();
 
             ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 1);
-            RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), message.username, USER_METADATA_REPDEG, chunkOutput);
+            RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), message.username, chunkOutput, 10);
             boolean b = restoreUserFileProtocol.get();
 
             if(!b) {

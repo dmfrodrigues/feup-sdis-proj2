@@ -56,7 +56,7 @@ public class EnlistFileMessage extends MainMessage {
                 // Get user metadata
                 DataBuilder builder = new DataBuilder();
                 DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
-                RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), owner, Main.USER_METADATA_REPDEG, chunkOutput);
+                RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), owner, chunkOutput, 10);
                 if(!restoreUserFileProtocol.get()){ end(false); return null; }
 
                 // Parse user metadata
