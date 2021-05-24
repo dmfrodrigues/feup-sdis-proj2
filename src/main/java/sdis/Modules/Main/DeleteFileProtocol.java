@@ -1,11 +1,11 @@
 package sdis.Modules.Main;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.Main.Messages.DelistFileMessage;
 import sdis.Modules.Main.Messages.EnlistFileMessage;
 import sdis.Modules.ProtocolSupplier;
 import sdis.Modules.SystemStorage.SystemStorage;
-import sdis.Storage.ByteArrayChunkIterator;
-import sdis.Storage.ChunkIterator;
+import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -16,42 +16,30 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
-import static sdis.Modules.Main.Main.CHUNK_SIZE;
-
-public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
+public class DeleteFileProtocol extends ProtocolSupplier<Boolean> {
     private final Main main;
     private final Main.File file;
-    private final ChunkIterator chunkIterator;
     private final int maxNumberFutures;
-    private final boolean enlist;
+    private final boolean delist;
 
-    public BackupFileProtocol(Main main, Main.File file, ChunkIterator chunkIterator, int maxNumberFutures) {
-        this(main, file, chunkIterator, maxNumberFutures, true);
+    public DeleteFileProtocol(Main main, Main.File file, int maxNumberFutures) {
+        this(main, file, maxNumberFutures, true);
     }
 
-    public BackupFileProtocol(Main main, Main.File file, ChunkIterator chunkIterator, int maxNumberFutures, boolean enlist) {
+    public DeleteFileProtocol(Main main, Main.File file, int maxNumberFutures, boolean delist) {
         this.main = main;
         this.file = file;
-        this.chunkIterator = chunkIterator;
         this.maxNumberFutures = maxNumberFutures;
-        this.enlist = enlist;
+        this.delist = delist;
     }
 
-    public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures) throws IOException {
-        this(main, file, data, maxNumberFutures, true);
-    }
-
-    public BackupFileProtocol(Main main, Main.File file, byte[] data, int maxNumberFutures, boolean enlist) {
-        this(main, file, new ByteArrayChunkIterator(data, CHUNK_SIZE), maxNumberFutures, enlist);
-    }
-
-    private CompletableFuture<Boolean> enlistFile() {
+    private CompletableFuture<Boolean> delistFile() {
         SystemStorage systemStorage = main.getSystemStorage();
         Chord chord = systemStorage.getChord();
         return chord.getSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord))
         .thenApplyAsync((Chord.NodeInfo s) -> {
             try {
-                EnlistFileMessage m = new EnlistFileMessage(file);
+                DelistFileMessage m = new DelistFileMessage(file);
                 Socket socket = main.send(s.address, m);
                 socket.shutdownOutput();
                 byte[] response = socket.getInputStream().readAllBytes();
@@ -63,16 +51,21 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
         });
     }
 
-    private CompletableFuture<Boolean> putReplica(Main.Replica replica, byte[] data) {
+    public CompletableFuture<Boolean> deleteReplica(Main.Replica replica) {
         SystemStorage systemStorage = main.getSystemStorage();
-        return systemStorage.put(replica.getUUID(), data);
+        return systemStorage.delete(replica.getUUID())
+                .thenApply((Boolean b) -> {
+                    return b;
+                });
     }
 
-    private CompletableFuture<Boolean> putChunk(Main.Chunk chunk, byte[] data) {
+    public CompletableFuture<Boolean> deleteChunk(Main.Chunk chunk) {
+        SystemStorage systemStorage = main.getSystemStorage();
+
         CompletableFuture<Boolean>[] futuresList = new CompletableFuture[file.getReplicationDegree()];
         for(int i = 0; i < file.getReplicationDegree(); ++i){
             Main.Replica replica = chunk.getReplica(i);
-            futuresList[i] = putReplica(replica, data);
+            futuresList[i] = deleteReplica(replica);
         }
 
         return CompletableFuture.supplyAsync(() -> {
@@ -90,24 +83,7 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
 
     @Override
     public Boolean get() {
-        long numChunks;
-        try {
-            numChunks = chunkIterator.length();
-        } catch (IOException e) {
-            return false;
-        }
-
-        if(enlist) {
-            Boolean enlistedFile;
-            try {
-                enlistedFile = enlistFile().get();
-            } catch (InterruptedException e) {
-                throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
-            }
-            if (!enlistedFile) return false;
-        }
+        long numChunks = file.getNumberOfChunks();
 
         List<CompletableFuture<Boolean>> futuresList = new LinkedList<>();
         for (long i = 0; i < numChunks; ++i) {
@@ -124,13 +100,7 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
                 }
             }
 
-            byte[] data;
-            try {
-                data = chunkIterator.next().get();
-            } catch (InterruptedException | ExecutionException e) {
-                return false;
-            }
-            CompletableFuture<Boolean> f = putChunk(file.getChunk(i), data);
+            CompletableFuture<Boolean> f = deleteChunk(file.getChunk(i));
 
             futuresList.add(f);
         }
@@ -140,12 +110,25 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
             try {
                 b = waitForAny(futuresList);
             } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
                 b = false;
             }
             if (!b) {
                 waitForAll(futuresList);
                 return false;
             }
+        }
+
+        if(delist) {
+            Boolean delistedFile;
+            try {
+                delistedFile = delistFile().get();
+            } catch (InterruptedException e) {
+                throw new CompletionException(e);
+            } catch (ExecutionException e) {
+                throw new CompletionException(e.getCause());
+            }
+            if (!delistedFile) return false;
         }
 
         return true;

@@ -72,7 +72,7 @@ public class UserMetadata implements Serializable {
     public Main.File asFile() throws IOException {
         byte[] data = serialize();
         ByteArrayChunkIterator chunkIterator = new ByteArrayChunkIterator(data, Main.CHUNK_SIZE);
-        return new Main.File(username, new Main.Path(username.toString()), chunkIterator.length(), Main.USER_METADATA_REPDEG);
+        return new Main.UserMetadataFile(username, chunkIterator.length());
     }
 
     @Override

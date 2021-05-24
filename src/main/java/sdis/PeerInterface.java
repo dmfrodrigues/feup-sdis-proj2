@@ -11,8 +11,8 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface PeerInterface extends Remote {
-    void backup(Username username, Password password, Main.Path path, int replicationDegree, ChunkIterator chunkIterator);
-    void restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput);
-    void delete(Username username, Password password, Main.Path path);
-    void reclaim(int space_bytes) throws RemoteException;
+    boolean backup(Username username, Password password, Main.Path path, int replicationDegree, ChunkIterator chunkIterator);
+    boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput);
+    boolean delete(Username username, Password password, Main.Path path);
+    boolean reclaim(int space_bytes) throws RemoteException;
 }

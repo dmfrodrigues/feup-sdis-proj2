@@ -15,24 +15,21 @@ import java.util.concurrent.ExecutionException;
 
 public class DelistFileMessage extends MainMessage {
 
-    private final Username owner;
-    private final Main.Path path;
+    private final Main.File file;
 
-    public DelistFileMessage(Username owner, Main.Path path){
-        this.owner = owner;
-        this.path = path;
+    public DelistFileMessage(Main.File file){
+        this.file = file;
     }
 
     public DelistFileMessage(byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
-        owner = new Username(splitString[1]);
-        path = new Main.Path(splitString[2]);
+        file = new Main.File(new Username(splitString[1]), new Main.Path(splitString[2]), 0, 0);
     }
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("DELISTFILE " + owner + " " + path).getBytes());
+        return new DataBuilder(("DELISTFILE " + file.getOwner() + " " + file.getPath()).getBytes());
     }
 
     private static class DelistFileProcessor extends Processor {
@@ -50,21 +47,21 @@ public class DelistFileMessage extends MainMessage {
             SystemStorage systemStorage = main.getSystemStorage();
             DataStorage dataStorage = systemStorage.getDataStorage();
             LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
-            Username owner = message.owner;
-            Main.File file = message.owner.asFile();
+            Username owner = message.file.getOwner();
+            Main.File userFile = owner.asFile();
 
             try {
                 DataBuilder builder = new DataBuilder();
                 DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
-                RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(getMain(), file, chunkOutput, 10);
+                RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(getMain(), userFile, chunkOutput, 10);
                 restoreFileProtocol.get();
                 byte[] data = builder.get();
                 UserMetadata userMetadata = UserMetadata.deserialize(data);
-                userMetadata.removeFile(message.path);
+                userMetadata.removeFile(message.file.getPath());
                 data = userMetadata.serialize();
-//                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), file, 10, false);
-//                deleteFileProtocol.get();
-                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, 10, false);
+                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), userFile, 10, false);
+                deleteFileProtocol.get();
+                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), userFile, data, 10, false);
                 backupFileProtocol.get();
 
                 try {

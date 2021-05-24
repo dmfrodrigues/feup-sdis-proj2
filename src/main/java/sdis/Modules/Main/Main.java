@@ -8,6 +8,7 @@ import sdis.UUID;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
@@ -46,11 +47,10 @@ public class Main {
     }
 
     public CompletableFuture<Boolean> deleteFile(Main.File file) {
-//        return CompletableFuture.supplyAsync(new DeleteFileProtocol(this, file, 10), executor);
-        return CompletableFuture.completedFuture(true);
+        return CompletableFuture.supplyAsync(new DeleteFileProtocol(this, file, 10), executor);
     }
 
-    public static class Path {
+    public static class Path implements Serializable {
         String s;
 
         public Path(String s){
@@ -73,7 +73,7 @@ public class Main {
         }
     }
 
-    public static class File {
+    public static class File implements Serializable {
         private final Username owner;
         private final Main.Path path;
         private final long numberOfChunks;

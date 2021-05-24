@@ -6,6 +6,7 @@ import sdis.Storage.ByteArrayChunkIterator;
 import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.Storage.DataBuilderChunkOutput;
+import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
 import java.net.InetAddress;

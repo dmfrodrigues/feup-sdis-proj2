@@ -151,32 +151,32 @@ public class Peer implements PeerInterface {
     /**
      * Backup file.
      */
-    public void backup(Username username, Password password, Main.Path path, int replicationDegree, ChunkIterator chunkIterator) {
+    public boolean backup(Username username, Password password, Main.Path path, int replicationDegree, ChunkIterator chunkIterator) {
         try {
             UserMetadata userMetadata = authenticate(username, password);
             if(userMetadata == null){
                 System.err.println("Failed to authenticate");
-                return;
+                return false;
             }
 
             Main.File file = new Main.File(username, path, chunkIterator.length(), replicationDegree);
 
-            main.backupFile(file, chunkIterator).get();
-
+            return main.backupFile(file, chunkIterator).get();
         } catch (IOException | ExecutionException | InterruptedException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
     /**
      * Restore file.
      */
-    public void restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput) {
+    public boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput) {
         try {
             UserMetadata userMetadata = authenticate(username, password);
             if(userMetadata == null){
                 System.err.println("Failed to authenticate");
-                return;
+                return false;
             }
 
             Main.File file = userMetadata.getFile(path);
@@ -187,25 +187,25 @@ public class Peer implements PeerInterface {
                 for(Main.Path f: files){
                     System.err.println("    " + f);
                 }
-                return;
+                return false;
             }
 
-            main.restoreFile(file, chunkOutput).get();
-
+            return main.restoreFile(file, chunkOutput).get();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
     /**
      * Delete file.
      */
-    public void delete(Username username, Password password, Main.Path path) {
+    public boolean delete(Username username, Password password, Main.Path path) {
         try {
             UserMetadata userMetadata = authenticate(username, password);
             if(userMetadata == null){
                 System.err.println("Failed to authenticate");
-                return;
+                return false;
             }
 
             Main.File file = userMetadata.getFile(path);
@@ -216,13 +216,13 @@ public class Peer implements PeerInterface {
                 for(Main.Path f: files){
                     System.err.println("    " + f);
                 }
-                return;
+                return false;
             }
 
-            main.deleteFile(file).get();
-
+            return main.deleteFile(file).get();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -231,7 +231,7 @@ public class Peer implements PeerInterface {
      *
      * @param space_bytes   Amount of space, in bytes
      */
-    public void reclaim(int space_bytes) {
+    public boolean reclaim(int space_bytes) {
         try {
             LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
             localDataStorage.setCapacity(space_bytes);
@@ -239,8 +239,10 @@ public class Peer implements PeerInterface {
                 ReclaimProtocol reclaimProtocol = new ReclaimProtocol(systemStorage);
                 reclaimProtocol.get();
             }
+            return true;
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
