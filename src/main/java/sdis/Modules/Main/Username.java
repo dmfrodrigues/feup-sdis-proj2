@@ -1,7 +1,5 @@
 package sdis.Modules.Main;
 
-import sdis.UUID;
-
 import java.io.Serializable;
 
 public class Username implements Serializable {

@@ -16,8 +16,8 @@ import java.util.function.Supplier;
 public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
     private final Main main;
     private final Main.File file;
-    private ChunkOutput destination;
-    private int maxNumberFutures;
+    private final ChunkOutput destination;
+    private final int maxNumberFutures;
 
     public RestoreFileProtocol(Main main, Main.File file, ChunkOutput destination, int maxNumberFutures){
         this.main = main;
@@ -26,7 +26,11 @@ public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
         this.maxNumberFutures = maxNumberFutures;
     }
 
-    private CompletableFuture<byte[]> getChunk(long chunkIndex) {
+    protected ChunkOutput getDestination(){
+        return destination;
+    }
+
+    protected CompletableFuture<byte[]> getChunk(long chunkIndex) {
         SystemStorage systemStorage = main.getSystemStorage();
         int replicationDegree = file.getReplicationDegree();
 

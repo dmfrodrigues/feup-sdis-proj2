@@ -85,7 +85,7 @@ public class Main {
         private final Username owner;
         private final Main.Path path;
         private final long numberOfChunks;
-        private final int replicationDegree;
+        private int replicationDegree;
 
         public File(Username owner, Main.Path path, long numberOfChunks, int replicationDegree){
             this.owner = owner;
@@ -108,6 +108,10 @@ public class Main {
 
         public int getReplicationDegree() {
             return replicationDegree;
+        }
+
+        public void setReplicationDegree(int replicationDegree) {
+            this.replicationDegree = replicationDegree;
         }
 
         public Main.Chunk getChunk(long chunkIndex) {
