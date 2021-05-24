@@ -159,6 +159,10 @@ public class Peer implements PeerInterface {
                 return false;
             }
 
+            if(userMetadata.getFile(path) != null){
+                System.err.println("Failed to backup: file already exists");
+            }
+
             Main.File file = new Main.File(username, path, chunkIterator.length(), replicationDegree);
 
             return main.backupFile(file, chunkIterator).get();

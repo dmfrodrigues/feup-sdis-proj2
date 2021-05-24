@@ -11,6 +11,7 @@ import java.util.ListIterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
     private final Main main;
@@ -35,8 +36,7 @@ public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
             futuresList[i] = systemStorage.get(id);
         }
 
-        CompletableFuture<byte[]> allOfFuture = CompletableFuture.allOf(futuresList)
-            .thenApply((ignored) -> {
+        return CompletableFuture.supplyAsync(() -> {
                 try {
                     byte[] ret = null;
                     for (CompletableFuture<byte[]> f : futuresList) {
@@ -59,9 +59,7 @@ public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
                 } catch (ExecutionException e) {
                     throw new CompletionException(e.getCause());
                 }
-            });
-
-        return allOfFuture;
+        }, main.getExecutor());
     }
 
     @Override

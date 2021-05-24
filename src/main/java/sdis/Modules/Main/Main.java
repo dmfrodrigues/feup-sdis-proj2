@@ -50,6 +50,10 @@ public class Main {
         return CompletableFuture.supplyAsync(new DeleteFileProtocol(this, file, 10), executor);
     }
 
+    public Executor getExecutor() {
+        return executor;
+    }
+
     public static class Path implements Serializable {
         String s;
 
