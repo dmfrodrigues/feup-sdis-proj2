@@ -105,7 +105,7 @@ The peer consults the user metadata file, and finds how many chunks the file is 
       1. If the GetSystem protocol succeeds
          1. Store it
          2. Continue
-      2. Store the replica ID $r = concatenate(c,"-",d)$ in list $L$
+      2. Store the replica ID $r = concatenate(c,\texttt{'-'},d)$ in list $L$
    3. If a replica was not found:
       1. Exit with error
    4. For each replica not found:
