@@ -45,7 +45,7 @@ public class BackupFileProtocol extends ProtocolSupplier<Boolean> {
         this(main, file, new ByteArrayChunkIterator(data, CHUNK_SIZE), maxNumberFutures, enlist);
     }
 
-    private CompletableFuture<Boolean> enlistFile() {
+    public CompletableFuture<Boolean> enlistFile() {
         SystemStorage systemStorage = main.getSystemStorage();
         Chord chord = systemStorage.getChord();
         return chord.getSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord))
