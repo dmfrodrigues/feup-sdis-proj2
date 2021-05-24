@@ -99,6 +99,9 @@ public class MainTest {
         assertEquals(password, userMetadata.getPassword());
         assertEquals(new HashSet<Main.Path>(), userMetadata.getFiles());
 
+        assertNull(peer.authenticate(username, new Password("12345")));
+        assertNotNull(peer.authenticate(username, password));
+
         peer.leave().get();
     }
 
