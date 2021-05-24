@@ -74,6 +74,7 @@ public class EnlistFileMessage extends MainMessage {
                 DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), file, 10, false);
                 if(!deleteFileProtocol.get()){ end(false); return null; }
 
+                // Save new user metadata
                 data = userMetadata.serialize();
                 BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, 10, false);
                 if(!backupFileProtocol.get()){ end(false); return null; }

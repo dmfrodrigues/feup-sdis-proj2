@@ -64,7 +64,11 @@ public class Main {
 
         @Override
         public boolean equals(Object obj) {
-            return s.equals(obj);
+            if(this == obj) return true;
+            if(obj == null) return false;
+            if(getClass() != obj.getClass()) return false;
+            Main.Path path = (Main.Path) obj;
+            return s.equals(path.s);
         }
 
         @Override
