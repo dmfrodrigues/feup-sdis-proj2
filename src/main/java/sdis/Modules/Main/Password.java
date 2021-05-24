@@ -30,12 +30,8 @@ public class Password implements Serializable {
         }
     }
 
-    public boolean authenticate(String password) {
-        return (this.hashed.equals(hashPassword(password)));
-    }
-
     public boolean authenticate(Password password) {
-        return authenticate(password.getPlain());
+        return (this.hashed.equals(password.hashed));
     }
 
     public String getHashed(){
