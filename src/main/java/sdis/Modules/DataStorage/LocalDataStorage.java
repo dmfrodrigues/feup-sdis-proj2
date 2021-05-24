@@ -106,10 +106,14 @@ public class LocalDataStorage extends DataStorageAbstract {
             if(!canPut) return false;
             ByteBuffer buffer = ByteBuffer.wrap(data);
             try {
-                AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(storagePath + "/" + id), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                String pathStr = storagePath + "/" + id;
+                File pathFile = new File(pathStr);
+                if(!pathFile.getParentFile().exists() && !pathFile.getParentFile().mkdirs()) return false;
+                AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(pathStr), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
                 os.write(buffer, 0).get();
                 os.close();
             } catch (InterruptedException | ExecutionException | IOException e) {
+                e.printStackTrace();
                 return false;
             }
             return true;

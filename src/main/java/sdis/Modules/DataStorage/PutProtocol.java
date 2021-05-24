@@ -57,7 +57,7 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
         // If r has space
         if(hasSpaceLocally){
             try {
-                localDataStorage.put(id, data).get();    // Store the datapiece
+                if(!localDataStorage.put(id, data).get()) return false;    // Store the datapiece
                 if(pointsToSuccessor) {
                     // If it was pointing to its successor, delete it from the successor
                     // so that less steps are required to reach the datapiece
