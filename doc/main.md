@@ -58,10 +58,10 @@ Upon receiving this message, a peer starts its `AUTHENTICATE` message processor:
 
 ### BackupFile protocol
 
-- **Arguments:** file path
+- **Arguments:** file path, data, replication degree
 - **Returns:** -
 
-If a file with the same user and path is already being stored in the system, it is deleted using the DeleteFile protocol.
+If a file with the same user and path is already being stored in the system, undefined behavior happens; that's why `Peer#backup` first checks if said file already exists, and if so it returns an error.
 
 The peer first notifies the node that is storing the user metadata file to add said filename to the user metadata, using the message
 
@@ -69,29 +69,33 @@ The peer first notifies the node that is storing the user metadata file to add s
 ENLISTFILE <Username> <FilePath> <FileID> <NumChunks> <ReplicationDeg>
 ```
 
-to tell said node to add it to the list of files the user backed-up.
+to tell said node to add it to the list of files the user backed-up. This step is optional and can be opted-out; for instance, when backing-up a user metadata file you want to backup that file, but there's not really anywhere to enlist that file. And if there was such a system metadata file containing a list of all user metadata files, then who would enlist the system metadata file? This would suggest the existance of an infinite chain of responsibility, which does not make sense.
 
-Then the BackupFile protocol divides the file into several chunks, each with at most 64KB (64000B), calculates each chunk replica's UUID using the chunk ID and the replication index $d \in [0, D)$, and runs the PutChunk protocol for each replica.
+Then the BackupFile protocol divides the file into several chunks, each with at most $\SI{64}{\kilo\byte} ($\SI{64000}{\byte}$), calculates each chunk replica's UUID using the chunk ID and the replication index $d \in [0, D)$, and runs the PutSystem protocol for each replica.
 
 ### DeleteFile protocol
 
-- **Arguments:** file path
+- **Arguments:** file path, number of chunks, replication degree
 - **Returns:** -
 
-To delete a file, the peer first informs the node storing the user metadata file to remove said filename from the user metadata, using the message
+If a file with said path is not stored in the system, the protocol fails; that's why `Peer#delete` first checks if said file does not exist by consulting that user's metadata file, and if it does not exist it returns an error.
+
+To delete a file, the DeleteFile protocol goes through each chunk, and each replica, and calls the DeleteSystem protocol for every replica of every chunk of that file.
+
+Then, the peer informs the node storing the user metadata file to remove said filename from the user metadata, using the message
 
 ```
 DELISTFILE <Username> <FilePath>
 ```
 
-to tell said node to remove it from the list of files the user backed-up.
-
-Then the DeleteFile protocol goes through each chunk, and each replica, and calls the DeleteSystem protocol for every replica of every chunk of that file.
+to tell said node to remove it from the list of files the user backed-up. Similarly to the `ENLISTFILE` message, this step can be opted-out.
 
 ### RestoreFile protocol
 
-- **Arguments:** file path
+- **Arguments:** file path, number of chunks, replication degree
 - **Returns:** -
+
+This protocol cannot work without the replication degree or number of chunks, that's why `Peer#restore` first consults the user metadata file to find that data. If the user does not have that file, the function fails.
 
 The peer consults the user metadata file, and finds how many chunks the file is divided into and the replication degree $D$; then:
 
