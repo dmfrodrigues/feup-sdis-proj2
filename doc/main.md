@@ -93,7 +93,7 @@ to tell said node to remove it from the list of files the user backed-up. Simila
 ### RestoreFile protocol
 
 - **Arguments:** file path, number of chunks, replication degree
-- **Returns:** -
+- **Returns:** file contents
 
 This protocol cannot work without the replication degree or number of chunks, that's why `Peer#restore` first consults the user metadata file to find that data. If the user does not have that file, the function fails.
 
@@ -112,6 +112,15 @@ The peer consults the user metadata file, and finds how many chunks the file is 
       1. Run the PutSystem protocol for that replica, using another replica's contents
 
 In the end, we just need to assemble the chunks.
+
+### RestoreUserFile protocol
+
+- **Arguments:** username
+- **Returns:** file contents
+
+The RestoreFile protocol requires the number of chunks, but for a user metadata file we do not know that a priori as we have not stored that information anywhere (and if we did, it would have the same problem as described in BackupFile related to hierarchy). Thus, a special method must be applied to restore the user metadata file.
+
+For that, we do a similar processing for each chunk as in RestoreUser, except we wait for each chunk to be finished, and when the peer fails to find any replica of the $c$-th chunk of the file it assumes the file has no more chunks, and as such returns whatever it has. There is only one exception: if not a single chunk is found the RestoreUserFile protocol fails.
 
 ### DeleteAccount protocol
 
