@@ -1,13 +1,5 @@
 ## Main module
 
-Each file has a replication degree $D$. A file has an ID $f$ calculated from its file contents and with the "f/" prefix ($f = concatenate("f/", h(filecontents))$, where hashing function $h$ needs not be the same as in lower-level protocols).
-
-The ID of the $n$-th chunk of a file with ID $f$ is $c = concatenate(f, "-", n)$.
-
-Each replication of a chunk with ID $c$ is called a *replica*, and each replica is numbered with a replication index $d$ ($0 ≤ d < D$); a replica has ID $r = concatenate(c, "-", d)$.
-
-A replica in the main module always corresponds to a datapiece in lower-level protocols, and the key $k$ corresponding to a certain replica ID $r$ is $k = h(r)$.
-
 This module allows the main operations a peer needs to perform:
 
 - Authenticate with a username and password
@@ -15,17 +7,28 @@ This module allows the main operations a peer needs to perform:
 - Delete a file (including all replicas of each chunk)
 - Restore a file
 
+Each user has a username and a password, and can use the system as a distributed remote storage area, where its files are only accessible to itself, and a user can log-in from any peer to perform any operation (backup/restore/delete a file or delete its account). A username may not contain characters forbidden in Windows or Linux file names (`<`, `>`, `:`, `"`, `/`, `\`, `|`, `?`, `*`).
+
+User information is stored in a special *user metadata file*. Each file belongs to one user (including its own user metadata file).
+
+Each file has a replication degree $D$ and a user-defined path $p$; this defines the location of the file inside the user storage area.
+
+A file has an ID $f$ calculated from the user $u$ that owns it (its *owner*) and $p$ ($f = concatenate(u, \texttt{'/'}, p))$. The ID of the $n$-th chunk of a file with ID $f$ is $c = concatenate(f, \texttt{'-'}, n)$. Each replication of a chunk with ID $c$ is called a *replica*, and each replica is numbered with a replication index $d$ ($0 ≤ d < D$); a replica has ID $r = concatenate(c, \texttt{'-'}, d)$. Thus, the format for a file name is either:
+
+- `<User>/<Path>-<ChunkNo>-<ReplicationIdx>` for a regular file.
+- `<User>-<ChunkNo>-<ReplicationIdx>` for a user metadata file.
+
+A replica in the main module always corresponds to a datapiece in lower-level protocols, and the key $k$ corresponding to a certain replica ID $r$ is $k = h(r)$ where $h$ is a hashing function. In our case, we decided to use as hashing function the SHA-256 algorithm (which outputs a $\SI{256}{\bit}$ hash) and use only its first $\SI{64}{\bit}$ to fit it into a Java `long`. Bear in mind that this hash is only needed to find the destination using the chord protocol, not to store the files; these are stored locally using the path specified by the user, so it is guaranteed that, even if two files have the same hash, they will not overwrite each other.
+
 ### Authentication protocol
 
 - **Arguments:** username, password
 - **Returns:** -
 
-The system allows an account-based interaction, where each user has a username and a password.
-
-For each user with username $u$, the system stores a file with ID $concatenate("u/", u)$ with all the metadata about that user:
+For each user $u$, the system stores a file with path $u$ with all the metadata about that user:
 
 - Username
-- Password (hashed with some hash function)
+- Password (only the password hash is stored)
 - A table with the complete list of all files backed-up by that user (the ID of that table is the file path), having for each file its:
   - Path
   - Number of chunks
@@ -33,24 +36,25 @@ For each user with username $u$, the system stores a file with ID $concatenate("
 
 This allows all system data to be fully distributed. This file is stored, loaded, edited and deleted using the BackupFile, DeleteFile and RestoreFile protocols with a replication degree of 10; this means the user metadata file also benefits from redundancy and does not need to use lower-level protocols, including having to calculate the key from its ID. Ideally, this information would be stored in a distributed database, but to limit complexity we decided to use the same file backup system to store user metadata.
 
-To authenticate, a peer sends an `AUTHENTICATE` message to any peer.
+Upon starting the Authentication protocol, the peer sends an `AUTHENTICATE` message to any peer (as of now, its successor, because it can always be found in constant time).
 
 #### `AUTHENTICATE` message
 
 | **Request**                          | | **Response** |
 |--------------------------------------|-|--------------|
-| `AUTHENTICATE <Username> <Password>` | | `<Metadata>`  |
+| `AUTHENTICATE <Username> <Password>` | | `<Metadata>` |
 
-Upon receiving this message, a peer calls the RestoreFile protocol for the corresponding user's metadata file:
+Upon receiving this message, a peer starts its `AUTHENTICATE` message processor:
 
-1. If the RestoreFile protocol fails
+1. Calls the RestoreFile protocol for the user's metadata file
+2. If the RestoreFile protocol fails
    1. A new user metadata file is created for that user
-   2. The peer responds in format `CREATED<LF><Body>` where `<Body>` contains the user metadata file's contents
-2. If the RestoreFile protocol succeeds
-   1. If the stored hashed password is equal to the hash of the password in the `AUTHENTICATE` message
-      1. The peer responds in format `OK<LF><Body>` where `<Body>` contains the user metadata file's contents
-   2. If the stored hashed password is different from the hash of the password in the `AUTHENTICATE` message
-      1. The peer responds with `UNAUTHORIZED`
+   2. The new user metadata file is stored to the system using an instance of BackupFile protocol
+   3. Recall the message processor
+3. If the RestoreFile protocol succeeds
+   1. If the user metadata file is broken, respond with `1` (`BROKEN`)
+   2. If the stored hashed password is different from the hash of the password in the `AUTHENTICATE` message, respond with `2` (`UNAUTHORIZED`)
+   3. If the stored hashed password is equal to the hash of the password in the `AUTHENTICATE` message, respond in format `0<Body>` (`SUCCESS`) where `<Body>` contains the user metadata file's contents
 
 ### BackupFile protocol
 
