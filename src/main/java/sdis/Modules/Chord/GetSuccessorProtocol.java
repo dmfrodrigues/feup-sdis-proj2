@@ -41,8 +41,7 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
         try {
             Chord.NodeInfo ret;
             if(r_.equals(r)){
-                GetSuccessorProtocol newGetSuccessorProtocol = new GetSuccessorProtocol(chord, key);
-                ret = newGetSuccessorProtocol.get();
+                return r;
             } else {
                 GetSuccessorMessage m = new GetSuccessorMessage(key);
                 Socket socket = chord.send(r_, m);
