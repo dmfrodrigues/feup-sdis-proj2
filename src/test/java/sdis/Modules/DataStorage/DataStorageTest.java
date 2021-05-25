@@ -6,15 +6,16 @@ import sdis.Peer;
 import sdis.UUID;
 
 import java.net.InetAddress;
+import java.nio.file.Paths;
 import java.util.HashSet;
 
 import static org.junit.Assert.*;
 
 public class DataStorageTest {
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void put_get_1peer() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
         UUID id = new UUID("1234567890-0-1");
@@ -52,9 +53,9 @@ public class DataStorageTest {
         peer1.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void delete_1peer() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
         UUID id = new UUID("1234567890-0-1");
@@ -82,9 +83,9 @@ public class DataStorageTest {
         peer1.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void put_retry_1peer() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
         UUID id = new UUID("1234567890-0-1");
@@ -113,12 +114,12 @@ public class DataStorageTest {
         peer1.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void put_get_2peer() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
-        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress()).get();
 
         UUID id = new UUID("1234567890-0-1");
@@ -162,12 +163,12 @@ public class DataStorageTest {
         peer2.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void delete_2peer() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
-        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress()).get();
 
         UUID id = new UUID("1234567890-0-1");
@@ -213,12 +214,12 @@ public class DataStorageTest {
         peer2.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=2000)
     public void redirects_2peer() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
-        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress()).get();
 
         UUID id1 = new UUID("1234567890-0-1");

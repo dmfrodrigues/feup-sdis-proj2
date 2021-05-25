@@ -20,9 +20,9 @@ public class TestChordJoin {
         return listOfPeers.get(i);
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer1_small_checkFingers() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
         Chord chord1 = peer1.getChord();
@@ -41,9 +41,9 @@ public class TestChordJoin {
         peer1.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer1_small() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
         Chord chord = peer1.getChord();
@@ -60,9 +60,9 @@ public class TestChordJoin {
         peer1.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer1_large() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
         Chord chord1 = peer1.getChord();
@@ -81,16 +81,14 @@ public class TestChordJoin {
         peer1.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer2_small_checkFingers() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(addressPeer1).get();
-
-        sleep(1000);
 
         Chord chord1 = peer1.getChord();
 
@@ -122,13 +120,13 @@ public class TestChordJoin {
         peer2.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer2_small() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(addressPeer1).get();
 
         Chord chord1 = peer1.getChord();
@@ -157,14 +155,14 @@ public class TestChordJoin {
         peer2.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer2_large() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
         Chord chord1 = peer1.getChord();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord2 = peer2.getChord();
         peer2.join(addressPeer1).get();
 
@@ -182,18 +180,18 @@ public class TestChordJoin {
         peer2.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer3_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
 
-        Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
         Chord chord1 = peer1.getChord();
 
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(keySize, 100, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(keySize, 100, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord2 = peer2.getChord();
         peer2.join(addressPeer1).get();
 
@@ -203,7 +201,7 @@ public class TestChordJoin {
             assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
         }
 
-        Peer peer3 = new Peer(keySize, 356, InetAddress.getByName("localhost"));
+        Peer peer3 = new Peer(keySize, 356, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord3 = peer3.getChord();
         peer3.join(addressPeer1).get();
 
@@ -230,7 +228,7 @@ public class TestChordJoin {
         peer3.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer10_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
@@ -250,7 +248,7 @@ public class TestChordJoin {
         List<Long> idsSorted = new ArrayList<>();
         List<Peer> peers = new ArrayList<>();
         for (int i = 0; i < ids.length; ++i) {
-            Peer peer = new Peer(keySize, ids[i], InetAddress.getByName("localhost"));
+            Peer peer = new Peer(keySize, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
             peers.add(peer);
             idsSorted.add(ids[i]);
             Collections.sort(idsSorted);
@@ -273,7 +271,7 @@ public class TestChordJoin {
             p.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=2000)
     public void peer20_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
@@ -296,7 +294,7 @@ public class TestChordJoin {
 
         Peer[] peers = new Peer[ids.length];
         for (int i = 0; i < ids.length; ++i) {
-            peers[i] = new Peer(keySize, ids[i], InetAddress.getByName("localhost"));
+            peers[i] = new Peer(keySize, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
             if (i == 0) {
                 peers[i].join().get();
             } else {

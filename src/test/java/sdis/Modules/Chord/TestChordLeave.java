@@ -5,6 +5,7 @@ import sdis.Peer;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -19,7 +20,7 @@ public class TestChordLeave {
         return listOfPeers.get(i);
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer1() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
         peer1.join().get();
@@ -27,13 +28,13 @@ public class TestChordLeave {
         peer1.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer2_small_checkFingers() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(addressPeer1).get();
         peer2.leave().get();
 
@@ -51,14 +52,14 @@ public class TestChordLeave {
         assertEquals(0, chord1.getFinger(7).key.toLong());
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer2_small() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord1 = peer1.getChord();
         peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(addressPeer1).get();
         peer2.leave().get();
 
@@ -72,13 +73,13 @@ public class TestChordLeave {
         assertEquals( 0, chord1.getSuccessor(chord1.newKey(255)).get().key.toLong());
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer2_large() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord2 = peer2.getChord();
         peer2.join(addressPeer1).get();
 
@@ -93,22 +94,22 @@ public class TestChordLeave {
         }
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer3_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
 
-        Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
         Chord chord1 = peer1.getChord();
 
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(keySize, 100, InetAddress.getByName("localhost"));
+        Peer peer2 = new Peer(keySize, 100, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord2 = peer2.getChord();
         peer2.join(addressPeer1).get();
 
-        Peer peer3 = new Peer(keySize, 356, InetAddress.getByName("localhost"));
+        Peer peer3 = new Peer(keySize, 356, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord3 = peer3.getChord();
         peer3.join(addressPeer1).get();
 
@@ -149,7 +150,7 @@ public class TestChordLeave {
         peer2.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer20_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);

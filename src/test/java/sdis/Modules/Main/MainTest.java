@@ -17,7 +17,7 @@ import static org.junit.Assert.*;
 
 public class MainTest {
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void backupFileProtocol_noEnlist_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -41,7 +41,7 @@ public class MainTest {
         peer.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void backupFileProtocol_noEnlist_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -144,7 +144,7 @@ public class MainTest {
         for(Peer p: peers) p.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void backupFileProtocol_simple_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -170,7 +170,7 @@ public class MainTest {
         peer.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void backupFileProtocol_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -197,7 +197,7 @@ public class MainTest {
         peer.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void backupFileProtocol_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -226,7 +226,7 @@ public class MainTest {
         for (Peer p : peers) p.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void backupMain_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -253,7 +253,7 @@ public class MainTest {
         peer.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void backup_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -276,7 +276,7 @@ public class MainTest {
         peer.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void backup_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -306,7 +306,7 @@ public class MainTest {
         peer2.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void restore_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -334,7 +334,7 @@ public class MainTest {
         peer2.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void backup_manyFiles_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -376,7 +376,7 @@ public class MainTest {
         for(Peer p: peers) p.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void delete_manyFiles_10peer() throws Exception {
         int KEY_SIZE = 10;
 

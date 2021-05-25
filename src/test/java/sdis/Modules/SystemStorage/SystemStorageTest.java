@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class SystemStorageTest {
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void put_get_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -32,7 +32,7 @@ public class SystemStorageTest {
         peer1.leave().get();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void delete_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -52,7 +52,7 @@ public class SystemStorageTest {
         peer1.leave().get();
     }
 
-    @Test
+    @Test(timeout=1000)
     public void put_get_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -110,7 +110,7 @@ public class SystemStorageTest {
         for(Peer p: peers) p.leave().get();
     }
 
-    @Test
+    @Test(timeout=1000)
     public void put_get_10peer_lessMemory() throws Exception {
         int KEY_SIZE = 10;
 
@@ -185,7 +185,7 @@ public class SystemStorageTest {
         for(Peer p: peers) p.leave().get();
     }
 
-    @Test
+    @Test(timeout=1000)
     public void delete_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -233,7 +233,7 @@ public class SystemStorageTest {
         for(Peer p: peers) p.leave().get();
     }
 
-    @Test
+    @Test(timeout=1000)
     public void reclaim_10peer() throws Exception {
         int KEY_SIZE = 10;
 
