@@ -2,26 +2,27 @@ package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.GetPredecessorMessage;
 import sdis.Modules.Chord.Messages.GetSuccessorMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
-public class JoinProtocol extends ProtocolSupplier<Void> {
+public class JoinProtocol extends ProtocolTask<Void> {
     private final Chord chord;
     private final InetSocketAddress g;
-    private final ProtocolSupplier<Void> moveKeys;
+    private final ProtocolTask<Void> moveKeys;
 
-    public JoinProtocol(Chord chord, InetSocketAddress gateway, ProtocolSupplier<Void> moveKeys){
+    public JoinProtocol(Chord chord, InetSocketAddress gateway, ProtocolTask<Void> moveKeys){
         this.chord = chord;
         this.g = gateway;
         this.moveKeys = moveKeys;
     }
 
     @Override
-    public Void get() {
+    public Void compute() {
         System.out.println("Peer " + chord.getKey() + " starting to join");
 
         Chord.NodeInfo r = chord.getNodeInfo();
@@ -47,24 +48,23 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
         try {
             GetPredecessorMessage m = new GetPredecessorMessage();
             Socket socket = chord.send(chord.getSuccessor(), m);
-            socket.shutdownOutput();
-            byte[] response = socket.getInputStream().readAllBytes();
+            byte[] response = readAllBytesAndClose(socket);
             Chord.NodeInfo predecessor = m.parseResponse(chord, response);
             chord.setPredecessor(predecessor);
-        } catch (IOException e) {
+        } catch (IOException | ExecutionException | InterruptedException e) {
             throw new CompletionException(e);
         }
 
         // Update other nodes
         // Update predecessor of successor
         SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getNodeInfo());
-        setPredecessorProtocol.get();
+        setPredecessorProtocol.invoke();
         // Update other nodes' fingers tables
         FingersAddProtocol fingersAddProtocol = new FingersAddProtocol(chord);
-        fingersAddProtocol.get();
+        fingersAddProtocol.invoke();
 
         // Move keys
-        moveKeys.get();
+        moveKeys.invoke();
 
         System.out.println("Peer " + chord.getKey() + " done joining");
 

@@ -2,16 +2,15 @@ package sdis.Modules.SystemStorage;
 
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.LocalDataStorage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
-public class ReclaimProtocol extends ProtocolSupplier<Void> {
+public class ReclaimProtocol extends ProtocolTask<Void> {
     private static final int MAX_NUMBER_DATAPIECES = 10;
 
     private final SystemStorage systemStorage;
@@ -21,57 +20,42 @@ public class ReclaimProtocol extends ProtocolSupplier<Void> {
     }
 
     @Override
-    public Void get() {
+    public Void compute() {
         DataStorage dataStorage = systemStorage.getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         try {
-            long expectedSize = localDataStorage.getMemoryUsed().get();
+            long expectedSize = localDataStorage.getMemoryUsed();
             int capacity = localDataStorage.getCapacity();
             List<UUID> storedLocally = new LinkedList<>(localDataStorage.getAll());
             Collections.shuffle(storedLocally);
-            List<CompletableFuture<?>> futuresList = new LinkedList<>();
+            List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
             while (expectedSize > capacity) {
-                if(futuresList.size() >= MAX_NUMBER_DATAPIECES){
-                    CompletableFuture<Object> anyOfFuture = CompletableFuture.anyOf(futuresList.toArray(new CompletableFuture[0]));
-                    anyOfFuture.get();
-                    ListIterator<CompletableFuture<?>> it = futuresList.listIterator();
-                    while(it.hasNext()){
-                        CompletableFuture<?> f = it.next();
-                        if(f.isDone()){
-                            f.get();
-                            it.remove();
-                        }
-                    }
-                }
-
                 UUID id = storedLocally.get(0);
                 storedLocally.remove(0);
 
                 long datapieceSize = localDataStorage.getSize(id);
                 expectedSize -= datapieceSize;
 
-                CompletableFuture<Boolean> f = localDataStorage.get(id)
-                .thenComposeAsync((byte[] data) -> systemStorage.delete(id)
-                    .thenCompose((Boolean deleteSuccessful) -> {
+                tasks.add(new ProtocolTask<>() {
+                    @Override
+                    protected Boolean compute() {
+                        byte[] data = localDataStorage.get(id);
+                        boolean deleteSuccessful = systemStorage.delete(id);
                         if (!deleteSuccessful) {
-                            return localDataStorage.delete(id)
-                                .thenApply((Boolean localDeleteSuccessful) -> {
-                                    if (!localDeleteSuccessful)
-                                        throw new CompletionException(new IOException("Failed to delete datapiece " + id));
-                                    return false;
-                                });
+                            boolean localDeleteSuccessful = localDataStorage.delete(id);
+                            if (!localDeleteSuccessful)
+                                throw new CompletionException(new IOException("Failed to delete datapiece " + id));
+                            return false;
                         }
                         return systemStorage.put(id, data);
-                    }));
-                futuresList.add(f);
+                    }
+                });
             }
 
-            CompletableFuture<?>[] futuresArray = futuresList.toArray(new CompletableFuture[0]);
-            CompletableFuture<Void> allOfFuture = CompletableFuture.allOf(futuresArray);
-            allOfFuture.get();
+            invokeAll(tasks);
 
-            if(localDataStorage.getMemoryUsed().get() > capacity) return get();
+            if(localDataStorage.getMemoryUsed() > capacity) return get();
         } catch (InterruptedException e) {
             throw new CompletionException(e);
         } catch (ExecutionException e) {

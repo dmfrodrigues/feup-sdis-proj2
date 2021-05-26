@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 public class AuthenticateMessage extends MainMessage {
     public enum Status {
@@ -64,11 +65,11 @@ public class AuthenticateMessage extends MainMessage {
             }
             Main.File file = message.username.asFile(numChunks);
 
-            BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, 10, false);
-            boolean success = backupFileProtocol.get();
+            BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, false);
+            boolean success = backupFileProtocol.invoke();
             if(!success){
                 DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), file, 10, false);
-                deleteFileProtocol.get();
+                deleteFileProtocol.invoke();
             }
 
             return success;
@@ -83,12 +84,12 @@ public class AuthenticateMessage extends MainMessage {
 
             ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 1);
             RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), message.username, chunkOutput, 10);
-            boolean b = restoreUserFileProtocol.get();
+            boolean b = restoreUserFileProtocol.invoke();
 
             if(!b) {
                 userMetadata = new UserMetadata(message.username, message.password);
-                putUserMetadata(userMetadata);
-                return get();
+                if(putUserMetadata(userMetadata)) return get();
+                status = Status.BROKEN;
             } else {
                 try {
                     byte[] data = builder.get();
@@ -106,11 +107,11 @@ public class AuthenticateMessage extends MainMessage {
 
             try {
                 getSocket().getOutputStream().write(message.formatResponse(status, userMetadata));
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
+            } catch (ExecutionException e) {
+                throw new CompletionException(e.getCause());
             }
 
             return null;

@@ -46,7 +46,7 @@ public class DeleteMessage extends DataStorageMessage {
         @Override
         public Void get() {
             DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.getId());
-            Boolean b = deleteProtocol.get();
+            Boolean b = deleteProtocol.invoke();
             try {
                 getSocket().getOutputStream().write(message.formatResponse(b));
                 getSocket().shutdownOutput();

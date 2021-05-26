@@ -22,23 +22,23 @@ public class MainTest {
         int KEY_SIZE = 10;
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join().get();
+        peer.join();
         Main main = peer.getMain();
 
         byte[] data = "my data".getBytes();
         Main.File file = new Username("user1").asFile(1);
 
-        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(main, file, data, 10, false);
-        assertTrue(backupFileProtocol.get());
+        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(main, file, data, false);
+        assertTrue(backupFileProtocol.invoke());
 
         DataBuilder dataBuilder = new DataBuilder();
         ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
         RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(main, file, chunkOutput, 10);
-        assertTrue(restoreFileProtocol.get());
+        assertTrue(restoreFileProtocol.invoke());
 
         assertArrayEquals(data, dataBuilder.get());
 
-        peer.leave().get();
+        peer.leave();
     }
 
     @Test(timeout=1000)
@@ -50,24 +50,24 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join().get();
+        peers[0].join();
         for(int i = 1; i < ids.length; ++i)
-            peers[i].join(peers[0].getSocketAddress()).join();
+            peers[i].join(peers[0].getSocketAddress());
 
         byte[] data = "my data".getBytes();
         Main.File file = new Username("user1").asFile(1);
 
-        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(peers[0].getMain(), file, data, 10, false);
-        assertTrue(backupFileProtocol.get());
+        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(peers[0].getMain(), file, data, false);
+        assertTrue(backupFileProtocol.invoke());
 
         DataBuilder dataBuilder = new DataBuilder();
         ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
         RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput, 10);
-        assertTrue(restoreFileProtocol.get());
+        assertTrue(restoreFileProtocol.invoke());
 
         assertArrayEquals(data, dataBuilder.get());
 
-        for(Peer p: peers) p.leave().get();
+        for(Peer p: peers) p.leave();
     }
 
     @Test(timeout=1000)
@@ -87,7 +87,7 @@ public class MainTest {
         int KEY_SIZE = 10;
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join().get();
+        peer.join();
 
         Username username = new Username("user1");
         Password password = new Password("1234");
@@ -102,7 +102,7 @@ public class MainTest {
         assertNull(peer.authenticate(username, new Password("12345")));
         assertNotNull(peer.authenticate(username, password));
 
-        peer.leave().get();
+        peer.leave();
     }
 
     @Test(timeout=1000)
@@ -114,9 +114,9 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join().get();
+        peers[0].join();
         for(int i = 1; i < ids.length; ++i)
-            peers[i].join(peers[0].getSocketAddress()).join();
+            peers[i].join(peers[0].getSocketAddress());
 
         for(int i = 0; i < ids.length; ++i) {
             Username username = new Username("user" + i);
@@ -141,7 +141,7 @@ public class MainTest {
             assertEquals(new HashSet<Main.Path>(), userMetadata.getFiles());
         }
 
-        for(Peer p: peers) p.leave().get();
+        for(Peer p: peers) p.leave();
     }
 
     @Test(timeout=1000)
@@ -155,19 +155,19 @@ public class MainTest {
         Main.File file = new Main.File(username, path, 1, 1);
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join().get();
+        peer.join();
 
         peer.authenticate(username, password);
 
         assertTrue(peer.getMain().getSystemStorage().getDataStorage().has(new UUID("user1-0-0")));
 
-        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(peer.getMain(), file, data, 10, false);
+        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(peer.getMain(), file, data, false);
         assertTrue(backupFileProtocol.enlistFile().get());
 
         UserMetadata userMetadata = peer.authenticate(username, password);
         assertNotNull(userMetadata.getFile(path));
 
-        peer.leave().get();
+        peer.leave();
     }
 
     @Test(timeout=1000)
@@ -181,7 +181,7 @@ public class MainTest {
         ChunkIterator chunkIterator = new ByteArrayChunkIterator(data, Main.CHUNK_SIZE);
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join().get();
+        peer.join();
 
         assertTrue(peer.backup(username, password, path, 1, chunkIterator));
 
@@ -194,7 +194,7 @@ public class MainTest {
 
         assertArrayEquals(data, builder.get());
 
-        peer.leave().get();
+        peer.leave();
     }
 
     @Test(timeout=1000)
@@ -206,24 +206,24 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for (int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join().get();
+        peers[0].join();
         for (int i = 1; i < ids.length; ++i)
-            peers[i].join(peers[0].getSocketAddress()).join();
+            peers[i].join(peers[0].getSocketAddress());
 
         byte[] data = "my data".getBytes();
         Main.File file = new Username("user1").asFile(1);
 
-        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(peers[0].getMain(), file, data, 10, false);
-        assertTrue(backupFileProtocol.get());
+        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(peers[0].getMain(), file, data, false);
+        assertTrue(backupFileProtocol.invoke());
 
         DataBuilder dataBuilder = new DataBuilder();
         ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
         RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput, 10);
-        assertTrue(restoreFileProtocol.get());
+        assertTrue(restoreFileProtocol.invoke());
 
         assertArrayEquals(data, dataBuilder.get());
 
-        for (Peer p : peers) p.leave().get();
+        for (Peer p : peers) p.leave();
     }
 
     @Test(timeout=1000)
@@ -232,7 +232,7 @@ public class MainTest {
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
 
-        peer.join().get();
+        peer.join();
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -244,13 +244,13 @@ public class MainTest {
         UserMetadata userMetadata = peer.authenticate(username, password);
         assertNotNull(userMetadata);
         Main.File file = new Main.File(username, path, chunkIterator.length(), 1);
-        assertTrue(peer.getMain().backupFile(file, chunkIterator).get());
+        assertTrue(peer.getMain().backupFile(file, chunkIterator));
 
         userMetadata = peer.authenticate(username, password);
         assertNotNull(userMetadata);
         assertNotNull(userMetadata.getFile(path));
 
-        peer.leave().get();
+        peer.leave();
     }
 
     @Test(timeout=1000)
@@ -259,7 +259,7 @@ public class MainTest {
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
 
-        peer.join().get();
+        peer.join();
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -273,7 +273,7 @@ public class MainTest {
         assertNotNull(userMetadata);
         assertNotNull(userMetadata.getFile(path));
 
-        peer.leave().get();
+        peer.leave();
     }
 
     @Test(timeout=1000)
@@ -283,8 +283,8 @@ public class MainTest {
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));
 
-        peer1.join().get();
-        peer2.join(peer1.getSocketAddress()).get();
+        peer1.join();
+        peer2.join(peer1.getSocketAddress());
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -302,8 +302,8 @@ public class MainTest {
         assertNotNull(userMetadata);
         assertNotNull(userMetadata.getFile(path));
 
-        peer1.leave().get();
-        peer2.leave().get();
+        peer1.leave();
+        peer2.leave();
     }
 
     @Test(timeout=1000)
@@ -313,8 +313,8 @@ public class MainTest {
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));
 
-        peer1.join().get();
-        peer2.join(peer1.getSocketAddress()).get();
+        peer1.join();
+        peer2.join(peer1.getSocketAddress());
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -330,8 +330,8 @@ public class MainTest {
         assertTrue(peer2.restore(username, password, path, chunkOutput));
         assertArrayEquals(data, builder.get());
 
-        peer1.leave().get();
-        peer2.leave().get();
+        peer1.leave();
+        peer2.leave();
     }
 
     @Test(timeout=1000)
@@ -343,9 +343,9 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join().get();
+        peers[0].join();
         for(int i = 1; i < ids.length; ++i)
-            peers[i].join(peers[0].getSocketAddress()).join();
+            peers[i].join(peers[0].getSocketAddress());
 
         for(int i = 0; i < ids.length; ++i){
             Username username = new Username("user" + i);
@@ -373,7 +373,7 @@ public class MainTest {
             assertArrayEquals(data, builder.get());
         }
 
-        for(Peer p: peers) p.leave().get();
+        for(Peer p: peers) p.leave();
     }
 
     @Test(timeout=1000)
@@ -385,9 +385,9 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join().get();
+        peers[0].join();
         for(int i = 1; i < ids.length; ++i)
-            peers[i].join(peers[0].getSocketAddress()).join();
+            peers[i].join(peers[0].getSocketAddress());
 
         for(int i = 0; i < ids.length; ++i){
             Username username = new Username("user" + i);
@@ -417,7 +417,7 @@ public class MainTest {
             assertEquals(0, builder.get().length);
         }
 
-        for(Peer p: peers) p.leave().get();
+        for(Peer p: peers) p.leave();
     }
 
 }

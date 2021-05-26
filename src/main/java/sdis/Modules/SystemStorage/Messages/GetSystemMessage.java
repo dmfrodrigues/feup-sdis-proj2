@@ -8,6 +8,7 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 public class GetSystemMessage extends SystemStorageMessage {
 
@@ -43,19 +44,16 @@ public class GetSystemMessage extends SystemStorageMessage {
 
         @Override
         public Void get() {
-            getSystemStorage().getDataStorage().get(message.getId())
-            .thenApplyAsync((byte[] data) -> {
-                try {
-                    getSocket().getOutputStream().write(message.formatResponse(data));
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
-                } catch (IOException e) {
-                    throw new CompletionException(e);
-                }
+            byte[] data = getSystemStorage().getDataStorage().get(message.getId());
 
-                return null;
-            });
+            try {
+                getSocket().getOutputStream().write(message.formatResponse(data));
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
+                throw new CompletionException(e);
+            } catch (ExecutionException e) {
+                throw new CompletionException(e.getCause());
+            }
 
             return null;
         }

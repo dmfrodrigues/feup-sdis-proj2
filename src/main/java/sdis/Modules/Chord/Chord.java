@@ -1,14 +1,13 @@
 package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.ChordMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public class Chord {
@@ -138,9 +137,8 @@ public class Chord {
         return getFinger(0);
     }
 
-    public CompletableFuture<NodeInfo> getSuccessor(Chord.Key key){
-        GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(this, key);
-        return CompletableFuture.supplyAsync(getSuccessorProtocol, getExecutor());
+    public ProtocolTask<NodeInfo> getSuccessor(Chord.Key key){
+        return new GetSuccessorProtocol(this, key);
     }
 
     public void setKeySize(int i) {
@@ -168,14 +166,18 @@ public class Chord {
      *
      * @return Future that will resolve when join is complete.
      */
-    public CompletableFuture<Void> join(){
-        return CompletableFuture.runAsync(() -> {
+    public ProtocolTask<Void> join(){
+        return new ProtocolTask<>() {
+            @Override
+            protected Void compute() {
             NodeInfo nodeInfo = getNodeInfo();
             setPredecessor(nodeInfo);
-            for(int i = 0; i < getKeySize(); ++i){
+            for(int i = 0; i < getKeySize(); ++i) {
                 setFinger(i, nodeInfo);
             }
-        }, getExecutor());
+            return null;
+            }
+        };
     }
 
     /**
@@ -185,14 +187,12 @@ public class Chord {
      * @param moveKeys  Whatever operations the upper layer may want to execute just before ending the Join
      * @return  Future of the completion of the join procedure
      */
-    public CompletableFuture<Void> join(InetSocketAddress gateway, ProtocolSupplier<Void> moveKeys) {
-        JoinProtocol joinProtocol = new JoinProtocol(this, gateway, moveKeys);
-        return CompletableFuture.supplyAsync(joinProtocol, getExecutor());
+    public ProtocolTask<Void> join(InetSocketAddress gateway, ProtocolTask<Void> moveKeys) {
+        return new JoinProtocol(this, gateway, moveKeys);
     }
 
-    public CompletableFuture<Void> leave(ProtocolSupplier<Void> moveKeys) {
-        LeaveProtocol leaveProtocol = new LeaveProtocol(this, moveKeys);
-        return CompletableFuture.supplyAsync(leaveProtocol, getExecutor());
+    public ProtocolTask<Void> leave(ProtocolTask<Void> moveKeys) {
+        return new LeaveProtocol(this, moveKeys);
     }
 
     public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {

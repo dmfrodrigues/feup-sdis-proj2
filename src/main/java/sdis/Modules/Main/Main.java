@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public class Main {
@@ -38,16 +37,16 @@ public class Main {
         return socket;
     }
 
-    public CompletableFuture<Boolean> backupFile(Main.File file, ChunkIterator chunkIterator) {
-        return CompletableFuture.supplyAsync(new BackupFileProtocol(this, file, chunkIterator, 10), executor);
+    public Boolean backupFile(Main.File file, ChunkIterator chunkIterator) {
+        return new BackupFileProtocol(this, file, chunkIterator).invoke();
     }
 
-    public CompletableFuture<Boolean> restoreFile(Main.File file, ChunkOutput destination) {
-        return CompletableFuture.supplyAsync(new RestoreFileProtocol(this, file, destination, 10), executor);
+    public Boolean restoreFile(Main.File file, ChunkOutput destination) {
+        return new RestoreFileProtocol(this, file, destination, 10).invoke();
     }
 
-    public CompletableFuture<Boolean> deleteFile(Main.File file) {
-        return CompletableFuture.supplyAsync(new DeleteFileProtocol(this, file, 10), executor);
+    public Boolean deleteFile(Main.File file) {
+        return new DeleteFileProtocol(this, file, 10).invoke();
     }
 
     public Executor getExecutor() {

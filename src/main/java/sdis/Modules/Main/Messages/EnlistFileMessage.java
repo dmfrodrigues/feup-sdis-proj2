@@ -57,7 +57,7 @@ public class EnlistFileMessage extends MainMessage {
                 DataBuilder builder = new DataBuilder();
                 DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
                 RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), owner, chunkOutput, 10);
-                if(!restoreUserFileProtocol.get()){ end(false); return null; }
+                if(!restoreUserFileProtocol.invoke()){ end(false); return null; }
 
                 // Parse user metadata
                 byte[] data = builder.get();
@@ -68,12 +68,12 @@ public class EnlistFileMessage extends MainMessage {
 
                 // Delete old user metadata
                 DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), userMetadataFile, 10, false);
-                if(!deleteFileProtocol.get()){ end(false); return null; }
+                if(!deleteFileProtocol.invoke()){ end(false); return null; }
 
                 // Save new user metadata
                 data = userMetadata.serialize();
-                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), userMetadataFile, data, 10, false);
-                if(!backupFileProtocol.get()){ end(false); return null; }
+                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), userMetadataFile, data, false);
+                if(!backupFileProtocol.invoke()){ end(false); return null; }
 
                 try {
                     end(true);

@@ -2,7 +2,7 @@ package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.Messages.GetRedirectsMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.net.Socket;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 
-public class GetRedirectsProtocol extends ProtocolSupplier<Set<UUID>> {
+public class GetRedirectsProtocol extends ProtocolTask<Set<UUID>> {
 
     private final DataStorage dataStorage;
     private final InetSocketAddress address;
@@ -26,7 +26,7 @@ public class GetRedirectsProtocol extends ProtocolSupplier<Set<UUID>> {
     }
 
     @Override
-    public Set<UUID> get() {
+    public Set<UUID> compute() {
         try {
             GetRedirectsMessage m = new GetRedirectsMessage();
             Socket socket = dataStorage.send(address, m);

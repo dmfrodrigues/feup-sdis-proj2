@@ -1,17 +1,17 @@
 package sdis.Modules.Main;
 
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.SystemStorage;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RecursiveTask;
 
-public class DeleteAccountProtocol extends ProtocolSupplier<Boolean> {
+public class DeleteAccountProtocol extends ProtocolTask<Boolean> {
 
     private final Main main;
     private final UserMetadata userMetadata;
@@ -22,7 +22,7 @@ public class DeleteAccountProtocol extends ProtocolSupplier<Boolean> {
     }
 
     @Override
-    public Boolean get() {
+    public Boolean compute() {
         SystemStorage systemStorage = main.getSystemStorage();
         Set<Main.Path> paths = userMetadata.getFiles();
 
@@ -34,16 +34,17 @@ public class DeleteAccountProtocol extends ProtocolSupplier<Boolean> {
         }
 
         // Delete all files
-        List<CompletableFuture<Boolean>> futuresList = new ArrayList<>();
+        List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
         for(Main.Path p : paths){
             Main.File f = userMetadata.getFile(p);
-            DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(main, f, 10);
-            futuresList.add(CompletableFuture.supplyAsync(deleteFileProtocol, main.getExecutor()));
+            tasks.add(new DeleteFileProtocol(main, f, 10));
         }
+
+        invokeAll(tasks);
         boolean success = true;
-        for(CompletableFuture<Boolean> f : futuresList){
+        for(RecursiveTask<Boolean> task: tasks) {
             try {
-                success &= f.get();
+                success &= task.get();
             } catch (InterruptedException | ExecutionException e) {
                 success = false;
             }

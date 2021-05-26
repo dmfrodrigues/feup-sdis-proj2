@@ -20,17 +20,17 @@ public class SystemStorageTest {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join().get();
+        peer1.join();
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
 
         SystemStorage systemStorage1 = peer1.getSystemStorage();
 
-        assertTrue(systemStorage1.put(id, data).get());
-        assertArrayEquals(data, systemStorage1.get(id).get());
+        assertTrue(systemStorage1.put(id, data));
+        assertArrayEquals(data, systemStorage1.get(id));
 
-        peer1.leave().get();
+        peer1.leave();
     }
 
     @Test(timeout=1000)
@@ -38,19 +38,19 @@ public class SystemStorageTest {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join().get();
+        peer1.join();
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
 
         SystemStorage systemStorage1 = peer1.getSystemStorage();
 
-        assertTrue(systemStorage1.put(id, data).get());
-        assertArrayEquals(data, systemStorage1.get(id).get());
-        assertTrue(systemStorage1.delete(id).get());
-        assertNull(systemStorage1.get(id).get());
+        assertTrue(systemStorage1.put(id, data));
+        assertArrayEquals(data, systemStorage1.get(id));
+        assertTrue(systemStorage1.delete(id));
+        assertNull(systemStorage1.get(id));
 
-        peer1.leave().get();
+        peer1.leave();
     }
 
     @Test(timeout=1000)
@@ -61,54 +61,54 @@ public class SystemStorageTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join().get();
+        peers[0].join();
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
-            peers[i].join(address).get();
+            peers[i].join(address);
         }
 
         UUID id = new UUID("0123456789-0-1");
         byte[] data = "my data".getBytes();
 
-        assertTrue(peers[0].getSystemStorage().put(id, data).get());
+        assertTrue(peers[0].getSystemStorage().put(id, data));
         for(int i = 0; i < peers.length; ++i)
-            assertArrayEquals(data, peers[0].getSystemStorage().get(id).get());
+            assertArrayEquals(data, peers[0].getSystemStorage().get(id));
 
         DataStorage dataStorage = peers[2].getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
-        assertEquals(7, localDataStorage.getMemoryUsed().get().intValue());
-        assertTrue(localDataStorage.canPut(7).get());
+        assertEquals(7, localDataStorage.getMemoryUsed());
+        assertTrue(localDataStorage.canPut(7));
         assertEquals(new HashSet<UUID>(){{ add(id); }}, localDataStorage.getAll());
         assertTrue(localDataStorage.has(id));
-        assertArrayEquals(data, localDataStorage.get(id).get());
+        assertArrayEquals(data, localDataStorage.get(id));
 
         assertEquals(new HashSet<>(), dataStorage.getRedirects());
         assertEquals(new HashSet<UUID>(){{ add(id); }}, dataStorage.getAll());
         assertTrue(dataStorage.has(id));
-        assertArrayEquals(data, dataStorage.get(id).get());
+        assertArrayEquals(data, dataStorage.get(id));
         assertFalse(dataStorage.successorHasStored(id));
 
         for(int i : new int[]{0, 1, 3, 4, 5, 6, 7, 8, 9}) {
-            assertNull(peers[i].getDataStorage().get(id).get());
+            assertNull(peers[i].getDataStorage().get(id));
 
             dataStorage = peers[i].getDataStorage();
             localDataStorage = dataStorage.getLocalDataStorage();
 
-            assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
-            assertTrue(localDataStorage.canPut(7).get());
+            assertEquals(0, localDataStorage.getMemoryUsed());
+            assertTrue(localDataStorage.canPut(7));
             assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
             assertFalse(localDataStorage.has(id));
-            assertNull(localDataStorage.get(id).get());
+            assertNull(localDataStorage.get(id));
 
             assertEquals(new HashSet<>(), dataStorage.getRedirects());
             assertEquals(new HashSet<UUID>(), dataStorage.getAll());
             assertFalse(dataStorage.has(id));
-            assertNull(dataStorage.get(id).get());
+            assertNull(dataStorage.get(id));
             assertFalse(dataStorage.successorHasStored(id));
         }
 
-        for(Peer p: peers) p.leave().get();
+        for(Peer p: peers) p.leave();
     }
 
     @Test(timeout=1000)
@@ -119,10 +119,10 @@ public class SystemStorageTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join().get();
+        peers[0].join();
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
-            peers[i].join(address).get();
+            peers[i].join(address);
         }
 
         peers[2].getDataStorage().getLocalDataStorage().setCapacity(0);
@@ -130,60 +130,60 @@ public class SystemStorageTest {
         UUID id = new UUID("0123456789-0-1");
         byte[] data = "my data".getBytes();
 
-        assertTrue(peers[0].getSystemStorage().put(id, data).get());
+        assertTrue(peers[0].getSystemStorage().put(id, data));
         for(int i = 0; i < peers.length; ++i)
-            assertArrayEquals(data, peers[0].getSystemStorage().get(id).get());
+            assertArrayEquals(data, peers[0].getSystemStorage().get(id));
 
         DataStorage dataStorage = peers[2].getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
-        assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
-        assertFalse(localDataStorage.canPut(7).get());
+        assertEquals(0, localDataStorage.getMemoryUsed());
+        assertFalse(localDataStorage.canPut(7));
         assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
         assertFalse(localDataStorage.has(id));
-        assertNull(localDataStorage.get(id).get());
+        assertNull(localDataStorage.get(id));
 
         assertEquals(new HashSet<>(){{ add(id); }}, dataStorage.getRedirects());
         assertEquals(new HashSet<UUID>(){{ add(id); }}, dataStorage.getAll());
         assertTrue(dataStorage.has(id));
-        assertArrayEquals(data, dataStorage.get(id).get());
+        assertArrayEquals(data, dataStorage.get(id));
         assertTrue(dataStorage.successorHasStored(id));
 
         dataStorage = peers[3].getDataStorage();
         localDataStorage = dataStorage.getLocalDataStorage();
 
-        assertEquals(7, localDataStorage.getMemoryUsed().get().intValue());
-        assertTrue(localDataStorage.canPut(7).get());
+        assertEquals(7, localDataStorage.getMemoryUsed());
+        assertTrue(localDataStorage.canPut(7));
         assertEquals(new HashSet<UUID>(){{ add(id); }}, localDataStorage.getAll());
         assertTrue(localDataStorage.has(id));
-        assertArrayEquals(data, localDataStorage.get(id).get());
+        assertArrayEquals(data, localDataStorage.get(id));
 
         assertEquals(new HashSet<>(), dataStorage.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage.getAll());
         assertFalse(dataStorage.has(id));
-        assertNull(dataStorage.get(id).get());
+        assertNull(dataStorage.get(id));
         assertFalse(dataStorage.successorHasStored(id));
 
         for(int i : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) {
-            if(i != 2) assertNull(peers[i].getDataStorage().get(id).get());
+            if(i != 2) assertNull(peers[i].getDataStorage().get(id));
 
             dataStorage = peers[i].getDataStorage();
             localDataStorage = dataStorage.getLocalDataStorage();
 
-            if(i != 3) assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
-            if(i != 2) assertTrue(localDataStorage.canPut(7).get());
+            if(i != 3) assertEquals(0, localDataStorage.getMemoryUsed());
+            if(i != 2) assertTrue(localDataStorage.canPut(7));
             if(i != 3) assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
             if(i != 3) assertFalse(localDataStorage.has(id));
-            if(i != 3) assertNull(localDataStorage.get(id).get());
+            if(i != 3) assertNull(localDataStorage.get(id));
 
             if(i != 2) assertEquals(new HashSet<>(), dataStorage.getRedirects());
             if(i != 2) assertEquals(new HashSet<UUID>(), dataStorage.getAll());
             if(i != 2) assertFalse(dataStorage.has(id));
-            if(i != 2) assertNull(dataStorage.get(id).get());
+            if(i != 2) assertNull(dataStorage.get(id));
             if(i != 2) assertFalse(dataStorage.successorHasStored(id));
         }
 
-        for(Peer p: peers) p.leave().get();
+        for(Peer p: peers) p.leave();
     }
 
     @Test(timeout=1000)
@@ -194,44 +194,44 @@ public class SystemStorageTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join().get();
+        peers[0].join();
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
-            peers[i].join(address).get();
+            peers[i].join(address);
         }
 
         UUID id = new UUID("0123456789-0-1");
         byte[] data = "my data".getBytes();
 
-        assertTrue(peers[0].getSystemStorage().put(id, data).get());
-        assertArrayEquals(data, peers[2].getDataStorage().get(id).get());
-        assertTrue(peers[0].getSystemStorage().delete(id).get());
+        assertTrue(peers[0].getSystemStorage().put(id, data));
+        assertArrayEquals(data, peers[2].getDataStorage().get(id));
+        assertTrue(peers[0].getSystemStorage().delete(id));
 
         for(int i = 1; i < peers.length; ++i)
-            assertNull(peers[0].getSystemStorage().get(id).get());
+            assertNull(peers[0].getSystemStorage().get(id));
 
         for(int i : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) {
-            assertNull(peers[i].getDataStorage().get(id).get());
+            assertNull(peers[i].getDataStorage().get(id));
 
             DataStorage dataStorage = peers[i].getDataStorage();
             LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
-            assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
-            assertTrue(localDataStorage.canPut(7).get());
+            assertEquals(0, localDataStorage.getMemoryUsed());
+            assertTrue(localDataStorage.canPut(7));
             assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
             assertFalse(localDataStorage.has(id));
-            assertNull(localDataStorage.get(id).get());
+            assertNull(localDataStorage.get(id));
 
             assertEquals(new HashSet<>(), dataStorage.getRedirects());
             assertEquals(new HashSet<UUID>(), dataStorage.getAll());
             assertFalse(dataStorage.has(id));
-            assertNull(dataStorage.get(id).get());
+            assertNull(dataStorage.get(id));
             assertFalse(dataStorage.successorHasStored(id));
         }
 
-        assertFalse(peers[0].getSystemStorage().delete(id).get());
+        assertFalse(peers[0].getSystemStorage().delete(id));
 
-        for(Peer p: peers) p.leave().get();
+        for(Peer p: peers) p.leave();
     }
 
     @Test(timeout=1000)
@@ -242,10 +242,10 @@ public class SystemStorageTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join().get();
+        peers[0].join();
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
-            peers[i].join(address).get();
+            peers[i].join(address);
         }
 
 
@@ -253,63 +253,63 @@ public class SystemStorageTest {
         UUID id = new UUID("0123456789-0-1");
         byte[] data = "my data".getBytes();
 
-        assertTrue(peers[0].getSystemStorage().put(id, data).get());
+        assertTrue(peers[0].getSystemStorage().put(id, data));
 
         peers[2].reclaim(0);
 
         for(int i = 0; i < peers.length; ++i)
-            assertArrayEquals(data, peers[0].getSystemStorage().get(id).get());
+            assertArrayEquals(data, peers[0].getSystemStorage().get(id));
 
         DataStorage dataStorage = peers[2].getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
-        assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
-        assertFalse(localDataStorage.canPut(7).get());
+        assertEquals(0, localDataStorage.getMemoryUsed());
+        assertFalse(localDataStorage.canPut(7));
         assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
         assertFalse(localDataStorage.has(id));
-        assertNull(localDataStorage.get(id).get());
+        assertNull(localDataStorage.get(id));
 
         assertEquals(new HashSet<>(){{ add(id); }}, dataStorage.getRedirects());
         assertEquals(new HashSet<UUID>(){{ add(id); }}, dataStorage.getAll());
         assertTrue(dataStorage.has(id));
-        assertArrayEquals(data, dataStorage.get(id).get());
+        assertArrayEquals(data, dataStorage.get(id));
         assertTrue(dataStorage.successorHasStored(id));
 
         dataStorage = peers[3].getDataStorage();
         localDataStorage = dataStorage.getLocalDataStorage();
 
-        assertEquals(7, localDataStorage.getMemoryUsed().get().intValue());
-        assertTrue(localDataStorage.canPut(7).get());
+        assertEquals(7, localDataStorage.getMemoryUsed());
+        assertTrue(localDataStorage.canPut(7));
         assertEquals(new HashSet<UUID>(){{ add(id); }}, localDataStorage.getAll());
         assertTrue(localDataStorage.has(id));
-        assertArrayEquals(data, localDataStorage.get(id).get());
+        assertArrayEquals(data, localDataStorage.get(id));
 
         assertEquals(new HashSet<>(), dataStorage.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage.getAll());
         assertFalse(dataStorage.has(id));
-        assertNull(dataStorage.get(id).get());
+        assertNull(dataStorage.get(id));
         assertFalse(dataStorage.successorHasStored(id));
 
         for(int i : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) {
-            if(i != 2) assertNull(peers[i].getDataStorage().get(id).get());
+            if(i != 2) assertNull(peers[i].getDataStorage().get(id));
 
             dataStorage = peers[i].getDataStorage();
             localDataStorage = dataStorage.getLocalDataStorage();
 
-            if(i != 3) assertEquals(0, localDataStorage.getMemoryUsed().get().intValue());
-            if(i != 2) assertTrue(localDataStorage.canPut(7).get());
+            if(i != 3) assertEquals(0, localDataStorage.getMemoryUsed());
+            if(i != 2) assertTrue(localDataStorage.canPut(7));
             if(i != 3) assertEquals(new HashSet<UUID>(), localDataStorage.getAll());
             if(i != 3) assertFalse(localDataStorage.has(id));
-            if(i != 3) assertNull(localDataStorage.get(id).get());
+            if(i != 3) assertNull(localDataStorage.get(id));
 
             if(i != 2) assertEquals(new HashSet<>(), dataStorage.getRedirects());
             if(i != 2) assertEquals(new HashSet<UUID>(), dataStorage.getAll());
             if(i != 2) assertFalse(dataStorage.has(id));
-            if(i != 2) assertNull(dataStorage.get(id).get());
+            if(i != 2) assertNull(dataStorage.get(id));
             if(i != 2) assertFalse(dataStorage.successorHasStored(id));
         }
 
-        for(Peer p: peers) p.leave().get();
+        for(Peer p: peers) p.leave();
     }
 
 }

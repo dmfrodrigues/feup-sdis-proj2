@@ -2,6 +2,7 @@ package sdis.Modules.SystemStorage.Messages;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
+import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.PutSystemProtocol;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RecursiveTask;
 
 public class MoveKeysMessage extends SystemStorageMessage {
 
@@ -61,29 +63,23 @@ public class MoveKeysMessage extends SystemStorageMessage {
             Chord.NodeInfo n = message.getNodeInfo();
 
             Set<UUID> ids = dataStorage.getAll();
-            List<CompletableFuture<Boolean>> futuresList = new LinkedList<>();
+            List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
             for(UUID id: ids){
                 Chord.Key k = id.getKey(chord);
                 if(Chord.distance(k, n.key) < Chord.distance(k, r.key)){
-                    CompletableFuture<Boolean> f =
-                        dataStorage.get(id)
-                        .thenApplyAsync((byte[] data) -> {
+                    tasks.add(new ProtocolTask<>() {
+                        @Override
+                        protected Boolean compute() {
+                            byte[] data = dataStorage.get(id);
                             dataStorage.delete(id);
                             PutSystemProtocol putSystemProtocol = new PutSystemProtocol(systemStorage, id, data);
-                            return putSystemProtocol.get();
-                        });
-                    futuresList.add(f);
-                    try {                                               // TODO: DEV
-                        f.get();                                        // TODO: DEV
-                    } catch (InterruptedException e) {                  // TODO: DEV
-                        throw new CompletionException(e);               // TODO: DEV
-                    } catch (ExecutionException e) {                    // TODO: DEV
-                        throw new CompletionException(e.getCause());    // TODO: DEV
-                    }                                                   // TODO: DEV
+                            return putSystemProtocol.invoke();
+                        }
+                    });
                 }
             }
 
-            CompletableFuture<Void> future = CompletableFuture.allOf((CompletableFuture<?>[]) futuresList.toArray());
+            CompletableFuture<Void> future = CompletableFuture.allOf((CompletableFuture<?>[]) tasks.toArray());
             try {
                 future.get();
             } catch (InterruptedException e) {

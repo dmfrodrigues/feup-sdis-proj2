@@ -1,16 +1,15 @@
 package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.Messages.DeleteSystemMessage;
 import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
-public class DeleteSystemProtocol extends ProtocolSupplier<Boolean> {
+public class DeleteSystemProtocol extends ProtocolTask<Boolean> {
 
     private final SystemStorage systemStorage;
     private final UUID id;
@@ -21,19 +20,19 @@ public class DeleteSystemProtocol extends ProtocolSupplier<Boolean> {
     }
 
     @Override
-    public Boolean get() {
+    public Boolean compute() {
         Chord chord = systemStorage.getChord();
         try{
-            Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord)).get();
+            Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord)).invoke();
             DeleteSystemMessage deleteSystemMessage = new DeleteSystemMessage(id);
             Socket socket = systemStorage.send(s.address, deleteSystemMessage);
             socket.shutdownOutput();
             byte[] response = socket.getInputStream().readAllBytes();
             socket.close();
             return deleteSystemMessage.parseResponse(response);
-        } catch (InterruptedException | IOException e) {
+        } catch (IOException e) {
             throw new CompletionException(e);
-        } catch (ExecutionException | CompletionException e) {
+        } catch (CompletionException e) {
             throw new CompletionException(e.getCause());
         }
     }

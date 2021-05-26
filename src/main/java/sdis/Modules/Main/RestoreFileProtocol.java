@@ -1,19 +1,17 @@
 package sdis.Modules.Main;
 
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RecursiveTask;
 
-public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
+public class RestoreFileProtocol extends ProtocolTask<Boolean> {
     private final Main main;
     private final Main.File file;
     private final ChunkOutput destination;
@@ -30,28 +28,34 @@ public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
         return destination;
     }
 
-    protected CompletableFuture<byte[]> getChunk(long chunkIndex) {
+    protected byte[] getChunk(long chunkIndex) {
         SystemStorage systemStorage = main.getSystemStorage();
         int replicationDegree = file.getReplicationDegree();
 
-        List<CompletableFuture<byte[]>> futuresList = new ArrayList<>();
+        List<ProtocolTask<byte[]>> tasks = new ArrayList<>();
         for(int i = 0; i < replicationDegree; ++i){
             UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
-            futuresList.add(systemStorage.get(id));
+            tasks.add(new ProtocolTask<>() {
+                @Override
+                protected byte[] compute() {
+                    return systemStorage.get(id);
+                }
+            });
         }
 
-        return CompletableFuture.supplyAsync(() -> {
+        invokeAll(tasks);
+
                 try {
                     byte[] ret = null;
-                    for (CompletableFuture<byte[]> f : futuresList) {
-                        if (f.get() != null) {
-                            ret = f.get();
+                    for (ProtocolTask<byte[]> task : tasks) {
+                        if (task.get() != null) {
+                            ret = task.get();
                             break;
                         }
                     }
                     if(ret == null) return null;
                     for (int i = 0; i < replicationDegree; ++i) {
-                        byte[] tmp = futuresList.get(i).get();
+                        byte[] tmp = tasks.get(i).get();
                         if (tmp == null) {
                             UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
                             systemStorage.put(id, ret);
@@ -63,75 +67,64 @@ public class RestoreFileProtocol extends ProtocolSupplier<Boolean> {
                 } catch (ExecutionException e) {
                     throw new CompletionException(e.getCause());
                 }
-        }, main.getExecutor());
     }
 
     @Override
-    public Boolean get() {
-        List<CompletableFuture<Boolean>> futuresList = new LinkedList<>();
+    public Boolean compute() {
+        List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
         for (long i = 0; i < file.getNumberOfChunks(); ++i) {
-            if (futuresList.size() >= maxNumberFutures) {
+            if (tasks.size() >= maxNumberFutures) {
                 boolean b;
                 try {
-                    b = waitForAny(futuresList);
+                    b = waitForAny(tasks);
                 } catch (ExecutionException | InterruptedException e) {
                     b = false;
                 }
                 if (!b) {
-                    waitForAll(futuresList);
+                    waitForAll(tasks);
                     return false;
                 }
             }
 
             long finalI = i;
-            CompletableFuture<Boolean> f = getChunk(i)
-                .thenApplyAsync((byte[] data) -> {
-                    if(data == null) return false;
+            ProtocolTask<Boolean> task = new ProtocolTask<>() {
+                @Override
+                protected Boolean compute() {
+                    byte[] data = getChunk(finalI);
+                    if (data == null) return false;
                     destination.set(finalI, data);
                     return true;
-                });
-
-            futuresList.add(f);
+                }
+            };
+            task.fork();
+            tasks.add(task);
         }
 
-        while (!futuresList.isEmpty()) {
-            boolean b;
-            try {
-                b = waitForAny(futuresList);
-            } catch (ExecutionException | InterruptedException e) {
-                b = false;
-            }
-            if (!b) {
-                waitForAll(futuresList);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private void waitForAll(List<CompletableFuture<Boolean>> futuresList){
-        for (CompletableFuture<Boolean> f: futuresList) {
-            try {
-                f.get();
-            } catch (ExecutionException | InterruptedException ignored) {
-            }
-        }
-    }
-
-    private boolean waitForAny(List<CompletableFuture<Boolean>> futuresList) throws ExecutionException, InterruptedException {
         boolean ret = true;
-
-        CompletableFuture<Object> anyOfFuture = CompletableFuture.anyOf(futuresList.toArray(new CompletableFuture[0]));
-        anyOfFuture.get();
-        ListIterator<CompletableFuture<Boolean>> it = futuresList.listIterator();
-        while (it.hasNext()) {
-            CompletableFuture<Boolean> f = it.next();
-            if (f.isDone()) {
-                it.remove();
-                ret &= f.get();
+        for(RecursiveTask<Boolean> task: tasks) {
+            try {
+                ret &= task.get();
+            } catch (InterruptedException | ExecutionException e) {
+                ret = false;
             }
         }
         return ret;
+    }
+
+    private void waitForAll(List<ProtocolTask<Boolean>> futuresList){
+        while(!futuresList.isEmpty()) {
+            try {
+                waitForAny(futuresList);
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private boolean waitForAny(List<ProtocolTask<Boolean>> tasks) throws ExecutionException, InterruptedException {
+        Iterator<ProtocolTask<Boolean>> iterator = tasks.iterator();
+        ProtocolTask<Boolean> task = iterator.next();
+        iterator.remove();
+        return task.get();
     }
 }

@@ -11,8 +11,6 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public class DataStorage extends DataStorageAbstract {
     /**
@@ -23,12 +21,10 @@ public class DataStorage extends DataStorageAbstract {
     private final LocalDataStorage localDataStorage;
     private final Set<UUID> storedBase = new HashSet<>();
     private final Set<UUID> storedBySuccessor = new HashSet<>();
-    private final Executor executor;
     private final Chord chord;
 
-    public DataStorage(Path storagePath, Executor executor, Chord chord){
-        localDataStorage = new LocalDataStorage(storagePath, executor, INITIAL_STORAGE_SIZE);
-        this.executor = executor;
+    public DataStorage(Path storagePath, Chord chord){
+        localDataStorage = new LocalDataStorage(storagePath, INITIAL_STORAGE_SIZE);
         this.chord = chord;
     }
 
@@ -41,7 +37,7 @@ public class DataStorage extends DataStorageAbstract {
     }
 
     @Override
-    public Boolean has(UUID id){
+    public boolean has(UUID id){
         return storedBase.contains(id);
     }
 
@@ -51,26 +47,24 @@ public class DataStorage extends DataStorageAbstract {
     }
 
     @Override
-    public CompletableFuture<Boolean> put(UUID id, byte[] data) {
+    public boolean put(UUID id, byte[] data) {
         storeBase(id);
-        return CompletableFuture.supplyAsync(new PutProtocol(chord, this, id, data), executor)
-            .thenApplyAsync((success) -> {
+        boolean success = new PutProtocol(chord, this, id, data).invoke();
                 if(!success) unstoreBase(id);
                 return success;
-            });
     }
 
     @Override
-    public CompletableFuture<byte[]> get(UUID id) {
-        if(!has(id)) return CompletableFuture.completedFuture(null);
-        return CompletableFuture.supplyAsync(new GetProtocol(chord, this, id), executor);
+    public byte[] get(UUID id) {
+        if(!has(id)) return null;
+        return new GetProtocol(chord, this, id).invoke();
     }
 
     @Override
-    public CompletableFuture<Boolean> delete(UUID id) {
-        if(!has(id)) return CompletableFuture.completedFuture(false);
+    public boolean delete(UUID id) {
+        if(!has(id)) return false;
         unstoreBase(id);
-        return CompletableFuture.supplyAsync(new DeleteProtocol(chord, this, id), executor);
+        return new DeleteProtocol(chord, this, id).invoke();
     }
 
     public LocalDataStorage getLocalDataStorage(){

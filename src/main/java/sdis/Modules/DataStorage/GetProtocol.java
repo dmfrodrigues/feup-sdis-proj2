@@ -2,15 +2,14 @@ package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.Messages.GetMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
-public class GetProtocol extends ProtocolSupplier<byte[]> {
+public class GetProtocol extends ProtocolTask<byte[]> {
 
     private final Chord chord;
     private final DataStorage dataStorage;
@@ -23,19 +22,13 @@ public class GetProtocol extends ProtocolSupplier<byte[]> {
     }
 
     @Override
-    public byte[] get() {
+    public byte[] compute() {
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStored = localDataStorage.has(id);
         if(hasStored){
-            try {
-                return localDataStorage.get(id).get();
-            } catch (InterruptedException e) {
-                throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
-            }
+                return localDataStorage.get(id);
         }
 
         boolean pointsToSuccessor = dataStorage.successorHasStored(id);

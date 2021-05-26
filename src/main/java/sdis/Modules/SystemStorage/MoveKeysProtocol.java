@@ -1,25 +1,23 @@
 package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.Messages.MoveKeysMessage;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class MoveKeysProtocol extends ProtocolSupplier<Void> {
+public class MoveKeysProtocol extends ProtocolTask<Void> {
 
     private final SystemStorage systemStorage;
-    private final Chord.NodeInfo nodeInfo;
 
     public MoveKeysProtocol(SystemStorage systemStorage, Chord.NodeInfo nodeInfo){
         this.systemStorage = systemStorage;
-        this.nodeInfo = nodeInfo;
     }
 
     @Override
-    public Void get() {
+    public Void compute() {
         Chord chord = systemStorage.getChord();
         Chord.NodeInfo r = chord.getNodeInfo();
 

@@ -1,7 +1,7 @@
 package sdis.Modules.Main;
 
 import sdis.Modules.Main.Messages.AuthenticateMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Utils.Pair;
 
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class AuthenticationProtocol extends ProtocolSupplier<UserMetadata> {
+public class AuthenticationProtocol extends ProtocolTask<UserMetadata> {
     public static final int MAX_NUMBER_FUTURES = 10;
 
     private final Main main;
@@ -23,7 +23,7 @@ public class AuthenticationProtocol extends ProtocolSupplier<UserMetadata> {
     }
 
     @Override
-    public UserMetadata get() {
+    public UserMetadata compute() {
         SystemStorage systemStorage = main.getSystemStorage();
 
         try {

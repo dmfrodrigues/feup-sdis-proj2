@@ -6,7 +6,7 @@ import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
 import sdis.Modules.Main.*;
 import sdis.Modules.Message;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.ReclaimProtocol;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Storage.ChunkIterator;
@@ -32,7 +32,6 @@ public class Peer implements PeerInterface {
     private final Chord.Key id;
     private final Path baseStoragePath;
     private final InetSocketAddress socketAddress;
-    private final ServerSocket serverSocket;
     private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(100);
     private final Chord chord;
     private final DataStorage dataStorage;
@@ -44,7 +43,7 @@ public class Peer implements PeerInterface {
     }
 
     public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException {
-        serverSocket = new ServerSocket();
+        ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(null);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
 
@@ -55,7 +54,7 @@ public class Peer implements PeerInterface {
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
         chord = new Chord(getSocketAddress(), executor, keySize, id);
-        dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), executor, getChord());
+        dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), getChord());
         systemStorage = new SystemStorage(chord, dataStorage, executor);
         main = new Main(systemStorage, executor);
 
@@ -81,21 +80,21 @@ public class Peer implements PeerInterface {
         }));
     }
 
-    public CompletableFuture<Void> join(){
+    public void join(){
         System.out.println("Peer " + getKey() + " creating a new chord");
 
-        return chord.join();
+        chord.join().invoke();
     }
 
-    public CompletableFuture<Void> join(InetSocketAddress gateway){
+    public void join(InetSocketAddress gateway){
         System.out.println("Peer " + getKey() + " joining a chord");
 
-        return chord.join(gateway, new ProtocolSupplier<>() {
+        chord.join(gateway, new ProtocolTask<>() {
             @Override
-            public Void get() {
+            public Void compute() {
                 // Get redirects
                 GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(dataStorage, chord);
-                Set<UUID> redirects = getRedirectsProtocol.get();
+                Set<UUID> redirects = getRedirectsProtocol.invoke();
                 for(UUID id : redirects)
                     dataStorage.registerSuccessorStored(id);
 
@@ -103,21 +102,19 @@ public class Peer implements PeerInterface {
 
                 return null;
             }
-        });
+        }).invoke();
     }
 
-    public CompletableFuture<Void> leave(){
+    public void leave(){
         System.out.println("Peer " + getKey() + " leaving its chord");
 
-        return chord.leave(new ProtocolSupplier<>() {
+        chord.leave(new ProtocolTask<>() {
             @Override
-            public Void get() {
-                return null;
+            public Void compute() {
+                assert(Utils.deleteRecursive(baseStoragePath.toFile()));
+            return null;
             }
-        })
-        .thenRun(() -> {
-            assert(Utils.deleteRecursive(baseStoragePath.toFile()));
-        });
+        }).invoke();
     }
 
     public static ScheduledExecutorService getExecutor(){
@@ -165,8 +162,8 @@ public class Peer implements PeerInterface {
 
             Main.File file = new Main.File(username, path, chunkIterator.length(), replicationDegree);
 
-            return main.backupFile(file, chunkIterator).get();
-        } catch (IOException | ExecutionException | InterruptedException e) {
+            return main.backupFile(file, chunkIterator);
+        } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
@@ -176,7 +173,6 @@ public class Peer implements PeerInterface {
      * Restore file.
      */
     public boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput) {
-        try {
             UserMetadata userMetadata = authenticate(username, password);
             if(userMetadata == null){
                 System.err.println("Failed to authenticate");
@@ -194,18 +190,13 @@ public class Peer implements PeerInterface {
                 return false;
             }
 
-            return main.restoreFile(file, chunkOutput).get();
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return false;
-        }
+            return main.restoreFile(file, chunkOutput);
     }
 
     /**
      * Delete file.
      */
     public boolean delete(Username username, Password password, Main.Path path) {
-        try {
             UserMetadata userMetadata = authenticate(username, password);
             if(userMetadata == null){
                 System.err.println("Failed to authenticate");
@@ -223,11 +214,7 @@ public class Peer implements PeerInterface {
                 return false;
             }
 
-            return main.deleteFile(file).get();
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return false;
-        }
+            return main.deleteFile(file);
     }
 
     /**
@@ -236,23 +223,18 @@ public class Peer implements PeerInterface {
      * @param space_bytes   Amount of space, in bytes
      */
     public boolean reclaim(int space_bytes) {
-        try {
             LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
             localDataStorage.setCapacity(space_bytes);
-            if(localDataStorage.getMemoryUsed().get() > localDataStorage.getCapacity()) {
+            if(localDataStorage.getMemoryUsed() > localDataStorage.getCapacity()) {
                 ReclaimProtocol reclaimProtocol = new ReclaimProtocol(systemStorage);
-                reclaimProtocol.get();
+                reclaimProtocol.invoke();
             }
             return true;
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 
     public UserMetadata authenticate(Username username, Password password) {
         AuthenticationProtocol authenticationProtocol = new AuthenticationProtocol(main, username, password);
-        return authenticationProtocol.get();
+        return authenticationProtocol.invoke();
     }
 
     public static class ServerSocketHandler implements Runnable {

@@ -49,7 +49,7 @@ public class HelloMessage extends DataStorageMessage {
             if(getChord().getNodeInfo().equals(message.getNodeInfo())) return null;
 
             HelloProtocol helloProtocol = new HelloProtocol(getChord(), getDataStorage(), message.getNodeInfo());
-            helloProtocol.get();
+            helloProtocol.invoke();
             return null;
         }
     }

@@ -10,6 +10,7 @@ import sdis.Utils.Utils;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 public class PutSystemMessage extends SystemStorageMessage {
 
@@ -59,19 +60,16 @@ public class PutSystemMessage extends SystemStorageMessage {
 
         @Override
         public Void get() {
-            getSystemStorage().getDataStorage().put(message.getId(), message.getData())
-            .thenApplyAsync((Boolean b) -> {
+            boolean b = getSystemStorage().getDataStorage().put(message.getId(), message.getData());
+
                 try {
                     getSocket().getOutputStream().write(message.formatResponse(b));
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
-                } catch (IOException e) {
+                    readAllBytesAndClose(getSocket());
+                } catch (IOException | InterruptedException e) {
                     throw new CompletionException(e);
+                } catch (ExecutionException e) {
+                    throw new CompletionException(e.getCause());
                 }
-
-                return null;
-            });
 
             return null;
         }

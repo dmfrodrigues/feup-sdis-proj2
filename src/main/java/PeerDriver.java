@@ -1,4 +1,4 @@
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Peer;
 
 import java.io.IOException;
@@ -27,9 +27,9 @@ public class PeerDriver {
             String socketAddressString = args[5];
             String[] socketAddressSplit = socketAddressString.split(":");
             InetSocketAddress gateway = new InetSocketAddress(socketAddressSplit[0], Integer.parseInt(socketAddressSplit[1]));
-            peer.getChord().join(gateway, new ProtocolSupplier<>() {
+            peer.getChord().join(gateway, new ProtocolTask<>() {
                 @Override
-                public Void get() {
+                public Void compute() {
                     return null;
                 }
             });

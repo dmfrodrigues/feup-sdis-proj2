@@ -2,13 +2,13 @@ package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.Messages.HelloMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class HelloProtocol extends ProtocolSupplier<Void> {
+public class HelloProtocol extends ProtocolTask<Void> {
 
     private final DataStorage dataStorage;
     private final Chord chord;
@@ -25,7 +25,7 @@ public class HelloProtocol extends ProtocolSupplier<Void> {
     }
 
     @Override
-    public Void get() {
+    public Void compute() {
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
 

@@ -4,6 +4,7 @@ import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
 import java.net.Socket;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 public abstract class Message {
@@ -16,4 +17,8 @@ public abstract class Message {
     public static abstract class Processor implements Supplier<Void> {}
 
     public abstract Message.Processor getProcessor(Peer peer, Socket socket);
+
+    protected static void readAllBytesAndClose(Socket socket) throws ExecutionException, InterruptedException {
+        ProtocolTask.readAllBytesAndClose(socket);
+    }
 }

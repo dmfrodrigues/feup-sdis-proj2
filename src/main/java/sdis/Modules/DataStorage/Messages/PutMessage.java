@@ -68,7 +68,7 @@ public class PutMessage extends DataStorageMessage {
         @Override
         public Void get() {
             PutProtocol putProtocol = new PutProtocol(getChord(), getDataStorage(), message.getNodeKey(), message.getId(), message.getData());
-            Boolean b = putProtocol.get();
+            Boolean b = putProtocol.invoke();
             try {
                 getSocket().getOutputStream().write(message.formatResponse(b));
                 getSocket().shutdownOutput();

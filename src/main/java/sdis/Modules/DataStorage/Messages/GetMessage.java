@@ -46,7 +46,7 @@ public class GetMessage extends DataStorageMessage {
         @Override
         public Void get() {
             GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.getId());
-            byte[] data = getProtocol.get();
+            byte[] data = getProtocol.invoke();
             try {
                 getSocket().getOutputStream().write(message.formatResponse(data));
                 getSocket().shutdownOutput();

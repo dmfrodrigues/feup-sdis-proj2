@@ -2,15 +2,14 @@ package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.Messages.DeleteMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
-public class DeleteProtocol extends ProtocolSupplier<Boolean> {
+public class DeleteProtocol extends ProtocolTask<Boolean> {
 
     private final Chord chord;
     private final DataStorage dataStorage;
@@ -23,7 +22,7 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
     }
 
     @Override
-    public Boolean get() {
+    public Boolean compute() {
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
@@ -38,15 +37,9 @@ public class DeleteProtocol extends ProtocolSupplier<Boolean> {
 
         // If r has stored that datapiece
         if(hasStored) {
-            try {
-                localDataStorage.delete(id).get(); // Delete the datapiece
+                localDataStorage.delete(id); // Delete the datapiece
                 dataStorage.unstoreBase(id);
                 return true;
-            } catch (InterruptedException e) {
-                throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
-            }
         }
         // We may now assume the datapiece is not locally stored
 

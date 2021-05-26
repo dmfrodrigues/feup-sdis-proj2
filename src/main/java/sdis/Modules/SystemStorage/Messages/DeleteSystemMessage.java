@@ -8,6 +8,7 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 public class DeleteSystemMessage extends SystemStorageMessage {
 
@@ -43,20 +44,15 @@ public class DeleteSystemMessage extends SystemStorageMessage {
 
         @Override
         public Void get() {
-            getSystemStorage().getDataStorage().delete(message.getId())
-            .thenApplyAsync((Boolean b) -> {
-                try {
-                    getSocket().getOutputStream().write(message.formatResponse(b));
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
-                } catch (IOException e) {
-                    throw new CompletionException(e);
-                }
-
-                return null;
-            });
-
+            boolean b = getSystemStorage().getDataStorage().delete(message.getId());
+            try {
+                getSocket().getOutputStream().write(message.formatResponse(b));
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
+                throw new CompletionException(e);
+            } catch (ExecutionException e) {
+                throw new CompletionException(e.getCause());
+            }
             return null;
         }
     }

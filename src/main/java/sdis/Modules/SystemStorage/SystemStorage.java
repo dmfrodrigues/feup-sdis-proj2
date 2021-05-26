@@ -9,18 +9,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public class SystemStorage {
     private final Chord chord;
     private final DataStorage dataStorage;
-    private final Executor executor;
 
     public SystemStorage(Chord chord, DataStorage dataStorage, Executor executor){
         this.chord = chord;
         this.dataStorage = dataStorage;
-        this.executor = executor;
     }
 
     public Chord getChord() {
@@ -44,15 +41,15 @@ public class SystemStorage {
         return send(to.address, message);
     }
 
-    public CompletableFuture<Boolean> put(UUID id, byte[] data) {
-        return CompletableFuture.supplyAsync(new PutSystemProtocol(this, id, data), executor);
+    public Boolean put(UUID id, byte[] data) {
+        return new PutSystemProtocol(this, id, data).invoke();
     }
 
-    public CompletableFuture<byte[]> get(UUID id) {
-        return CompletableFuture.supplyAsync(new GetSystemProtocol(this, id), executor);
+    public byte[] get(UUID id) {
+        return new GetSystemProtocol(this, id).invoke();
     }
 
-    public CompletableFuture<Boolean> delete(UUID id) {
-        return CompletableFuture.supplyAsync(new DeleteSystemProtocol(this, id), executor);
+    public Boolean delete(UUID id) {
+        return new DeleteSystemProtocol(this, id).invoke();
     }
 }

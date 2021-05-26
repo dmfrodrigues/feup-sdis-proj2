@@ -1,18 +1,18 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 
-public class LeaveProtocol extends ProtocolSupplier<Void> {
+public class LeaveProtocol extends ProtocolTask<Void> {
     private final Chord chord;
-    private final ProtocolSupplier<Void> moveKeys;
+    private final ProtocolTask<Void> moveKeys;
 
-    public LeaveProtocol(Chord chord, ProtocolSupplier<Void> moveKeys){
+    public LeaveProtocol(Chord chord, ProtocolTask<Void> moveKeys){
         this.chord = chord;
         this.moveKeys = moveKeys;
     }
 
     @Override
-    public Void get() {
+    public Void compute() {
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
 
@@ -22,13 +22,12 @@ public class LeaveProtocol extends ProtocolSupplier<Void> {
         // Update predecessors and fingers tables of other nodes
         // Update predecessor of successor
         SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getPredecessor());
-        setPredecessorProtocol.get();
+        setPredecessorProtocol.invoke();
         // Update other nodes' fingers tables
         FingersRemoveProtocol fingersRemoveProtocol = new FingersRemoveProtocol(chord);
-        fingersRemoveProtocol.get();
-
+        fingersRemoveProtocol.invoke();
         // Move keys
-        moveKeys.get();
+        moveKeys.invoke();
 
         System.out.println("Peer " + chord.getKey() + " done leaving");
 

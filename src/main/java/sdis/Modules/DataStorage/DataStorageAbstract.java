@@ -3,7 +3,6 @@ package sdis.Modules.DataStorage;
 import sdis.UUID;
 
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 public abstract class DataStorageAbstract {
 
@@ -15,7 +14,7 @@ public abstract class DataStorageAbstract {
      * @param id    ID of datapiece
      * @return      True if the datapiece is stored, false otherwise
      */
-    abstract public Boolean has(UUID id);
+    abstract public boolean has(UUID id);
 
     /**
      * @brief Get list of IDs of stored datapieces
@@ -31,7 +30,7 @@ public abstract class DataStorageAbstract {
      * @param data  Contents of the datapiece
      * @return      A future resolving to a boolean, true if the storing succeeded, false otherwise
      */
-    abstract public CompletableFuture<Boolean> put(UUID id, byte[] data);
+    abstract public boolean put(UUID id, byte[] data);
 
     /**
      * @brief Get a datapiece.
@@ -44,7 +43,7 @@ public abstract class DataStorageAbstract {
      * @param id    ID of datapiece
      * @return      Contents of datapiece, or null if the datapiece does not exist.
      */
-    abstract public CompletableFuture<byte[]> get(UUID id);
+    abstract public byte[] get(UUID id);
 
     /**
      * @brief Delete a datapiece.
@@ -56,5 +55,5 @@ public abstract class DataStorageAbstract {
      * @param id    UUID of the datapiece to be deleted
      * @return      A future resolving to a boolean, true if the deletion succeeded, false otherwise
      */
-    abstract public CompletableFuture<Boolean> delete(UUID id);
+    abstract public boolean delete(UUID id);
 }

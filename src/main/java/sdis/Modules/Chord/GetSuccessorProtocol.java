@@ -1,13 +1,14 @@
 package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.GetSuccessorMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.ExecutionException;
 
-public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
+public class GetSuccessorProtocol extends ProtocolTask<Chord.NodeInfo> {
 
     private final Chord chord;
     private final Chord.Key key;
@@ -18,7 +19,7 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
     }
 
     @Override
-    public Chord.NodeInfo get() {
+    public Chord.NodeInfo compute() {
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo p = chord.getPredecessor();
 
@@ -45,13 +46,11 @@ public class GetSuccessorProtocol extends ProtocolSupplier<Chord.NodeInfo> {
             } else {
                 GetSuccessorMessage m = new GetSuccessorMessage(key);
                 Socket socket = chord.send(r_, m);
-                socket.shutdownOutput();
-                byte[] response = socket.getInputStream().readAllBytes();
-                socket.close();
+                byte[] response = readAllBytesAndClose(socket);
                 ret = m.parseResponse(chord, response);
             }
             return ret;
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
 
