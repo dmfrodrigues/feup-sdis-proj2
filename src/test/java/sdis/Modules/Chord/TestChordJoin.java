@@ -8,7 +8,6 @@ import java.net.InetSocketAddress;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
 
 public class TestChordJoin {

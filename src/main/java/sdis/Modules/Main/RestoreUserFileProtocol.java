@@ -13,7 +13,7 @@ public class RestoreUserFileProtocol extends RestoreFileProtocol {
         for (i = 0; ; ++i) {
             byte[] data = getChunk(i);
             if(data == null) break;
-            getDestination().set(i, data);
+            if(!getDestination().set(i, data)) break;
         }
         return (i != 0);
     }

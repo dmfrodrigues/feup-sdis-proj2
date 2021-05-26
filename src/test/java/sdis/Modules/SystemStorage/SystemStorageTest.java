@@ -255,7 +255,7 @@ public class SystemStorageTest {
 
         assertTrue(peers[0].getSystemStorage().put(id, data));
 
-        peers[2].reclaim(0);
+        assertTrue(peers[2].reclaim(0));
 
         for(int i = 0; i < peers.length; ++i)
             assertArrayEquals(data, peers[0].getSystemStorage().get(id));

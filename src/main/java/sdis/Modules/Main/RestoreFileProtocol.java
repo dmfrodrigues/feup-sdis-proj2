@@ -5,8 +5,10 @@ import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
@@ -92,8 +94,7 @@ public class RestoreFileProtocol extends ProtocolTask<Boolean> {
                 protected Boolean compute() {
                     byte[] data = getChunk(finalI);
                     if (data == null) return false;
-                    destination.set(finalI, data);
-                    return true;
+                    return destination.set(finalI, data);
                 }
             };
             task.fork();
