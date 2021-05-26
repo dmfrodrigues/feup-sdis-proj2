@@ -8,6 +8,7 @@ import sdis.UUID;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.file.Paths;
 import java.util.HashSet;
 
 import static org.junit.Assert.*;
@@ -18,7 +19,7 @@ public class SystemStorageTest {
     public void put_get_1peer() throws Exception {
         int KEY_SIZE = 10;
 
-        Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
         UUID id = new UUID("1234567890-0-1");
@@ -36,7 +37,7 @@ public class SystemStorageTest {
     public void delete_1peer() throws Exception {
         int KEY_SIZE = 10;
 
-        Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"));
+        Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer1.join().get();
 
         UUID id = new UUID("1234567890-0-1");
@@ -59,7 +60,7 @@ public class SystemStorageTest {
         int[] ids = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
-            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"));
+            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
         peers[0].join().get();
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
@@ -117,7 +118,7 @@ public class SystemStorageTest {
         int[] ids = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
-            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"));
+            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
         peers[0].join().get();
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
@@ -192,7 +193,7 @@ public class SystemStorageTest {
         int[] ids = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
-            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"));
+            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
         peers[0].join().get();
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
@@ -240,7 +241,7 @@ public class SystemStorageTest {
         int[] ids = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
-            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"));
+            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
         peers[0].join().get();
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
