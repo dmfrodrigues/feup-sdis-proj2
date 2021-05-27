@@ -467,4 +467,39 @@ public class MainTest {
         peer.leave();
     }
 
+    @Test(timeout=1000)
+    public void deleteAccount_10peer() throws Exception {
+        int KEY_SIZE = 10;
+
+        int[] ids = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+
+        Peer[] peers = new Peer[ids.length];
+        for(int i = 0; i < ids.length; ++i)
+            peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
+        peers[0].join();
+        for(int i = 1; i < ids.length; ++i)
+            peers[i].join(peers[0].getSocketAddress());
+
+        Username username = new Username("user");
+        Password password = new Password("1234");
+
+        Main.Path path = new Main.Path("data");
+        Main.File file = new Main.File(username, path, 1, 1);
+        UUID id = file.getChunk(0).getReplica(0).getUUID();
+        byte[] data = ("my data").getBytes();
+
+        assertTrue(peers[0].backup(username, password, path, 1, new ByteArrayChunkIterator(data, Main.CHUNK_SIZE)));
+        assertNotNull(peers[9].getDataStorage().get(new UUID("user-0-0")));
+        assertArrayEquals(data, peers[9].getDataStorage().get(id));
+
+        assertTrue(peers[0].deleteAccount(username, password));
+        assertNull(peers[9].getDataStorage().get(new UUID("user-0-0")));
+        assertNull(peers[9].getDataStorage().get(id));
+
+        UserMetadata userMetadata = peers[2].authenticate(username, password);
+        assertEquals(new HashSet<>(), userMetadata.getFiles());
+
+        for(Peer p: peers) p.leave();
+    }
+
 }

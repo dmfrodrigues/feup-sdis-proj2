@@ -45,6 +45,10 @@ public class TestApp {
                     stub.delete(username, password, origin);
                     break;
                 }
+                case "DELETEACCOUNT": {
+                    stub.deleteAccount(username, password);
+                    break;
+                }
                 case "RECLAIM": {
                     int max_size = Integer.parseInt(args[4]);
                     stub.reclaim(max_size);
@@ -73,6 +77,7 @@ public class TestApp {
             "    <DESTINATION>           Local path where the file will be saved to\n"+
             "<OPERATION>: DELETE <ORIGIN>\n"+
             "    <ORIGIN>                System path of the file we want to delete\n"+
+            "<OPERATION>: DELETEACCOUNT\n"+
             "<OPERATION>: RECLAIM <SPACE>\n"+
             "    <SPACE>                 The maximum amount of disk space (in byte) that the service can use.\n"
         ;
