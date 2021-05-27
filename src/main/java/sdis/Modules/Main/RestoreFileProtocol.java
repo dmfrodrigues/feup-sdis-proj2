@@ -13,7 +13,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
-public class RestoreFileProtocol extends ProtocolTask<Boolean> {
+public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
     private final Main main;
     private final Main.File file;
     private final ChunkOutput destination;
@@ -73,7 +73,7 @@ public class RestoreFileProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
+        List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
         for (long i = 0; i < file.getNumberOfChunks(); ++i) {
             if (tasks.size() >= maxNumberFutures) {
                 boolean b;
@@ -101,18 +101,10 @@ public class RestoreFileProtocol extends ProtocolTask<Boolean> {
             tasks.add(task);
         }
 
-        boolean ret = true;
-        for(RecursiveTask<Boolean> task: tasks) {
-            try {
-                ret &= task.get();
-            } catch (InterruptedException | ExecutionException e) {
-                ret = false;
-            }
-        }
-        return ret;
+        return invokeAndReduceTasks(tasks);
     }
 
-    private void waitForAll(List<ProtocolTask<Boolean>> futuresList){
+    private void waitForAll(List<RecursiveTask<Boolean>> futuresList){
         while(!futuresList.isEmpty()) {
             try {
                 waitForAny(futuresList);
@@ -122,9 +114,9 @@ public class RestoreFileProtocol extends ProtocolTask<Boolean> {
         }
     }
 
-    private boolean waitForAny(List<ProtocolTask<Boolean>> tasks) throws ExecutionException, InterruptedException {
-        Iterator<ProtocolTask<Boolean>> iterator = tasks.iterator();
-        ProtocolTask<Boolean> task = iterator.next();
+    private boolean waitForAny(List<RecursiveTask<Boolean>> tasks) throws ExecutionException, InterruptedException {
+        Iterator<RecursiveTask<Boolean>> iterator = tasks.iterator();
+        RecursiveTask<Boolean> task = iterator.next();
         iterator.remove();
         return task.get();
     }

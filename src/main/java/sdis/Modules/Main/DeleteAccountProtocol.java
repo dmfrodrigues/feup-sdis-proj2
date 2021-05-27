@@ -8,7 +8,7 @@ import sdis.UUID;
 import java.io.IOException;
 import java.net.Socket;
 
-public class DeleteAccountProtocol extends ProtocolTask<Boolean> {
+public class DeleteAccountProtocol extends MainProtocolTask<Boolean> {
 
     private final Main main;
     private final Username username;

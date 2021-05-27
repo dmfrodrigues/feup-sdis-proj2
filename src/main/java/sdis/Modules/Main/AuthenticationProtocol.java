@@ -9,9 +9,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class AuthenticationProtocol extends ProtocolTask<UserMetadata> {
-    public static final int MAX_NUMBER_FUTURES = 10;
-
+public class AuthenticationProtocol extends MainProtocolTask<UserMetadata> {
     private final Main main;
     private final Username username;
     private final Password password;

@@ -14,7 +14,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
-public class DeleteFileProtocol extends ProtocolTask<Boolean> {
+public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
     private final Main main;
     private final Main.File file;
     private final boolean delist;
@@ -62,18 +62,7 @@ public class DeleteFileProtocol extends ProtocolTask<Boolean> {
             });
         }
 
-        invokeAll(tasks);
-        boolean ret = true;
-        for(RecursiveTask<Boolean> task: tasks) {
-            try {
-                ret &= task.get();
-            } catch (InterruptedException e) {
-                throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
-            }
-        }
-        return ret;
+        return invokeAndReduceTasks(tasks);
     }
 
     @Override
@@ -91,16 +80,7 @@ public class DeleteFileProtocol extends ProtocolTask<Boolean> {
             });
         }
 
-        invokeAll(tasks);
-        boolean ret = true;
-        for(RecursiveTask<Boolean> task: tasks) {
-            try {
-                ret &= task.get();
-            } catch (InterruptedException | ExecutionException e) {
-                ret = false;
-            }
-        }
-        if(!ret) return false;
+        if(!invokeAndReduceTasks(tasks)) return false;
 
         if(delist) {
             return delistFile();

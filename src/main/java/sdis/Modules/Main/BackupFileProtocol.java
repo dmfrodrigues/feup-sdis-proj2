@@ -18,7 +18,7 @@ import java.util.concurrent.RecursiveTask;
 
 import static sdis.Modules.Main.Main.CHUNK_SIZE;
 
-public class BackupFileProtocol extends ProtocolTask<Boolean> {
+public class BackupFileProtocol extends MainProtocolTask<Boolean> {
     private final Main main;
     private final Main.File file;
     private final ChunkIterator chunkIterator;
@@ -76,14 +76,7 @@ public class BackupFileProtocol extends ProtocolTask<Boolean> {
             });
         }
 
-        invokeAll(tasks);
-        return tasks.stream().map((RecursiveTask<Boolean> task) -> {
-            try {
-                return task.get();
-            } catch (InterruptedException | ExecutionException e) {
-                return false;
-            }
-        }).reduce((Boolean a, Boolean b) -> a && b).orElse(true);
+        return invokeAndReduceTasks(tasks);
     }
 
     @Override
@@ -115,13 +108,6 @@ public class BackupFileProtocol extends ProtocolTask<Boolean> {
             }
         }
 
-        invokeAll(tasks);
-        return tasks.stream().map((RecursiveTask<Boolean> task) -> {
-            try {
-                return task.get();
-            } catch (InterruptedException | ExecutionException e) {
-                return false;
-            }
-        }).reduce((Boolean a, Boolean b) -> a && b).orElse(true);
+        return invokeAndReduceTasks(tasks);
     }
 }
