@@ -23,7 +23,7 @@ public class SetPredecessorProtocol extends ProtocolTask<Void> {
         try {
             Socket socket = chord.send(s, new SetPredecessorMessage(nodeInfo));
             readAllBytesAndClose(socket);
-        } catch (IOException | ExecutionException | InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         return null;

@@ -60,8 +60,6 @@ public class PutProtocol extends ProtocolTask<Boolean> {
                 return true;
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
             }
         }
         // Everything beyond this point assumes the node does not have the datapiece locally,

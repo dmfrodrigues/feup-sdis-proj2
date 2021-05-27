@@ -50,7 +50,7 @@ public class GetSuccessorProtocol extends ProtocolTask<Chord.NodeInfo> {
                 ret = m.parseResponse(chord, response);
             }
             return ret;
-        } catch (IOException | InterruptedException | ExecutionException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 

@@ -31,7 +31,7 @@ public class FingersAddProtocol extends ProtocolTask<Void> {
                     Socket socket = chord.send(predecessor, m);
                     readAllBytesAndClose(socket);
                     return null;
-                } catch (IOException | ExecutionException | InterruptedException e) {
+                } catch (IOException | InterruptedException e) {
                     throw new CompletionException(e);
                 }
                 }

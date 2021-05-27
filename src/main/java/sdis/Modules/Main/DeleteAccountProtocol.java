@@ -1,9 +1,13 @@
 package sdis.Modules.Main;
 
+import sdis.Modules.Chord.Chord;
+import sdis.Modules.Main.Messages.DeleteAccountMessage;
 import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.SystemStorage;
+import sdis.UUID;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -14,42 +18,30 @@ import java.util.concurrent.RecursiveTask;
 public class DeleteAccountProtocol extends ProtocolTask<Boolean> {
 
     private final Main main;
-    private final UserMetadata userMetadata;
+    private final Username username;
+    private final Password password;
 
-    public DeleteAccountProtocol(Main main, UserMetadata userMetadata){
+    public DeleteAccountProtocol(Main main, Username username, Password password){
         this.main = main;
-        this.userMetadata = userMetadata;
+        this.username = username;
+        this.password = password;
     }
 
     @Override
     public Boolean compute() {
-        SystemStorage systemStorage = main.getSystemStorage();
-        Set<Main.Path> paths = userMetadata.getFiles();
+        Chord chord = main.getSystemStorage().getChord();
+        UUID userMetadataFileUUID = username.asFile().getChunk(0).getReplica(0).getUUID();
+        Chord.NodeInfo s = chord.getSuccessor(userMetadataFileUUID.getKey(chord));
 
-        // Delete user metadata
+        DeleteAccountMessage deleteAccountMessage = new DeleteAccountMessage(username, password);
         try {
-            main.deleteFile(userMetadata.asFile());
-        } catch (IOException e) {
-            throw new CompletionException(e);
-        }
+            Socket socket = main.send(s.address, deleteAccountMessage);
+            byte[] data = readAllBytesAndClose(socket);
+            return deleteAccountMessage.parseResponse(data);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
 
-        // Delete all files
-        List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
-        for(Main.Path p : paths){
-            Main.File f = userMetadata.getFile(p);
-            tasks.add(new DeleteFileProtocol(main, f, 10));
+            return false;
         }
-
-        invokeAll(tasks);
-        boolean success = true;
-        for(RecursiveTask<Boolean> task: tasks) {
-            try {
-                success &= task.get();
-            } catch (InterruptedException | ExecutionException e) {
-                success = false;
-            }
-        }
-
-        return success;
     }
 }

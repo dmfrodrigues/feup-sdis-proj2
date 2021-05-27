@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 public class GetSuccessorMessage extends ChordMessage {
 
@@ -49,10 +50,8 @@ public class GetSuccessorMessage extends ChordMessage {
             try {
                 byte[] response = message.formatResponse(nodeInfo);
                 getSocket().getOutputStream().write(response);
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
             return null;

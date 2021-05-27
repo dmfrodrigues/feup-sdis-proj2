@@ -51,7 +51,7 @@ public class JoinProtocol extends ProtocolTask<Void> {
             byte[] response = readAllBytesAndClose(socket);
             Chord.NodeInfo predecessor = m.parseResponse(chord, response);
             chord.setPredecessor(predecessor);
-        } catch (IOException | ExecutionException | InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
 

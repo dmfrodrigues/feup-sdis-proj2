@@ -31,11 +31,9 @@ public class GetPredecessorMessage extends ChordMessage {
             try {
                 byte[] response = message.formatResponse(getChord().getPredecessor());
                 getSocket().getOutputStream().write(response);
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
+                readAllBytesAndClose(getSocket());
                 return null;
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
         }

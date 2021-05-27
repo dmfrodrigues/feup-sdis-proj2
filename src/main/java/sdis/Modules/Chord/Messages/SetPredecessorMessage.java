@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 public class SetPredecessorMessage extends ChordMessage {
 
@@ -52,11 +53,9 @@ public class SetPredecessorMessage extends ChordMessage {
         public Void get() {
             getChord().setPredecessor(message.getPredecessor());
             try {
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
+                readAllBytesAndClose(getSocket());
                 return null;
-            } catch (IOException e) {
+            } catch (InterruptedException e) {
                 throw new CompletionException(e);
             }
         }

@@ -41,8 +41,8 @@ public class GetRedirectsMessage extends DataStorageMessage {
             try {
                 OutputStream os = getSocket().getOutputStream();
                 os.write(message.formatResponse(ids));
-                getSocket().close();
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
             return null;

@@ -30,20 +30,24 @@ public abstract class ProtocolTask<T> extends RecursiveTask<T> {
         }
     }
 
-    protected static byte[] readAllBytes(Socket socket) throws InterruptedException, ExecutionException {
+    protected static byte[] readAllBytes(Socket socket) throws InterruptedException {
         ReadAllBytesFromSocketTask task = new ReadAllBytesFromSocketTask(socket);
         ForkJoinPool.managedBlock(task);
-        return task.get();
+        try {
+            return task.get();
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
+        }
     }
 
-    protected static byte[] readAllBytesAndClose(Socket socket) throws ExecutionException, InterruptedException {
+    protected static byte[] readAllBytesAndClose(Socket socket) throws InterruptedException {
         try {
             socket.shutdownOutput();
             byte[] response = readAllBytes(socket);
             socket.close();
             return response;
         } catch (IOException e) {
-            throw new ExecutionException(e);
+            throw new CompletionException(e);
         }
     }
 }

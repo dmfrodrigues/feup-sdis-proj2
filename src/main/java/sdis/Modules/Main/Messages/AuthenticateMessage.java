@@ -110,8 +110,6 @@ public class AuthenticateMessage extends MainMessage {
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
             }
 
             return null;

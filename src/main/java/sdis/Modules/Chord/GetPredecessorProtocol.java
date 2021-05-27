@@ -32,7 +32,7 @@ public class GetPredecessorProtocol extends ProtocolTask<Chord.NodeInfo> {
             Socket socket = chord.send(s.address, message);
             byte[] response = readAllBytesAndClose(socket);
             return message.parseResponse(chord, response);
-        } catch (IOException | ExecutionException | InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return null;
         }
