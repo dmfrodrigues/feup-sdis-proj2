@@ -28,7 +28,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -37,7 +36,6 @@ public class Peer implements PeerInterface {
     private final Chord.Key id;
     private final Path baseStoragePath;
     private final InetSocketAddress socketAddress;
-    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(100);
     private final Chord chord;
     private final DataStorage dataStorage;
     private final SystemStorage systemStorage;
@@ -239,6 +237,7 @@ public class Peer implements PeerInterface {
     }
 
     public static class ServerSocketHandler implements Runnable {
+        private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(20);
         private final Peer peer;
         private final ServerSocket serverSocket;
 
@@ -260,7 +259,7 @@ public class Peer implements PeerInterface {
                     byte[] data = is.readAllBytes();
                     Message message = messageFactory.factoryMethod(data);
                     Message.Processor processor = message.getProcessor(peer, socket);
-                    CompletableFuture.runAsync(processor::invoke, executor);
+                    executor.execute(processor::invoke);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
