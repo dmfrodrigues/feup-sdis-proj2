@@ -4,11 +4,9 @@ import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Storage.ChunkOutput;
 import sdis.UUID;
+import sdis.Utils.FixedSizeList;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
@@ -46,44 +44,45 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
         }
 
         invokeAll(tasks);
-
-                try {
-                    byte[] ret = null;
-                    for (ProtocolTask<byte[]> task : tasks) {
-                        if (task.get() != null) {
-                            ret = task.get();
-                            break;
-                        }
-                    }
-                    if(ret == null) return null;
-                    for (int i = 0; i < replicationDegree; ++i) {
-                        byte[] tmp = tasks.get(i).get();
-                        if (tmp == null) {
-                            UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
-                            systemStorage.put(id, ret);
-                        }
-                    }
-                    return ret;
-                } catch (InterruptedException e) {
-                    throw new CompletionException(e);
-                } catch (ExecutionException e) {
-                    throw new CompletionException(e.getCause());
+        try {
+            byte[] ret = null;
+            for (ProtocolTask<byte[]> task : tasks) {
+                if (task.get() != null) {
+                    ret = task.get();
+                    break;
                 }
+            }
+            if(ret == null) return null;
+            for (int i = 0; i < replicationDegree; ++i) {
+                byte[] tmp = tasks.get(i).get();
+                if (tmp == null) {
+                    UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
+                    systemStorage.put(id, ret);
+                }
+            }
+            return ret;
+        } catch (InterruptedException e) {
+            throw new CompletionException(e);
+        } catch (ExecutionException e) {
+            throw new CompletionException(e.getCause());
+        }
     }
 
     @Override
     public Boolean compute() {
-        List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
+        Queue<RecursiveTask<Boolean>> tasks = new FixedSizeList<>(maxNumberFutures);
         for (long i = 0; i < file.getNumberOfChunks(); ++i) {
-            if (tasks.size() >= maxNumberFutures) {
+            while (tasks.size() >= maxNumberFutures) {
+                RecursiveTask<Boolean> task = tasks.remove();
+
                 boolean b;
                 try {
-                    b = waitForAny(tasks);
+                    b = task.get();
                 } catch (ExecutionException | InterruptedException e) {
                     b = false;
                 }
                 if (!b) {
-                    waitForAll(tasks);
+                    reduceTasks(tasks);
                     return false;
                 }
             }
@@ -101,23 +100,6 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
             tasks.add(task);
         }
 
-        return invokeAndReduceTasks(tasks);
-    }
-
-    private void waitForAll(List<RecursiveTask<Boolean>> futuresList){
-        while(!futuresList.isEmpty()) {
-            try {
-                waitForAny(futuresList);
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private boolean waitForAny(List<RecursiveTask<Boolean>> tasks) throws ExecutionException, InterruptedException {
-        Iterator<RecursiveTask<Boolean>> iterator = tasks.iterator();
-        RecursiveTask<Boolean> task = iterator.next();
-        iterator.remove();
-        return task.get();
+        return reduceTasks(tasks);
     }
 }

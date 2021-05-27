@@ -46,7 +46,7 @@ public class Main {
     }
 
     public Boolean deleteFile(Main.File file) {
-        return new DeleteFileProtocol(this, file, 10).invoke();
+        return new DeleteFileProtocol(this, file).invoke();
     }
 
     public Executor getExecutor() {

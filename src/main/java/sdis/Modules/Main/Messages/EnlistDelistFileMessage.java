@@ -1,13 +1,10 @@
 package sdis.Modules.Main.Messages;
 
 import sdis.Modules.Main.*;
-import sdis.Modules.Message;
-import sdis.Peer;
 import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
-import java.net.Socket;
 
 public abstract class EnlistDelistFileMessage extends MainMessage {
     protected static UserMetadata getUserMetadata(Main main, Username owner) throws IOException, ClassNotFoundException {
@@ -26,7 +23,7 @@ public abstract class EnlistDelistFileMessage extends MainMessage {
         Main.File userMetadataFile = userMetadata.asFile();
 
         // Delete old user metadata
-        DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(main, userMetadataFile, 10, false);
+        DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(main, userMetadataFile, false);
         if(!deleteFileProtocol.invoke()) return false;
 
         // Save new user metadata

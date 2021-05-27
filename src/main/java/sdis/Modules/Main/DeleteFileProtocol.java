@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
 public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
@@ -19,11 +18,11 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
     private final Main.File file;
     private final boolean delist;
 
-    public DeleteFileProtocol(Main main, Main.File file, int maxNumberFutures) {
-        this(main, file, maxNumberFutures, true);
+    public DeleteFileProtocol(Main main, Main.File file) {
+        this(main, file, true);
     }
 
-    public DeleteFileProtocol(Main main, Main.File file, int maxNumberFutures, boolean delist) {
+    public DeleteFileProtocol(Main main, Main.File file, boolean delist) {
         this.main = main;
         this.file = file;
         this.delist = delist;

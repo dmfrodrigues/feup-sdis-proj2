@@ -67,7 +67,7 @@ public class DeleteAccountMessage extends MainMessage {
                 List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
                 for (Main.Path p : paths) {
                     Main.File f = userMetadata.getFile(p);
-                    tasks.add(new DeleteFileProtocol(getMain(), f, 10));
+                    tasks.add(new DeleteFileProtocol(getMain(), f));
                 }
 
                 invokeAll(tasks);

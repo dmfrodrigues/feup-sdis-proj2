@@ -67,7 +67,7 @@ public class AuthenticateMessage extends MainMessage {
             BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), file, data, false);
             boolean success = backupFileProtocol.invoke();
             if(!success){
-                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), file, 10, false);
+                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), file, false);
                 deleteFileProtocol.invoke();
             }
 
