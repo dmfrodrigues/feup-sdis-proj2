@@ -124,23 +124,17 @@ For that, we do a similar processing for each chunk as in RestoreUser, except we
 
 ### DeleteAccount protocol
 
-- **Arguments:** -
+- **Arguments:** username, password
 - **Returns:** -
 
 The DeleteAccount protocol allows a peer to delete its account, including all files tracked by that account. The account to be deleted is assumed to be the one the user logged-in.
 
-When calling the DeleteAccount protocol, the peer sends a `BLOCKACCOUNT` message to avoid any further operations on the account, and waits to get the final version of the user metadata file.
+When calling the DeleteAccount protocol, the peer sends a `DELETEACCOUNT` to the peer storing replica 0 of chunk 0 of that user's metadata file.
 
-The peer then starts by asynchronously calling DeleteFile protocols for each of the deleted files. After they all succeed, the peer calls a DeleteFile protocol to delete all the 10 replicas.
+#### `DELETEACCOUNT` message
 
-#### `BLOCKACCOUNT` message
+| **Request**                           | | **Response** |
+|---------------------------------------|-|--------------|
+| `DELETEACCOUNT <Username> <Password>` | | `<Success>`  |
 
-This protocol serves the purpose of blocking an account, meaning no more files can be manually added, removed or restored from this account. It mostly serves the purpose of stabilizing the user metadata file before deleting all files of the account.
-
-When calling the BlockAccount protocol, the peer finds the node that is storing the user metadata file, and sends it a message with contents:
-
-```
-BLOCKACCOUNT <Username>
-```
-
-On receiving a `BLOCKACCOUNT` message, if the account does not exist then it returns `NOTFOUND`. If the account exists and is already blocked, then some other peer is already deleting the account so it sends a `NOTFOUND` as well. If the account exists and is not blocked, the peer sets the account as blocked and returns in format `BLOCKED<LF><Body>` where `<Body>` is the contents of the user metadata file.
+This message tells the receiver to delete the account. The receiver first gets the user metadata file, then deletes each of the files owned by that user, and finally deletes the user metadata file from the system. It returns 1 if successful, or 0 otherwise.
