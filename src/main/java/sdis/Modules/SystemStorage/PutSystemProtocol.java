@@ -26,7 +26,7 @@ public class PutSystemProtocol extends ProtocolTask<Boolean> {
         Chord chord = systemStorage.getChord();
         try{
             Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord));
-            PutSystemMessage putSystemMessage = new PutSystemMessage(s.key, id, data);
+            PutSystemMessage putSystemMessage = new PutSystemMessage(id, data);
             Socket socket = systemStorage.send(s.address, putSystemMessage);
             socket.shutdownOutput();
             byte[] response = socket.getInputStream().readAllBytes();

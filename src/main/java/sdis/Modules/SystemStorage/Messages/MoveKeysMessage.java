@@ -14,9 +14,6 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
 public class MoveKeysMessage extends SystemStorageMessage {
@@ -67,7 +64,7 @@ public class MoveKeysMessage extends SystemStorageMessage {
             for(UUID id: ids){
                 Chord.Key k = id.getKey(chord);
                 if(Chord.distance(k, n.key) < Chord.distance(k, r.key)){
-                    tasks.add(new ProtocolTask<>() {
+                    RecursiveTask<Boolean> task = new ProtocolTask<>() {
                         @Override
                         protected Boolean compute() {
                             byte[] data = dataStorage.get(id);
@@ -75,18 +72,13 @@ public class MoveKeysMessage extends SystemStorageMessage {
                             PutSystemProtocol putSystemProtocol = new PutSystemProtocol(systemStorage, id, data);
                             return putSystemProtocol.invoke();
                         }
-                    });
+                    };
+                    task.fork();
+                    tasks.add(task);
                 }
             }
 
-            CompletableFuture<Void> future = CompletableFuture.allOf((CompletableFuture<?>[]) tasks.toArray());
-            try {
-                future.get();
-            } catch (InterruptedException e) {
-                throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
-            }
+            for(RecursiveTask<Boolean> task: tasks) task.join();
         }
     }
 

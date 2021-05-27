@@ -2,8 +2,6 @@ import sdis.Modules.Main.Main;
 import sdis.Modules.Main.Password;
 import sdis.Modules.Main.Username;
 import sdis.PeerInterface;
-import sdis.Storage.ChunkIterator;
-import sdis.Storage.ChunkOutput;
 import sdis.Storage.FileChunkIterator;
 import sdis.Storage.FileChunkOutput;
 
@@ -27,17 +25,19 @@ public class TestApp {
             switch (operation) {
                 case "BACKUP": {
                     Path origin = Paths.get(args[4]);
-                    ChunkIterator chunkIterator = new FileChunkIterator(origin.toFile(), Main.CHUNK_SIZE);
+                    FileChunkIterator chunkIterator = new FileChunkIterator(origin.toFile(), Main.CHUNK_SIZE);
                     Main.Path destination = new Main.Path(args[5]);
                     int replicationDegree = Integer.parseInt(args[5]);
                     stub.backup(username, password, destination, replicationDegree, chunkIterator);
+                    chunkIterator.close();
                     break;
                 }
                 case "RESTORE": {
                     Main.Path origin = new Main.Path(args[4]);
                     Path destination = Paths.get(args[5]);
-                    ChunkOutput chunkOutput = new FileChunkOutput(destination.toFile());
+                    FileChunkOutput chunkOutput = new FileChunkOutput(destination.toFile());
                     stub.restore(username, password, origin, chunkOutput);
+                    chunkOutput.close();
                     break;
                 }
                 case "DELETE": {
