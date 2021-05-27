@@ -29,8 +29,6 @@ public abstract class EnlistDelistFileMessage extends MainMessage {
         // Save new user metadata
         byte[] data = userMetadata.serialize();
         BackupFileProtocol backupFileProtocol = new BackupFileProtocol(main, userMetadataFile, data, false);
-        if(!backupFileProtocol.invoke()) return false;
-
-        return true;
+        return backupFileProtocol.invoke();
     }
 }
