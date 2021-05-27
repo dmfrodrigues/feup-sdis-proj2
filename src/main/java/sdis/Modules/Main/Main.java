@@ -11,18 +11,15 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.Executor;
 
 public class Main {
     public static final int CHUNK_SIZE = 64000;
     public static final int USER_METADATA_REPDEG = 10;
 
     private final SystemStorage systemStorage;
-    private final Executor executor;
 
-    public Main(SystemStorage systemStorage, Executor executor){
+    public Main(SystemStorage systemStorage){
         this.systemStorage = systemStorage;
-        this.executor = executor;
     }
 
     public SystemStorage getSystemStorage(){
@@ -47,10 +44,6 @@ public class Main {
 
     public Boolean deleteFile(Main.File file) {
         return new DeleteFileProtocol(this, file).invoke();
-    }
-
-    public Executor getExecutor() {
-        return executor;
     }
 
     public static class Path implements Serializable {

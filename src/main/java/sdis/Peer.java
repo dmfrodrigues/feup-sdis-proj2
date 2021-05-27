@@ -58,10 +58,10 @@ public class Peer implements PeerInterface {
         );
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
-        chord = new Chord(getSocketAddress(), executor, keySize, id);
+        chord = new Chord(getSocketAddress(), keySize, id);
         dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), getChord());
-        systemStorage = new SystemStorage(chord, dataStorage, executor);
-        main = new Main(systemStorage, executor);
+        systemStorage = new SystemStorage(chord, dataStorage);
+        main = new Main(systemStorage);
 
         this.id = chord.newKey(id);
 

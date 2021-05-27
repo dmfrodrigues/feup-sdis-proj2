@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Objects;
-import java.util.concurrent.Executor;
 
 public class Chord {
     public static class Key {
@@ -80,17 +79,15 @@ public class Chord {
         }
     }
 
-    private int keySize;
+    private final int keySize;
 
     private final InetSocketAddress socketAddress;
-    private final Executor executor;
     private final Chord.Key key;
     private final NodeInfo[] fingers;
     private final NodeInfo predecessor;
 
-    public Chord(InetSocketAddress socketAddress, Executor executor, int keySize, long key){
+    public Chord(InetSocketAddress socketAddress, int keySize, long key){
         this.socketAddress = socketAddress;
-        this.executor = executor;
         this.keySize = keySize;
         this.key = newKey(key);
         fingers = new NodeInfo[this.keySize];
@@ -99,10 +96,6 @@ public class Chord {
 
     public Chord.Key newKey(long k){
         return new Chord.Key(this, k);
-    }
-
-    public Executor getExecutor() {
-        return executor;
     }
 
     public Chord.Key getKey() {
@@ -139,10 +132,6 @@ public class Chord {
 
     public NodeInfo getSuccessor(Chord.Key key){
         return new GetSuccessorProtocol(this, key).invoke();
-    }
-
-    public void setKeySize(int i) {
-        keySize = i;
     }
 
     public int getKeySize() {

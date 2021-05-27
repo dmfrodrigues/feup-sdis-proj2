@@ -31,14 +31,12 @@ public class PutProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStoredLocally = localDataStorage.has(id);
         boolean hasSpaceLocally = localDataStorage.canPut(data.length);
         boolean pointsToSuccessor = dataStorage.successorHasStored(id);
-        boolean isBase = dataStorage.has(id);
 
         // If r has stored the datapiece, returns
         if(hasStoredLocally) {

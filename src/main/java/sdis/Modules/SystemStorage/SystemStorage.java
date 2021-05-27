@@ -9,13 +9,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.Executor;
 
 public class SystemStorage {
     private final Chord chord;
     private final DataStorage dataStorage;
 
-    public SystemStorage(Chord chord, DataStorage dataStorage, Executor executor){
+    public SystemStorage(Chord chord, DataStorage dataStorage){
         this.chord = chord;
         this.dataStorage = dataStorage;
     }
