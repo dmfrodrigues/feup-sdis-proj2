@@ -163,8 +163,6 @@ public class Chord {
 
     /**
      * @brief Create a new chord system.
-     *
-     * @return Future that will resolve when join is complete.
      */
     public void join(){
         NodeInfo nodeInfo = getNodeInfo();
@@ -179,7 +177,6 @@ public class Chord {
      *
      * @param gateway   Socket address of the gateway node that will be used to join the system
      * @param moveKeys  Whatever operations the upper layer may want to execute just before ending the Join
-     * @return  Future of the completion of the join procedure
      */
     public void join(InetSocketAddress gateway, ProtocolTask<Void> moveKeys) {
         new JoinProtocol(this, gateway, moveKeys).invoke();
