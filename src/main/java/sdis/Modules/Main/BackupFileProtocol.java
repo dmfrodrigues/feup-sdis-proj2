@@ -76,16 +76,14 @@ public class BackupFileProtocol extends ProtocolTask<Boolean> {
             });
         }
 
-            invokeAll(tasks);
-            boolean success = true;
-            for(RecursiveTask<Boolean> task: tasks) {
-                try {
-                    success &= task.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    success = false;
-                }
+        invokeAll(tasks);
+        return tasks.stream().map((RecursiveTask<Boolean> task) -> {
+            try {
+                return task.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return false;
             }
-            return success;
+        }).reduce((Boolean a, Boolean b) -> a && b).orElse(true);
     }
 
     @Override
@@ -98,9 +96,7 @@ public class BackupFileProtocol extends ProtocolTask<Boolean> {
         }
 
         if(enlist) {
-            Boolean enlistedFile;
-            enlistedFile = enlistFile();
-            if (!enlistedFile) return false;
+            if (!enlistFile()) return false;
         }
 
         List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
@@ -120,14 +116,12 @@ public class BackupFileProtocol extends ProtocolTask<Boolean> {
         }
 
         invokeAll(tasks);
-        boolean ret = true;
-        for(RecursiveTask<Boolean> task: tasks) {
+        return tasks.stream().map((RecursiveTask<Boolean> task) -> {
             try {
-                ret &= task.get();
+                return task.get();
             } catch (InterruptedException | ExecutionException e) {
-                ret = false;
+                return false;
             }
-        }
-        return ret;
+        }).reduce((Boolean a, Boolean b) -> a && b).orElse(true);
     }
 }

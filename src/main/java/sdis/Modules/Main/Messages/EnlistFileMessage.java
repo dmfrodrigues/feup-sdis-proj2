@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class EnlistFileMessage extends MainMessage {
+public class EnlistFileMessage extends EnlistDelistFileMessage {
 
     private final Main.File file;
 
@@ -41,11 +41,9 @@ public class EnlistFileMessage extends MainMessage {
             this.message = message;
         }
 
-        private void end(boolean b) throws IOException {
+        private void end(boolean b) throws IOException, InterruptedException {
             getSocket().getOutputStream().write(message.formatResponse(b));
-            getSocket().shutdownOutput();
-            getSocket().getInputStream().readAllBytes();
-            getSocket().close();
+            readAllBytesAndClose(getSocket());
         }
 
         @Override
@@ -54,38 +52,24 @@ public class EnlistFileMessage extends MainMessage {
 
             try {
                 // Get user metadata
-                DataBuilder builder = new DataBuilder();
-                DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
-                RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), owner, chunkOutput, 10);
-                if(!restoreUserFileProtocol.invoke()){ end(false); return; }
-
-                // Parse user metadata
-                byte[] data = builder.get();
-                UserMetadata userMetadata = UserMetadata.deserialize(data);
-                Main.File userMetadataFile = userMetadata.asFile();
+                UserMetadata userMetadata = getUserMetadata(getMain(), owner);
+                if(userMetadata == null){ end(false); return; }
                 // Add file
                 userMetadata.addFile(message.file);
-
-                // Delete old user metadata
-                DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), userMetadataFile, 10, false);
-                if(!deleteFileProtocol.invoke()){ end(false); return; }
-
-                // Save new user metadata
-                data = userMetadata.serialize();
-                BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), userMetadataFile, data, false);
-                if(!backupFileProtocol.invoke()){ end(false); return; }
+                // Replace user metadata
+                if(!replaceUserMetadata(getMain(), userMetadata)){ end(false); return; }
 
                 try {
                     end(true);
-                } catch (IOException ex) {
+                } catch (IOException | InterruptedException ex) {
                     throw new CompletionException(ex);
                 }
 
-            } catch (IOException | ClassNotFoundException e) { // InterruptedException | ExecutionException
+            } catch (IOException | ClassNotFoundException | InterruptedException e) {
                 try {
                     e.printStackTrace();
                     end(false);
-                } catch (IOException ex) {
+                } catch (IOException | InterruptedException ex) {
                     throw new CompletionException(ex);
                 }
             }
