@@ -41,7 +41,7 @@ public class MessageFactory {
             case "DELETE"      : return new DeleteMessage      (b);
             case "GET"         : return new GetMessage         (b);
             case "PUT"         : return new PutMessage         (chord, b);
-            case "GETREDIRECTS": return new GetRedirectsMessage(b);
+            case "GETREDIRECTS": return new GetRedirectsMessage();
 
             case "PUTSYSTEM"   : return new PutSystemMessage   (chord, b);
             case "GETSYSTEM"   : return new GetSystemMessage   (b);
