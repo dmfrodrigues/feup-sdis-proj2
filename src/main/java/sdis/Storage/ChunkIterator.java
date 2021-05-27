@@ -2,7 +2,6 @@ package sdis.Storage;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @brief Chunk iterator.
@@ -10,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
  * Iterator over chunks.
  * Is used to read a file one chunk at a time.
  */
-abstract public class ChunkIterator implements Iterator<CompletableFuture<byte[]>> {
+abstract public class ChunkIterator implements Iterator<byte[]> {
     private final int chunkSize;
 
     /**
@@ -37,5 +36,5 @@ abstract public class ChunkIterator implements Iterator<CompletableFuture<byte[]
 
     abstract public boolean hasNext();
 
-    abstract public CompletableFuture<byte[]> next();
+    abstract public byte[] next();
 }

@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
 import static sdis.Modules.Main.Main.CHUNK_SIZE;
@@ -90,18 +89,14 @@ public class BackupFileProtocol extends MainProtocolTask<Boolean> {
 
         List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
         for (long i = 0; i < numChunks; ++i) {
-            try {
-                byte[] data = chunkIterator.next().get();
-                long finalI = i;
-                tasks.add(new ProtocolTask<>() {
-                    @Override
-                    protected Boolean compute() {
-                        return putChunk(file.getChunk(finalI), data);
-                    }
-                });
-            } catch (InterruptedException | ExecutionException e) {
-                return false;
-            }
+            long finalI = i;
+            tasks.add(new ProtocolTask<>() {
+                @Override
+                protected Boolean compute() {
+                    byte[] data = chunkIterator.next();
+                    return putChunk(file.getChunk(finalI), data);
+                }
+            });
         }
 
         return invokeAndReduceTasks(tasks);

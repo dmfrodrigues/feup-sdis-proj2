@@ -1,12 +1,11 @@
 package sdis.Storage;
 
-import sdis.Peer;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 
 /**
@@ -54,22 +53,53 @@ abstract public class AsynchronousChunkIterator extends ChunkIterator {
         }
     }
 
-    @Override
-    public final synchronized CompletableFuture<byte[]> next() {
-        ByteBuffer buffer = ByteBuffer.allocate(getChunkSize());
-        Future<Integer> f = fileStream.read(buffer, nextIndex*getChunkSize());
-        ++nextIndex;
-        return CompletableFuture.supplyAsync(() -> {
+    private static class ReadBlocker implements ForkJoinPool.ManagedBlocker {
+
+        private final Future<Integer> f;
+        private final ByteBuffer buffer;
+        private byte[] bufferArray = null;
+
+        public ReadBlocker(Future<Integer> f, ByteBuffer buffer){
+            this.f = f;
+            this.buffer = buffer;
+        }
+
+        @Override
+        public boolean block() {
             try {
                 int size = f.get();
-                byte[] bufferArray = new byte[size];
+                bufferArray = new byte[size];
                 buffer.flip();
                 buffer.get(bufferArray, 0, size);
-                return bufferArray;
-            } catch (Exception e) {
+                return true;
+            } catch (ExecutionException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-        }, Peer.getExecutor());
+        }
+
+        @Override
+        public boolean isReleasable() {
+            return (bufferArray != null);
+        }
+    }
+
+    @Override
+    public final synchronized byte[] next() {
+        ByteBuffer buffer;
+        Future<Integer> f;
+        synchronized(this) {
+            buffer = ByteBuffer.allocate(getChunkSize());
+            f = fileStream.read(buffer, nextIndex * getChunkSize());
+            ++nextIndex;
+        }
+        ReadBlocker readBlocker = new ReadBlocker(f, buffer);
+        try {
+            ForkJoinPool.managedBlock(readBlocker);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return readBlocker.bufferArray;
     }
 
     public final void close() throws IOException {

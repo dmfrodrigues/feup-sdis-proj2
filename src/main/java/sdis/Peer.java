@@ -122,10 +122,6 @@ public class Peer implements PeerInterface {
         });
     }
 
-    public static ScheduledExecutorService getExecutor(){
-        return executor;
-    }
-
     public Chord.Key getKey() {
         return id;
     }
@@ -253,10 +249,6 @@ public class Peer implements PeerInterface {
             this.serverSocket = serverSocket;
 
             messageFactory = new MessageFactory(peer);
-        }
-
-        public Peer getPeer() {
-            return peer;
         }
 
         @Override

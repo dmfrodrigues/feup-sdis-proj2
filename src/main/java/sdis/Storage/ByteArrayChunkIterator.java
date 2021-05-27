@@ -1,9 +1,5 @@
 package sdis.Storage;
 
-import sdis.Peer;
-
-import java.util.concurrent.CompletableFuture;
-
 public class ByteArrayChunkIterator extends ChunkIterator {
     private final byte[] data;
 
@@ -31,13 +27,11 @@ public class ByteArrayChunkIterator extends ChunkIterator {
     }
 
     @Override
-    public synchronized CompletableFuture<byte[]> next() {
+    public synchronized byte[] next() {
         int offset = (int) ((nextIndex++) * getChunkSize());
         int size = Math.min(data.length - offset, getChunkSize());
-        return CompletableFuture.supplyAsync(() -> {
-            byte[] ret = new byte[size];
-            System.arraycopy(data, offset, ret, 0, size);
-            return ret;
-        }, Peer.getExecutor());
+        byte[] ret = new byte[size];
+        System.arraycopy(data, offset, ret, 0, size);
+        return ret;
     }
 }
