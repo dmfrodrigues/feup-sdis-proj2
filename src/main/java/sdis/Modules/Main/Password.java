@@ -30,10 +30,6 @@ public class Password implements Serializable {
         return (this.hashed.equals(password.hashed));
     }
 
-    public String getHashed(){
-        return hashed;
-    }
-
     public String getPlain(){
         return plain;
     }

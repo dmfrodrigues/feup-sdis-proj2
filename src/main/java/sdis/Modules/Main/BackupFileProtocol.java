@@ -35,10 +35,6 @@ public class BackupFileProtocol extends MainProtocolTask<Boolean> {
         this.enlist = enlist;
     }
 
-    public BackupFileProtocol(Main main, Main.File file, byte[] data) {
-        this(main, file, data, true);
-    }
-
     public BackupFileProtocol(Main main, Main.File file, byte[] data, boolean enlist) {
         this(main, file, new ByteArrayChunkIterator(data, CHUNK_SIZE), enlist);
     }

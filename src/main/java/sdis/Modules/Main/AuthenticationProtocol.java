@@ -1,7 +1,6 @@
 package sdis.Modules.Main;
 
 import sdis.Modules.Main.Messages.AuthenticateMessage;
-import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Utils.Pair;
 

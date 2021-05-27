@@ -2,7 +2,6 @@ package sdis.Modules.Main;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.Main.Messages.DeleteAccountMessage;
-import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;

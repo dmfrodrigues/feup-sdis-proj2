@@ -16,8 +16,7 @@ import java.util.concurrent.Future;
  * Is used to read a file one chunk at a time.
  */
 abstract public class AsynchronousChunkIterator extends ChunkIterator {
-    final byte[] buffer;
-    final AsynchronousFileChannel fileStream;
+    private final AsynchronousFileChannel fileStream;
 
     /**
      * @brief Construct ChunkIterator.
@@ -28,7 +27,6 @@ abstract public class AsynchronousChunkIterator extends ChunkIterator {
     public AsynchronousChunkIterator(AsynchronousFileChannel fileStream, int chunkSize) {
         super(chunkSize);
         this.fileStream = fileStream;
-        buffer = new byte[getChunkSize()];
     }
 
     /**

@@ -3,7 +3,7 @@ package sdis.Utils;
 import java.util.*;
 
 public class FixedSizeList<E> extends LinkedList<E> {
-    private int maxSize;
+    private final int maxSize;
 
     public FixedSizeList(int maxSize){
         this.maxSize = maxSize;

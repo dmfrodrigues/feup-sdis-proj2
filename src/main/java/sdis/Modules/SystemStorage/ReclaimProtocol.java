@@ -13,8 +13,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 public class ReclaimProtocol extends ProtocolTask<Void> {
-    private static final int MAX_NUMBER_DATAPIECES = 10;
-
     private final SystemStorage systemStorage;
 
     public ReclaimProtocol(SystemStorage systemStorage){

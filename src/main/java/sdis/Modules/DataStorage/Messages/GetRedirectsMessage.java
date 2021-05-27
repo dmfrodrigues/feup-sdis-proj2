@@ -18,9 +18,6 @@ public class GetRedirectsMessage extends DataStorageMessage {
     public GetRedirectsMessage(){
     }
 
-    public GetRedirectsMessage(byte[] data){
-    }
-
     @Override
     protected DataBuilder build() {
         return new DataBuilder("GETREDIRECTS".getBytes());
