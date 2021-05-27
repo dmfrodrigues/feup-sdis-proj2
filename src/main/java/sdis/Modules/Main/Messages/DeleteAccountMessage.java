@@ -11,12 +11,13 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
-public class DeleteAccountMessage extends MainMessage {
+public class DeleteAccountMessage extends AccountMessage {
     private final Username username;
     private final Password password;
 
@@ -48,19 +49,10 @@ public class DeleteAccountMessage extends MainMessage {
 
         @Override
         public void compute() {
-            Main.File userMetadataFile = message.username.asFile();
-
             boolean success = true;
             try {
                 // Get user file
-                DataBuilder dataBuilder = new DataBuilder();
-                ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
-                getMain().restoreFile(userMetadataFile, chunkOutput);
-                byte[] data = dataBuilder.get();
-                UserMetadata userMetadata = UserMetadata.deserialize(data);
-
-                // Delete user metadata
-                getMain().deleteFile(userMetadata.asFile());
+                UserMetadata userMetadata = Objects.requireNonNull(getUserMetadata(getMain(), message.username));
 
                 // Delete all files
                 Set<Main.Path> paths = userMetadata.getFiles();
@@ -75,9 +67,14 @@ public class DeleteAccountMessage extends MainMessage {
                     try {
                         success &= task.get();
                     } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
                         success = false;
                     }
                 }
+
+                // Delete user metadata
+                getMain().deleteFile(userMetadata.asFile());
+
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
                 success = false;

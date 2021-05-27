@@ -2,6 +2,7 @@ package sdis.Modules;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Collection;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -13,6 +14,22 @@ import java.util.concurrent.RecursiveTask;
  * Can (and should) throw a ProtocolException when it fails.
  */
 public abstract class ProtocolTask<T> extends RecursiveTask<T> {
+
+    protected boolean reduceTasks(Collection<RecursiveTask<Boolean>> tasks){
+        return tasks.stream().map((RecursiveTask<Boolean> task) -> {
+            try {
+                return task.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return false;
+            }
+        }).reduce((Boolean a, Boolean b) -> a && b).orElse(true);
+    }
+
+    protected boolean invokeAndReduceTasks(Collection<RecursiveTask<Boolean>> tasks) {
+        invokeAll(tasks);
+        return reduceTasks(tasks);
+    }
+
     private static class ReadAllBytesFromSocketTask extends BlockingTask<byte[]> {
         private final Socket socket;
 

@@ -13,5 +13,6 @@ public interface PeerInterface extends Remote {
     boolean backup(Username username, Password password, Main.Path path, int replicationDegree, ChunkIterator chunkIterator);
     boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput);
     boolean delete(Username username, Password password, Main.Path path);
+    boolean deleteAccount(Username username, Password password);
     boolean reclaim(int space_bytes) throws RemoteException;
 }

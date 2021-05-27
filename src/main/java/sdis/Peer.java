@@ -83,18 +83,18 @@ public class Peer implements PeerInterface {
         }));
     }
 
-    public void join(){
+    public boolean join(){
         System.out.println("Peer " + getKey() + " creating a new chord");
 
-        chord.join();
+        return chord.join();
     }
 
-    public void join(InetSocketAddress gateway){
+    public boolean join(InetSocketAddress gateway){
         System.out.println("Peer " + getKey() + " joining a chord");
 
-        chord.join(gateway, new ProtocolTask<>() {
+        return chord.join(gateway, new ProtocolTask<>() {
             @Override
-            public Void compute() {
+            public Boolean compute() {
                 // Get redirects
                 GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(dataStorage, chord);
                 Set<UUID> redirects = getRedirectsProtocol.invoke();
@@ -102,20 +102,24 @@ public class Peer implements PeerInterface {
                     dataStorage.registerSuccessorStored(id);
 
                 // Move keys
+                // TODO
 
-                return null;
+                return true;
             }
         });
     }
 
-    public void leave(){
+    public boolean leave(){
         System.out.println("Peer " + getKey() + " leaving its chord");
 
-        chord.leave(new ProtocolTask<>() {
+        return chord.leave(new ProtocolTask<>() {
             @Override
-            public Void compute() {
+            public Boolean compute() {
+                // Move keys
+                // TODO
+
                 assert(Utils.deleteRecursive(baseStoragePath.toFile()));
-            return null;
+            return true;
             }
         });
     }
@@ -214,6 +218,11 @@ public class Peer implements PeerInterface {
             }
 
             return main.deleteFile(file);
+    }
+
+    @Override
+    public boolean deleteAccount(Username username, Password password) {
+        return new DeleteAccountProtocol(main, username, password).invoke();
     }
 
     /**

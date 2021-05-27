@@ -9,19 +9,19 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class JoinProtocol extends ProtocolTask<Void> {
+public class JoinProtocol extends ProtocolTask<Boolean> {
     private final Chord chord;
     private final InetSocketAddress g;
-    private final ProtocolTask<Void> moveKeys;
+    private final ProtocolTask<Boolean> moveKeys;
 
-    public JoinProtocol(Chord chord, InetSocketAddress gateway, ProtocolTask<Void> moveKeys){
+    public JoinProtocol(Chord chord, InetSocketAddress gateway, ProtocolTask<Boolean> moveKeys){
         this.chord = chord;
         this.g = gateway;
         this.moveKeys = moveKeys;
     }
 
     @Override
-    public Void compute() {
+    public Boolean compute() {
         System.out.println("Peer " + chord.getKey() + " starting to join");
 
         Chord.NodeInfo r = chord.getNodeInfo();
@@ -67,6 +67,6 @@ public class JoinProtocol extends ProtocolTask<Void> {
 
         System.out.println("Peer " + chord.getKey() + " done joining");
 
-        return null;
+        return true;
     }
 }

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class EnlistFileMessage extends EnlistDelistFileMessage {
+public class EnlistFileMessage extends AccountMessage {
 
     private final Main.File file;
 

@@ -1,6 +1,7 @@
 package sdis.Modules.Main;
 
 import org.junit.Test;
+import sdis.Modules.DataStorage.DataStorage;
 import sdis.Peer;
 import sdis.Storage.ByteArrayChunkIterator;
 import sdis.Storage.ChunkIterator;
@@ -418,6 +419,52 @@ public class MainTest {
         }
 
         for(Peer p: peers) p.leave();
+    }
+
+    @Test(timeout=1000)
+    public void deleteAccount_1peer_noBackup() throws Exception {
+        int KEY_SIZE = 10;
+
+        Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        peer.join();
+
+        Username username = new Username("user");
+        Password password = new Password("1234");
+
+        assertNotNull(peer.authenticate(username, password));
+        assertTrue(peer.deleteAccount(username, password));
+
+        peer.leave();
+    }
+
+    @Test(timeout=1000)
+    public void deleteAccount_1peer() throws Exception {
+        int KEY_SIZE = 10;
+
+        Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        peer.join();
+        DataStorage dataStorage = peer.getDataStorage();
+
+        Username username = new Username("user");
+        Password password = new Password("1234");
+
+        Main.Path path = new Main.Path("data");
+        Main.File file = new Main.File(username, path, 1, 1);
+        UUID id = file.getChunk(0).getReplica(0).getUUID();
+        byte[] data = ("my data").getBytes();
+
+        assertTrue(peer.backup(username, password, path, 1, new ByteArrayChunkIterator(data, Main.CHUNK_SIZE)));
+        assertNotNull(dataStorage.get(new UUID("user-0-0")));
+        assertArrayEquals(data, dataStorage.get(id));
+
+        assertTrue(peer.deleteAccount(username, password));
+        assertNull(dataStorage.get(new UUID("user-0-0")));
+        assertNull(dataStorage.get(id));
+
+        UserMetadata userMetadata = peer.authenticate(username, password);
+        assertEquals(new HashSet<>(), userMetadata.getFiles());
+
+        peer.leave();
     }
 
 }

@@ -108,10 +108,11 @@ public class Chord {
         }
     }
 
-    public void setFinger(int i, NodeInfo peer){
+    public boolean setFinger(int i, NodeInfo peer){
         synchronized(fingers) {
             fingers[i] = peer;
         }
+        return true;
     }
 
     public NodeInfo getPredecessor(){
@@ -120,10 +121,11 @@ public class Chord {
         }
     }
 
-    public void setPredecessor(NodeInfo peer){
+    public boolean setPredecessor(NodeInfo peer){
         synchronized(predecessor) {
             predecessor.copy(peer);
         }
+        return true;
     }
 
     public NodeInfo getSuccessor() {
@@ -153,12 +155,13 @@ public class Chord {
     /**
      * @brief Create a new chord system.
      */
-    public void join(){
+    public boolean join(){
         NodeInfo nodeInfo = getNodeInfo();
-        setPredecessor(nodeInfo);
+        if(!setPredecessor(nodeInfo)) return false;
         for(int i = 0; i < getKeySize(); ++i) {
-            setFinger(i, nodeInfo);
+            if(!setFinger(i, nodeInfo)) return false;
         }
+        return true;
     }
 
     /**
@@ -167,12 +170,12 @@ public class Chord {
      * @param gateway   Socket address of the gateway node that will be used to join the system
      * @param moveKeys  Whatever operations the upper layer may want to execute just before ending the Join
      */
-    public void join(InetSocketAddress gateway, ProtocolTask<Void> moveKeys) {
-        new JoinProtocol(this, gateway, moveKeys).invoke();
+    public boolean join(InetSocketAddress gateway, ProtocolTask<Boolean> moveKeys) {
+        return new JoinProtocol(this, gateway, moveKeys).invoke();
     }
 
-    public void leave(ProtocolTask<Void> moveKeys) {
-        new LeaveProtocol(this, moveKeys).invoke();
+    public boolean leave(ProtocolTask<Boolean> moveKeys) {
+        return new LeaveProtocol(this, moveKeys).invoke();
     }
 
     public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {

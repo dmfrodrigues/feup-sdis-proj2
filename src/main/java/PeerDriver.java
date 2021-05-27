@@ -22,17 +22,12 @@ public class PeerDriver {
         peer.bindAsRemoteObject(serviceAccessPoint);
 
         if(args.length <= 5){
-            peer.getChord().join();
+            peer.join();
         } else {
             String socketAddressString = args[5];
             String[] socketAddressSplit = socketAddressString.split(":");
             InetSocketAddress gateway = new InetSocketAddress(socketAddressSplit[0], Integer.parseInt(socketAddressSplit[1]));
-            peer.getChord().join(gateway, new ProtocolTask<>() {
-                @Override
-                public Void compute() {
-                    return null;
-                }
-            });
+            peer.join(gateway);
         }
     }
 
