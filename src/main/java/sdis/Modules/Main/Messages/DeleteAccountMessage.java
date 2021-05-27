@@ -74,7 +74,7 @@ public class DeleteAccountMessage extends MainMessage {
                     tasks.add(new DeleteFileProtocol(getMain(), f, 10));
                 }
 
-                invokeAll(tasks);
+                for(ProtocolTask<Boolean> t: tasks) t.fork();
                 for (RecursiveTask<Boolean> task : tasks) {
                     try {
                         success &= task.get();
