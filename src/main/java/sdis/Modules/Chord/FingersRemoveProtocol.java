@@ -6,7 +6,6 @@ import sdis.Modules.ProtocolTask;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
 public class FingersRemoveProtocol extends ProtocolTask<Void> {

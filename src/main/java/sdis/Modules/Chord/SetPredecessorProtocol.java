@@ -5,7 +5,6 @@ import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.ExecutionException;
 
 public class SetPredecessorProtocol extends ProtocolTask<Void> {
 

@@ -8,7 +8,6 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
 public class DeleteSystemMessage extends SystemStorageMessage {
 

@@ -4,11 +4,9 @@ import sdis.Modules.Chord.Chord;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
 public class SetPredecessorMessage extends ChordMessage {
 

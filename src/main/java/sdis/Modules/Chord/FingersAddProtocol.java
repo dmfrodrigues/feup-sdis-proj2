@@ -5,7 +5,8 @@ import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.RecursiveTask;
 
 public class FingersAddProtocol extends ProtocolTask<Void> {
 
