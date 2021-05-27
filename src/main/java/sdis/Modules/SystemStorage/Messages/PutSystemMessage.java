@@ -59,7 +59,7 @@ public class PutSystemMessage extends SystemStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             boolean b = getSystemStorage().getDataStorage().put(message.getId(), message.getData());
 
                 try {
@@ -68,8 +68,6 @@ public class PutSystemMessage extends SystemStorageMessage {
                 } catch (IOException | InterruptedException e) {
                     throw new CompletionException(e);
                 }
-
-            return null;
         }
     }
 

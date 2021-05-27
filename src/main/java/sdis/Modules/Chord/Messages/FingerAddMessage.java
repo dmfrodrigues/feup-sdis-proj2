@@ -56,7 +56,7 @@ public class FingerAddMessage extends ChordMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             try {
                 Chord chord = getChord();
                 Chord.NodeInfo r = chord.getNodeInfo();
@@ -68,7 +68,7 @@ public class FingerAddMessage extends ChordMessage {
                     getSocket().shutdownOutput();
                     getSocket().getInputStream().readAllBytes();
                     getSocket().close();
-                    return null;
+                    return;
                 }
 
                 // Update fingers if necessary
@@ -94,7 +94,6 @@ public class FingerAddMessage extends ChordMessage {
                 }
 
                 readAllBytesAndClose(getSocket());
-                return null;
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }

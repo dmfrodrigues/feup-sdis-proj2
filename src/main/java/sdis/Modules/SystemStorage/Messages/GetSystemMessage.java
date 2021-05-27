@@ -43,7 +43,7 @@ public class GetSystemMessage extends SystemStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             byte[] data = getSystemStorage().getDataStorage().get(message.getId());
 
             try {
@@ -52,8 +52,6 @@ public class GetSystemMessage extends SystemStorageMessage {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-
-            return null;
         }
     }
 

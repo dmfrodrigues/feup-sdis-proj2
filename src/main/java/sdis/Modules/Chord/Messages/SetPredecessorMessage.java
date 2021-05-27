@@ -50,11 +50,10 @@ public class SetPredecessorMessage extends ChordMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             getChord().setPredecessor(message.getPredecessor());
             try {
                 readAllBytesAndClose(getSocket());
-                return null;
             } catch (InterruptedException e) {
                 throw new CompletionException(e);
             }

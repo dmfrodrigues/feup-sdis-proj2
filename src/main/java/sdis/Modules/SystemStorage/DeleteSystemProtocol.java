@@ -23,7 +23,7 @@ public class DeleteSystemProtocol extends ProtocolTask<Boolean> {
     public Boolean compute() {
         Chord chord = systemStorage.getChord();
         try{
-            Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord)).invoke();
+            Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord));
             DeleteSystemMessage deleteSystemMessage = new DeleteSystemMessage(id);
             Socket socket = systemStorage.send(s.address, deleteSystemMessage);
             socket.shutdownOutput();

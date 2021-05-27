@@ -162,7 +162,7 @@ public class MainTest {
         assertTrue(peer.getMain().getSystemStorage().getDataStorage().has(new UUID("user1-0-0")));
 
         BackupFileProtocol backupFileProtocol = new BackupFileProtocol(peer.getMain(), file, data, false);
-        assertTrue(backupFileProtocol.enlistFile().get());
+        assertTrue(backupFileProtocol.enlistFile());
 
         UserMetadata userMetadata = peer.authenticate(username, password);
         assertNotNull(userMetadata.getFile(path));

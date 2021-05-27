@@ -76,7 +76,7 @@ public class AuthenticateMessage extends MainMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             Status status = Status.SUCCESS;
             UserMetadata userMetadata = null;
 
@@ -88,7 +88,7 @@ public class AuthenticateMessage extends MainMessage {
 
             if(!b) {
                 userMetadata = new UserMetadata(message.username, message.password);
-                if(putUserMetadata(userMetadata)) return get();
+                if(putUserMetadata(userMetadata)){ compute(); return; }
                 status = Status.BROKEN;
             } else {
                 try {
@@ -111,8 +111,6 @@ public class AuthenticateMessage extends MainMessage {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-
-            return null;
         }
     }
 

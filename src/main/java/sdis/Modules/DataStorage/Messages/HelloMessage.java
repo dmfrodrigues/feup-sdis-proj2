@@ -44,13 +44,12 @@ public class HelloMessage extends DataStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             // If the message was received by the node that started the first Hello protocol, ignore
-            if(getChord().getNodeInfo().equals(message.getNodeInfo())) return null;
+            if(getChord().getNodeInfo().equals(message.getNodeInfo())) return;
 
             HelloProtocol helloProtocol = new HelloProtocol(getChord(), getDataStorage(), message.getNodeInfo());
             helloProtocol.invoke();
-            return null;
         }
     }
 

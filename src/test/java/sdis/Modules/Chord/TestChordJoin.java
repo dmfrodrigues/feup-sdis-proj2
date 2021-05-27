@@ -48,14 +48,14 @@ public class TestChordJoin {
 
         Chord chord = peer1.getChord();
 
-        assertEquals(0, chord.getSuccessor(chord.newKey(  0)).invoke().key.toLong());
-        assertEquals(0, chord.getSuccessor(chord.newKey(  1)).invoke().key.toLong());
-        assertEquals(0, chord.getSuccessor(chord.newKey(  5)).invoke().key.toLong());
-        assertEquals(0, chord.getSuccessor(chord.newKey( 10)).invoke().key.toLong());
-        assertEquals(0, chord.getSuccessor(chord.newKey( 50)).invoke().key.toLong());
-        assertEquals(0, chord.getSuccessor(chord.newKey(100)).invoke().key.toLong());
-        assertEquals(0, chord.getSuccessor(chord.newKey(200)).invoke().key.toLong());
-        assertEquals(0, chord.getSuccessor(chord.newKey(255)).invoke().key.toLong());
+        assertEquals(0, chord.getSuccessor(chord.newKey(  0)).key.toLong());
+        assertEquals(0, chord.getSuccessor(chord.newKey(  1)).key.toLong());
+        assertEquals(0, chord.getSuccessor(chord.newKey(  5)).key.toLong());
+        assertEquals(0, chord.getSuccessor(chord.newKey( 10)).key.toLong());
+        assertEquals(0, chord.getSuccessor(chord.newKey( 50)).key.toLong());
+        assertEquals(0, chord.getSuccessor(chord.newKey(100)).key.toLong());
+        assertEquals(0, chord.getSuccessor(chord.newKey(200)).key.toLong());
+        assertEquals(0, chord.getSuccessor(chord.newKey(255)).key.toLong());
 
         peer1.leave();
     }
@@ -74,7 +74,7 @@ public class TestChordJoin {
         for(long key = 0; key < peer1.getChord().getMod(); ++key){
             assertEquals(
                 getExpectedSuccessor(peers, key, 1L<<8),
-                chord1.getSuccessor(chord1.newKey(key)).invoke().key.toLong()
+                chord1.getSuccessor(chord1.newKey(key)).key.toLong()
             );
         }
 
@@ -131,25 +131,25 @@ public class TestChordJoin {
 
         Chord chord1 = peer1.getChord();
 
-        assertEquals( 0, chord1.getSuccessor(chord1.newKey(  0)).invoke().key.toLong());
-        assertEquals(10, chord1.getSuccessor(chord1.newKey(  1)).invoke().key.toLong());
-        assertEquals(10, chord1.getSuccessor(chord1.newKey(  5)).invoke().key.toLong());
-        assertEquals(10, chord1.getSuccessor(chord1.newKey( 10)).invoke().key.toLong());
-        assertEquals( 0, chord1.getSuccessor(chord1.newKey( 50)).invoke().key.toLong());
-        assertEquals( 0, chord1.getSuccessor(chord1.newKey(100)).invoke().key.toLong());
-        assertEquals( 0, chord1.getSuccessor(chord1.newKey(200)).invoke().key.toLong());
-        assertEquals( 0, chord1.getSuccessor(chord1.newKey(255)).invoke().key.toLong());
+        assertEquals( 0, chord1.getSuccessor(chord1.newKey(  0)).key.toLong());
+        assertEquals(10, chord1.getSuccessor(chord1.newKey(  1)).key.toLong());
+        assertEquals(10, chord1.getSuccessor(chord1.newKey(  5)).key.toLong());
+        assertEquals(10, chord1.getSuccessor(chord1.newKey( 10)).key.toLong());
+        assertEquals( 0, chord1.getSuccessor(chord1.newKey( 50)).key.toLong());
+        assertEquals( 0, chord1.getSuccessor(chord1.newKey(100)).key.toLong());
+        assertEquals( 0, chord1.getSuccessor(chord1.newKey(200)).key.toLong());
+        assertEquals( 0, chord1.getSuccessor(chord1.newKey(255)).key.toLong());
 
         Chord chord2 = peer2.getChord();
 
-        assertEquals( 0, chord2.getSuccessor(chord2.newKey(  0)).invoke().key.toLong());
-        assertEquals(10, chord2.getSuccessor(chord2.newKey(  1)).invoke().key.toLong());
-        assertEquals(10, chord2.getSuccessor(chord2.newKey(  5)).invoke().key.toLong());
-        assertEquals(10, chord2.getSuccessor(chord2.newKey( 10)).invoke().key.toLong());
-        assertEquals( 0, chord2.getSuccessor(chord2.newKey( 50)).invoke().key.toLong());
-        assertEquals( 0, chord2.getSuccessor(chord2.newKey(100)).invoke().key.toLong());
-        assertEquals( 0, chord2.getSuccessor(chord2.newKey(200)).invoke().key.toLong());
-        assertEquals( 0, chord2.getSuccessor(chord2.newKey(255)).invoke().key.toLong());
+        assertEquals( 0, chord2.getSuccessor(chord2.newKey(  0)).key.toLong());
+        assertEquals(10, chord2.getSuccessor(chord2.newKey(  1)).key.toLong());
+        assertEquals(10, chord2.getSuccessor(chord2.newKey(  5)).key.toLong());
+        assertEquals(10, chord2.getSuccessor(chord2.newKey( 10)).key.toLong());
+        assertEquals( 0, chord2.getSuccessor(chord2.newKey( 50)).key.toLong());
+        assertEquals( 0, chord2.getSuccessor(chord2.newKey(100)).key.toLong());
+        assertEquals( 0, chord2.getSuccessor(chord2.newKey(200)).key.toLong());
+        assertEquals( 0, chord2.getSuccessor(chord2.newKey(255)).key.toLong());
 
         peer1.leave();
         peer2.leave();
@@ -172,8 +172,8 @@ public class TestChordJoin {
         }};
 
         for(long key = 0; key < peer1.getChord().getMod(); ++key){
-            assertEquals(getExpectedSuccessor(peers, key, 1L<<8), chord1.getSuccessor(chord1.newKey(key)).invoke().key.toLong());
-            assertEquals(getExpectedSuccessor(peers, key, 1L<<8), chord2.getSuccessor(chord2.newKey(key)).invoke().key.toLong());
+            assertEquals(getExpectedSuccessor(peers, key, 1L<<8), chord1.getSuccessor(chord1.newKey(key)).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, key, 1L<<8), chord2.getSuccessor(chord2.newKey(key)).key.toLong());
         }
 
         peer1.leave();
@@ -218,9 +218,9 @@ public class TestChordJoin {
         }
 
         for(long key = 0; key < peer1.getChord().getMod(); ++key){
-            assertEquals(getExpectedSuccessor(peers, key, MOD), chord1.getSuccessor(chord1.newKey(key)).invoke().key.toLong());
-            assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).invoke().key.toLong());
-            assertEquals(getExpectedSuccessor(peers, key, MOD), chord3.getSuccessor(chord3.newKey(key)).invoke().key.toLong());
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord1.getSuccessor(chord1.newKey(key)).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord3.getSuccessor(chord3.newKey(key)).key.toLong());
         }
 
         peer1.leave();
@@ -319,7 +319,7 @@ public class TestChordJoin {
         for (Peer peer : peers) {
             for (long key = 0; key < MOD; key += increment) {
                 Chord chord = peer.getChord();
-                assertEquals(getExpectedSuccessor(idsSorted, key, MOD), chord.getSuccessor(chord.newKey(key)).invoke().key.toLong());
+                assertEquals(getExpectedSuccessor(idsSorted, key, MOD), chord.getSuccessor(chord.newKey(key)).key.toLong());
             }
         }
         long endTime = System.nanoTime();

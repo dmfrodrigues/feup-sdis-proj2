@@ -49,7 +49,7 @@ public class EnlistFileMessage extends MainMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             Username owner = message.file.getOwner();
 
             try {
@@ -57,7 +57,7 @@ public class EnlistFileMessage extends MainMessage {
                 DataBuilder builder = new DataBuilder();
                 DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
                 RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), owner, chunkOutput, 10);
-                if(!restoreUserFileProtocol.invoke()){ end(false); return null; }
+                if(!restoreUserFileProtocol.invoke()){ end(false); return; }
 
                 // Parse user metadata
                 byte[] data = builder.get();
@@ -68,12 +68,12 @@ public class EnlistFileMessage extends MainMessage {
 
                 // Delete old user metadata
                 DeleteFileProtocol deleteFileProtocol = new DeleteFileProtocol(getMain(), userMetadataFile, 10, false);
-                if(!deleteFileProtocol.invoke()){ end(false); return null; }
+                if(!deleteFileProtocol.invoke()){ end(false); return; }
 
                 // Save new user metadata
                 data = userMetadata.serialize();
                 BackupFileProtocol backupFileProtocol = new BackupFileProtocol(getMain(), userMetadataFile, data, false);
-                if(!backupFileProtocol.invoke()){ end(false); return null; }
+                if(!backupFileProtocol.invoke()){ end(false); return; }
 
                 try {
                     end(true);
@@ -89,8 +89,6 @@ public class EnlistFileMessage extends MainMessage {
                     throw new CompletionException(ex);
                 }
             }
-
-            return null;
         }
     }
 

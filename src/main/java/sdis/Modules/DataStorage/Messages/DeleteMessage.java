@@ -44,7 +44,7 @@ public class DeleteMessage extends DataStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.getId());
             Boolean b = deleteProtocol.invoke();
             try {
@@ -53,7 +53,6 @@ public class DeleteMessage extends DataStorageMessage {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-            return null;
         }
     }
 

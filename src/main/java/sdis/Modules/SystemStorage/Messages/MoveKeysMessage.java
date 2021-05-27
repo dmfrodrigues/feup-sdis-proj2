@@ -55,7 +55,7 @@ public class MoveKeysMessage extends SystemStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             SystemStorage systemStorage = getSystemStorage();
             DataStorage dataStorage = systemStorage.getDataStorage();
             Chord chord = systemStorage.getChord();
@@ -87,8 +87,6 @@ public class MoveKeysMessage extends SystemStorageMessage {
             } catch (ExecutionException e) {
                 throw new CompletionException(e.getCause());
             }
-
-            return null;
         }
     }
 

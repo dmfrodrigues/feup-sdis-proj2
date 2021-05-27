@@ -51,7 +51,7 @@ public class DeleteAccountMessage extends MainMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             Main.File userMetadataFile = message.username.asFile();
 
             boolean success = true;
@@ -74,7 +74,7 @@ public class DeleteAccountMessage extends MainMessage {
                     tasks.add(new DeleteFileProtocol(getMain(), f, 10));
                 }
 
-                for(ProtocolTask<Boolean> t: tasks) t.fork();
+                invokeAll(tasks);
                 for (RecursiveTask<Boolean> task : tasks) {
                     try {
                         success &= task.get();
@@ -93,8 +93,6 @@ public class DeleteAccountMessage extends MainMessage {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-
-            return null;
         }
     }
 

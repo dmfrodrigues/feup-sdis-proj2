@@ -41,7 +41,7 @@ public class SystemStorage {
         return send(to.address, message);
     }
 
-    public Boolean put(UUID id, byte[] data) {
+    public boolean put(UUID id, byte[] data) {
         return new PutSystemProtocol(this, id, data).invoke();
     }
 
@@ -49,7 +49,7 @@ public class SystemStorage {
         return new GetSystemProtocol(this, id).invoke();
     }
 
-    public Boolean delete(UUID id) {
+    public boolean delete(UUID id) {
         return new DeleteSystemProtocol(this, id).invoke();
     }
 }

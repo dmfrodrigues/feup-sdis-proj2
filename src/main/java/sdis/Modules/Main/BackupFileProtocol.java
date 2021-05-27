@@ -41,25 +41,23 @@ public class BackupFileProtocol extends ProtocolTask<Boolean> {
         this(main, file, new ByteArrayChunkIterator(data, CHUNK_SIZE), enlist);
     }
 
-    public CompletableFuture<Boolean> enlistFile() {
+    public boolean enlistFile() {
         SystemStorage systemStorage = main.getSystemStorage();
         Chord chord = systemStorage.getChord();
-        return CompletableFuture.supplyAsync(() -> chord.getSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord)).invoke())
-        .thenApplyAsync((Chord.NodeInfo s) -> {
-            try {
-                EnlistFileMessage m = new EnlistFileMessage(file);
-                Socket socket = main.send(s.address, m);
-                socket.shutdownOutput();
-                byte[] response = socket.getInputStream().readAllBytes();
-                socket.close();
-                return m.parseResponse(response);
-            } catch (IOException e) {
-                throw new CompletionException(e);
-            }
-        });
+        Chord.NodeInfo s = chord.getSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord));
+        try {
+            EnlistFileMessage m = new EnlistFileMessage(file);
+            Socket socket = main.send(s.address, m);
+            socket.shutdownOutput();
+            byte[] response = socket.getInputStream().readAllBytes();
+            socket.close();
+            return m.parseResponse(response);
+        } catch (IOException e) {
+            throw new CompletionException(e);
+        }
     }
 
-    private Boolean putReplica(Main.Replica replica, byte[] data) {
+    private boolean putReplica(Main.Replica replica, byte[] data) {
         SystemStorage systemStorage = main.getSystemStorage();
         return systemStorage.put(replica.getUUID(), data);
     }
@@ -99,13 +97,7 @@ public class BackupFileProtocol extends ProtocolTask<Boolean> {
 
         if(enlist) {
             Boolean enlistedFile;
-            try {
-                enlistedFile = enlistFile().get();
-            } catch (InterruptedException e) {
-                throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
-            }
+            enlistedFile = enlistFile();
             if (!enlistedFile) return false;
         }
 

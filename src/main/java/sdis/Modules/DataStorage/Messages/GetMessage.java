@@ -44,7 +44,7 @@ public class GetMessage extends DataStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.getId());
             byte[] data = getProtocol.invoke();
             try {
@@ -53,7 +53,6 @@ public class GetMessage extends DataStorageMessage {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-            return null;
         }
     }
 

@@ -5,6 +5,7 @@ import sdis.Utils.DataBuilder;
 
 import java.net.Socket;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RecursiveAction;
 import java.util.function.Supplier;
 
 public abstract class Message {
@@ -14,7 +15,7 @@ public abstract class Message {
 
     protected abstract DataBuilder build();
 
-    public static abstract class Processor implements Supplier<Void> {}
+    public static abstract class Processor extends RecursiveAction {}
 
     public abstract Message.Processor getProcessor(Peer peer, Socket socket);
 

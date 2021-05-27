@@ -36,7 +36,7 @@ public class GetRedirectsMessage extends DataStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             Set<UUID> ids = getDataStorage().getRedirects();
             try {
                 OutputStream os = getSocket().getOutputStream();
@@ -45,7 +45,6 @@ public class GetRedirectsMessage extends DataStorageMessage {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-            return null;
         }
     }
 

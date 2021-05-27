@@ -43,7 +43,7 @@ public class DeleteSystemMessage extends SystemStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             boolean b = getSystemStorage().getDataStorage().delete(message.getId());
             try {
                 getSocket().getOutputStream().write(message.formatResponse(b));
@@ -51,7 +51,6 @@ public class DeleteSystemMessage extends SystemStorageMessage {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-            return null;
         }
     }
 

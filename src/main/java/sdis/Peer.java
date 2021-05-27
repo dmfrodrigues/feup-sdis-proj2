@@ -83,7 +83,7 @@ public class Peer implements PeerInterface {
     public void join(){
         System.out.println("Peer " + getKey() + " creating a new chord");
 
-        chord.join().invoke();
+        chord.join();
     }
 
     public void join(InetSocketAddress gateway){
@@ -102,7 +102,7 @@ public class Peer implements PeerInterface {
 
                 return null;
             }
-        }).invoke();
+        });
     }
 
     public void leave(){
@@ -114,7 +114,7 @@ public class Peer implements PeerInterface {
                 assert(Utils.deleteRecursive(baseStoragePath.toFile()));
             return null;
             }
-        }).invoke();
+        });
     }
 
     public static ScheduledExecutorService getExecutor(){
@@ -263,7 +263,7 @@ public class Peer implements PeerInterface {
                     byte[] data = is.readAllBytes();
                     Message message = messageFactory.factoryMethod(data);
                     Message.Processor processor = message.getProcessor(peer, socket);
-                    CompletableFuture.supplyAsync(processor, executor);
+                    CompletableFuture.runAsync(processor::invoke, executor);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

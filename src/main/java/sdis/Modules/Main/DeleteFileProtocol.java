@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
@@ -30,22 +29,20 @@ public class DeleteFileProtocol extends ProtocolTask<Boolean> {
         this.delist = delist;
     }
 
-    private CompletableFuture<Boolean> delistFile() {
+    private boolean delistFile() {
         SystemStorage systemStorage = main.getSystemStorage();
         Chord chord = systemStorage.getChord();
-        return CompletableFuture.supplyAsync(() -> chord.getSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord)).invoke())
-        .thenApplyAsync((Chord.NodeInfo s) -> {
-            try {
-                DelistFileMessage m = new DelistFileMessage(file);
-                Socket socket = main.send(s.address, m);
-                socket.shutdownOutput();
-                byte[] response = socket.getInputStream().readAllBytes();
-                socket.close();
-                return m.parseResponse(response);
-            } catch (IOException e) {
-                throw new CompletionException(e);
-            }
-        });
+        Chord.NodeInfo s = chord.getSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord));
+        try {
+            DelistFileMessage m = new DelistFileMessage(file);
+            Socket socket = main.send(s.address, m);
+            socket.shutdownOutput();
+            byte[] response = socket.getInputStream().readAllBytes();
+            socket.close();
+            return m.parseResponse(response);
+        } catch (IOException e) {
+            throw new CompletionException(e);
+        }
     }
 
     public Boolean deleteReplica(Main.Replica replica) {
@@ -106,15 +103,7 @@ public class DeleteFileProtocol extends ProtocolTask<Boolean> {
         if(!ret) return false;
 
         if(delist) {
-            Boolean delistedFile;
-            try {
-                delistedFile = delistFile().get();
-            } catch (InterruptedException e) {
-                throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
-            }
-            return delistedFile;
+            return delistFile();
         }
 
         return true;

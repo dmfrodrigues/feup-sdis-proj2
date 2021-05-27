@@ -44,7 +44,7 @@ public class GetSuccessorMessage extends ChordMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(getChord(), message.getKey());
             Chord.NodeInfo nodeInfo = getSuccessorProtocol.invoke();
             try {
@@ -54,7 +54,6 @@ public class GetSuccessorMessage extends ChordMessage {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-            return null;
         }
     }
 

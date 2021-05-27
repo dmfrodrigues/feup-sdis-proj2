@@ -137,8 +137,8 @@ public class Chord {
         return getFinger(0);
     }
 
-    public ProtocolTask<NodeInfo> getSuccessor(Chord.Key key){
-        return new GetSuccessorProtocol(this, key);
+    public NodeInfo getSuccessor(Chord.Key key){
+        return new GetSuccessorProtocol(this, key).invoke();
     }
 
     public void setKeySize(int i) {
@@ -166,18 +166,12 @@ public class Chord {
      *
      * @return Future that will resolve when join is complete.
      */
-    public ProtocolTask<Void> join(){
-        return new ProtocolTask<>() {
-            @Override
-            protected Void compute() {
-            NodeInfo nodeInfo = getNodeInfo();
-            setPredecessor(nodeInfo);
-            for(int i = 0; i < getKeySize(); ++i) {
-                setFinger(i, nodeInfo);
-            }
-            return null;
-            }
-        };
+    public void join(){
+        NodeInfo nodeInfo = getNodeInfo();
+        setPredecessor(nodeInfo);
+        for(int i = 0; i < getKeySize(); ++i) {
+            setFinger(i, nodeInfo);
+        }
     }
 
     /**
@@ -187,12 +181,12 @@ public class Chord {
      * @param moveKeys  Whatever operations the upper layer may want to execute just before ending the Join
      * @return  Future of the completion of the join procedure
      */
-    public ProtocolTask<Void> join(InetSocketAddress gateway, ProtocolTask<Void> moveKeys) {
-        return new JoinProtocol(this, gateway, moveKeys);
+    public void join(InetSocketAddress gateway, ProtocolTask<Void> moveKeys) {
+        new JoinProtocol(this, gateway, moveKeys).invoke();
     }
 
-    public ProtocolTask<Void> leave(ProtocolTask<Void> moveKeys) {
-        return new LeaveProtocol(this, moveKeys);
+    public void leave(ProtocolTask<Void> moveKeys) {
+        new LeaveProtocol(this, moveKeys).invoke();
     }
 
     public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {
