@@ -2,6 +2,7 @@ package sdis.Modules;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
