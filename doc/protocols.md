@@ -16,6 +16,8 @@ The peer is allowed to directly use the following protocols:
     \end{itemize}
 \end{multicols}
 
+All communications are made using TCP connections.
+
 ![Protocols diagram](protocols.svg)
 
 \newpage
