@@ -1,4 +1,4 @@
-# Concurrency design
+# Concurrency design {#sec:concurrency-design}
 
 ## Initial design: futures
 
