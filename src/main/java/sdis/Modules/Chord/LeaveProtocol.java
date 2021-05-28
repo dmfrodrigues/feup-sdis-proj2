@@ -16,16 +16,16 @@ public class LeaveProtocol extends ProtocolTask<Boolean> {
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
 
-        // If it is alone, just leave
-        if(r.equals(s)) return true;
-
-        // Update predecessors and fingers tables of other nodes
-        // Update predecessor of successor
-        SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getPredecessor());
-        if(!setPredecessorProtocol.invoke()) return false;
-        // Update other nodes' fingers tables
-        FingersRemoveProtocol fingersRemoveProtocol = new FingersRemoveProtocol(chord);
-        if(!fingersRemoveProtocol.invoke()) return false;
+        // If it is not alone, process stuff
+        if(!r.equals(s)) {
+            // Update predecessors and fingers tables of other nodes
+            // Update predecessor of successor
+            SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getPredecessor());
+            if (!setPredecessorProtocol.invoke()) return false;
+            // Update other nodes' fingers tables
+            FingersRemoveProtocol fingersRemoveProtocol = new FingersRemoveProtocol(chord);
+            if (!fingersRemoveProtocol.invoke()) return false;
+        }
         // Move keys
         if(!moveKeys.invoke()) return false;
 

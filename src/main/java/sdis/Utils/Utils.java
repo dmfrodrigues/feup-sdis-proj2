@@ -64,13 +64,21 @@ public class Utils {
         return 63 - Long.numberOfLeadingZeros(n);
     }
 
+    /**
+     * @brief Delete file and, if a directory, all its contents recursively.
+     *
+     * @param directoryToBeDeleted  Directory to be deleted
+     * @return                      True if successful, false otherwise.
+     */
     public static boolean deleteRecursive(File directoryToBeDeleted) {
+        boolean ret = true;
         File[] allContents = directoryToBeDeleted.listFiles();
         if (allContents != null) {
             for (File file : allContents) {
-                deleteRecursive(file);
+                ret &= deleteRecursive(file);
             }
         }
-        return directoryToBeDeleted.delete();
+        ret &= directoryToBeDeleted.delete();
+        return ret;
     }
 }

@@ -118,8 +118,7 @@ public class Peer implements PeerInterface {
                 // Move keys
                 // TODO
 
-                assert(Utils.deleteRecursive(baseStoragePath.toFile()));
-            return true;
+                return Utils.deleteRecursive(baseStoragePath.toFile());
             }
         });
     }
