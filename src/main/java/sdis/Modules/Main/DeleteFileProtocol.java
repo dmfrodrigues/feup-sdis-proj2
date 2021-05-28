@@ -66,8 +66,6 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        System.out.println("L69, file=" + file);
-
         long numChunks = file.getNumberOfChunks();
 
         List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
@@ -82,16 +80,13 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
         }
 
         if(!invokeAndReduceTasks(tasks)){
-            System.out.println("L85");
             return false;
         }
 
         if(delist) {
-            System.out.println("L90");
             return delistFile();
         }
-
-        System.out.println("L94");
+        
         return true;
     }
 }
