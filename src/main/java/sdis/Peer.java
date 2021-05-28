@@ -7,7 +7,9 @@ import sdis.Modules.DataStorage.LocalDataStorage;
 import sdis.Modules.Main.*;
 import sdis.Modules.Message;
 import sdis.Modules.ProtocolTask;
+import sdis.Modules.SystemStorage.MoveKeysProtocol;
 import sdis.Modules.SystemStorage.ReclaimProtocol;
+import sdis.Modules.SystemStorage.RemoveKeysProtocol;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
@@ -102,9 +104,8 @@ public class Peer implements PeerInterface {
                     dataStorage.registerSuccessorStored(id);
 
                 // Move keys
-                // TODO
-
-                return true;
+                MoveKeysProtocol moveKeysProtocol = new MoveKeysProtocol(systemStorage);
+                return moveKeysProtocol.invoke();
             }
         });
     }
@@ -115,9 +116,11 @@ public class Peer implements PeerInterface {
         return chord.leave(new ProtocolTask<>() {
             @Override
             public Boolean compute() {
-                // Move keys
-                // TODO
+                // Remove keys
+                RemoveKeysProtocol removeKeysProtocol = new RemoveKeysProtocol(systemStorage);
+                if(!removeKeysProtocol.invoke()) return false;
 
+                // Delete local storage
                 return Utils.deleteRecursive(baseStoragePath.toFile());
             }
         });

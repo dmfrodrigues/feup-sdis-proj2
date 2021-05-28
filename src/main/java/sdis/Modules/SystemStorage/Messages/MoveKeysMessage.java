@@ -9,11 +9,14 @@ import sdis.Peer;
 import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
 public class MoveKeysMessage extends SystemStorageMessage {
@@ -27,19 +30,15 @@ public class MoveKeysMessage extends SystemStorageMessage {
     public MoveKeysMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
-        Chord.Key key = chord.newKey(Long.parseLong(splitString[0]));
-        String[] splitAddress = splitString[1].split(":");
+        Chord.Key key = chord.newKey(Long.parseLong(splitString[1]));
+        String[] splitAddress = splitString[2].split(":");
         InetSocketAddress address = new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1]));
         nodeInfo = new Chord.NodeInfo(key, address);
     }
 
-    private Chord.NodeInfo getNodeInfo() {
-        return nodeInfo;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("MOVEKEYS " + getNodeInfo()).getBytes());
+        return new DataBuilder(("MOVEKEYS " + nodeInfo).getBytes());
     }
 
     private static class MoveKeysProcessor extends Processor {
@@ -57,7 +56,7 @@ public class MoveKeysMessage extends SystemStorageMessage {
             DataStorage dataStorage = systemStorage.getDataStorage();
             Chord chord = systemStorage.getChord();
             Chord.NodeInfo r = chord.getNodeInfo();
-            Chord.NodeInfo n = message.getNodeInfo();
+            Chord.NodeInfo n = message.nodeInfo;
 
             Set<UUID> ids = dataStorage.getAll();
             List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
@@ -78,12 +77,35 @@ public class MoveKeysMessage extends SystemStorageMessage {
                 }
             }
 
-            for(RecursiveTask<Boolean> task: tasks) task.join();
+            boolean ret = true;
+            for(RecursiveTask<Boolean> task: tasks) {
+                try {
+                    ret &= task.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    ret = false;
+                }
+            }
+
+            try {
+                getSocket().getOutputStream().write(message.formatResponse(ret));
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
+                throw new CompletionException(e);
+            }
         }
     }
 
     @Override
     public MoveKeysProcessor getProcessor(Peer peer, Socket socket) {
         return new MoveKeysProcessor(peer.getSystemStorage(), socket, this);
+    }
+
+    private byte[] formatResponse(boolean b) {
+        return new byte[]{(byte) (b ? 1 : 0)};
+    }
+
+    public boolean parseResponse(byte[] response) {
+        return (response[0] == 1);
     }
 }

@@ -12,7 +12,7 @@ public class MoveKeysProtocol extends ProtocolTask<Boolean> {
 
     private final SystemStorage systemStorage;
 
-    public MoveKeysProtocol(SystemStorage systemStorage, Chord.NodeInfo nodeInfo){
+    public MoveKeysProtocol(SystemStorage systemStorage){
         this.systemStorage = systemStorage;
     }
 
@@ -25,8 +25,8 @@ public class MoveKeysProtocol extends ProtocolTask<Boolean> {
         try{
             MoveKeysMessage moveKeysMessage = new MoveKeysMessage(r);
             Socket socket = systemStorage.send(s.address, moveKeysMessage);
-            readAllBytesAndClose(socket);
-            return true;
+            byte[] data = readAllBytesAndClose(socket);
+            return moveKeysMessage.parseResponse(data);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }

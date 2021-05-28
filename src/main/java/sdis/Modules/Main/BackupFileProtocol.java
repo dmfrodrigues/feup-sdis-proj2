@@ -60,10 +60,10 @@ public class BackupFileProtocol extends MainProtocolTask<Boolean> {
     }
 
     private boolean putChunk(Main.Chunk chunk, byte[] data){
-        List<RecursiveTask<Boolean>> tasks = new ArrayList<>();
+        List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
         for(int i = 0; i < file.getReplicationDegree(); ++i){
             Main.Replica replica = chunk.getReplica(i);
-            tasks.add(new RecursiveTask<>() {
+            tasks.add(new ProtocolTask<>() {
                 @Override
                 protected Boolean compute() {
                     return putReplica(replica, data);
@@ -87,7 +87,7 @@ public class BackupFileProtocol extends MainProtocolTask<Boolean> {
             if (!enlistFile()) return false;
         }
 
-        List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
+        List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
         for (long i = 0; i < numChunks; ++i) {
             long finalI = i;
             tasks.add(new ProtocolTask<>() {

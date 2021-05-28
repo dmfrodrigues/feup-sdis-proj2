@@ -50,10 +50,10 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
     }
 
     public Boolean deleteChunk(Main.Chunk chunk) {
-        List<RecursiveTask<Boolean>> tasks = new ArrayList<>();
+        List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
         for(int i = 0; i < file.getReplicationDegree(); ++i){
             Main.Replica replica = chunk.getReplica(i);
-            tasks.add(new RecursiveTask<>() {
+            tasks.add(new ProtocolTask<>() {
                 @Override
                 protected Boolean compute() {
                     return deleteReplica(replica);
@@ -68,7 +68,7 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
     public Boolean compute() {
         long numChunks = file.getNumberOfChunks();
 
-        List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
+        List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
         for (long i = 0; i < numChunks; ++i) {
             long finalI = i;
             tasks.add(new ProtocolTask<>() {
@@ -86,7 +86,7 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
         if(delist) {
             return delistFile();
         }
-        
+
         return true;
     }
 }

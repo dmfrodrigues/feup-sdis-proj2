@@ -20,11 +20,11 @@ public class FingersRemoveProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        List<RecursiveTask<Boolean>> tasks = new ArrayList<>();
+        List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
         for(int i = 0; i < chord.getKeySize(); ++i){
             Chord.Key k = chord.getKey().subtract(1L << i);
             int finalI = i;
-            RecursiveTask<Boolean> task = new ProtocolTask<>() {
+            ProtocolTask<Boolean> task = new ProtocolTask<>() {
                 @Override
                 protected Boolean compute() {
                     GetPredecessorProtocol getPredecessorProtocol = new GetPredecessorProtocol(chord, k);

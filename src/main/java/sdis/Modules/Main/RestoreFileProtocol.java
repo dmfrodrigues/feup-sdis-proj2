@@ -70,10 +70,10 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Queue<RecursiveTask<Boolean>> tasks = new FixedSizeList<>(maxNumberFutures);
+        Queue<ProtocolTask<Boolean>> tasks = new FixedSizeList<>(maxNumberFutures);
         for (long i = 0; i < file.getNumberOfChunks(); ++i) {
             while (tasks.size() >= maxNumberFutures) {
-                RecursiveTask<Boolean> task = tasks.remove();
+                ProtocolTask<Boolean> task = tasks.remove();
 
                 boolean b;
                 try {

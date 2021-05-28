@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestChordJoin {
     public long getExpectedSuccessor(List<Long> listOfPeers, long key, long MOD){
@@ -38,7 +39,7 @@ public class TestChordJoin {
         assertEquals(0, chord1.getFinger(6).key.toLong());
         assertEquals(0, chord1.getFinger(7).key.toLong());
 
-        peer1.leave();
+        assertTrue(peer1.leave());
     }
 
     @Test(timeout=1000)
@@ -57,7 +58,7 @@ public class TestChordJoin {
         assertEquals(0, chord.getSuccessor(chord.newKey(200)).key.toLong());
         assertEquals(0, chord.getSuccessor(chord.newKey(255)).key.toLong());
 
-        peer1.leave();
+        assertTrue(peer1.leave());
     }
 
     @Test(timeout=1000)
@@ -78,7 +79,7 @@ public class TestChordJoin {
             );
         }
 
-        peer1.leave();
+        assertTrue(peer1.leave());
     }
 
     @Test(timeout=1000)
@@ -116,8 +117,8 @@ public class TestChordJoin {
         assertEquals(0, chord2.getFinger(6).key.toLong());
         assertEquals(0, chord2.getFinger(7).key.toLong());
 
-        peer1.leave();
-        peer2.leave();
+        assertTrue(peer1.leave());
+        assertTrue(peer2.leave());
     }
 
     @Test(timeout=1000)
@@ -151,8 +152,8 @@ public class TestChordJoin {
         assertEquals( 0, chord2.getSuccessor(chord2.newKey(200)).key.toLong());
         assertEquals( 0, chord2.getSuccessor(chord2.newKey(255)).key.toLong());
 
-        peer1.leave();
-        peer2.leave();
+        assertTrue(peer1.leave());
+        assertTrue(peer2.leave());
     }
 
     @Test(timeout=1000)
@@ -176,8 +177,8 @@ public class TestChordJoin {
             assertEquals(getExpectedSuccessor(peers, key, 1L<<8), chord2.getSuccessor(chord2.newKey(key)).key.toLong());
         }
 
-        peer1.leave();
-        peer2.leave();
+        assertTrue(peer1.leave());
+        assertTrue(peer2.leave());
     }
 
     @Test(timeout=1000)

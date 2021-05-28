@@ -161,4 +161,8 @@ public class LocalDataStorage extends DataStorageAbstract {
         File file = new File(storagePath + "/" + id);
         return file.length();
     }
+
+    public Path getStoragePath() {
+        return storagePath;
+    }
 }

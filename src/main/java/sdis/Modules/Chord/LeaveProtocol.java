@@ -26,6 +26,7 @@ public class LeaveProtocol extends ProtocolTask<Boolean> {
             FingersRemoveProtocol fingersRemoveProtocol = new FingersRemoveProtocol(chord);
             if (!fingersRemoveProtocol.invoke()) return false;
         }
+
         // Move keys
         if(!moveKeys.invoke()) return false;
 

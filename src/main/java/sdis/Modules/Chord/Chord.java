@@ -2,6 +2,7 @@ package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.ChordMessage;
 import sdis.Modules.ProtocolTask;
+import sdis.Utils.Pair;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -74,8 +75,11 @@ public class Chord {
             return key + " " + address.getAddress().getHostAddress() + ":" + address.getPort();
         }
 
-        public boolean equals(NodeInfo obj){
-            return (key.equals(obj.key) && address.equals(obj.address));
+        public boolean equals(Object o){
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            NodeInfo info = (NodeInfo) o;
+            return (key.equals(info.key) && address.equals(info.address));
         }
     }
 
