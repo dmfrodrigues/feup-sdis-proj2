@@ -25,16 +25,16 @@ public class FingersAddProtocol extends ProtocolTask<Void> {
             RecursiveTask<Void> task = new ProtocolTask<>() {
                 @Override
                 protected Void compute() {
-                GetPredecessorProtocol getPredecessorProtocol = new GetPredecessorProtocol(chord, k);
-                Chord.NodeInfo predecessor = getPredecessorProtocol.compute();
-                try {
-                    FingerAddMessage m = new FingerAddMessage(chord.getNodeInfo(), finalI);
-                    Socket socket = chord.send(predecessor, m);
-                    readAllBytesAndClose(socket);
-                    return null;
-                } catch (IOException | InterruptedException e) {
-                    throw new CompletionException(e);
-                }
+                    GetPredecessorProtocol getPredecessorProtocol = new GetPredecessorProtocol(chord, k);
+                    Chord.NodeInfo predecessor = getPredecessorProtocol.compute();
+                    try {
+                        FingerAddMessage m = new FingerAddMessage(chord.getNodeInfo(), finalI);
+                        Socket socket = chord.send(predecessor, m);
+                        readAllBytesAndClose(socket);
+                        return null;
+                    } catch (IOException | InterruptedException e) {
+                        throw new CompletionException(e);
+                    }
                 }
             };
             tasks[i] = task;
