@@ -64,9 +64,7 @@ public class FingerAddMessage extends ChordMessage {
 
                 // If the new node to update the fingers table is itself, ignore
                 if(r.equals(f)){
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
+                    readAllBytesAndClose(getSocket());
                     return;
                 }
 
@@ -87,9 +85,7 @@ public class FingerAddMessage extends ChordMessage {
                 // arrival, but we can also check that on departure)
                 if(updatedFingers && !p.equals(f)){
                     Socket predecessorSocket = chord.send(p, message);
-                    predecessorSocket.shutdownOutput();
-                    predecessorSocket.getInputStream().readAllBytes();
-                    predecessorSocket.close();
+                    readAllBytesAndClose(predecessorSocket);
                 }
 
                 readAllBytesAndClose(getSocket());

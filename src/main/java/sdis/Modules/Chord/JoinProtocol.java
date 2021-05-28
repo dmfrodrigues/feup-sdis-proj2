@@ -33,13 +33,11 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
             try {
                 GetSuccessorMessage m = new GetSuccessorMessage(k);
                 Socket socket = chord.send(g, m);
-                socket.shutdownOutput();
-                byte[] response = socket.getInputStream().readAllBytes();
-                socket.close();
+                byte[] response = readAllBytesAndClose(socket);
                 Chord.NodeInfo s = m.parseResponse(chord, response);
                 if(Chord.distance(k, r.key) < Chord.distance(k, s.key)) s = r;
                 chord.setFinger(i, s);
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
         }
