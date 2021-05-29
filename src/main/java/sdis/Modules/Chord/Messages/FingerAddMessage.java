@@ -33,17 +33,9 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
         fingerIndex = Integer.parseInt(splitString[3]);
     }
 
-    public Chord.NodeInfo getPeerInfo(){
-        return nodeInfo;
-    }
-
-    public int getFingerIndex(){
-        return fingerIndex;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("FINGERADD " + nodeInfo + " " + getFingerIndex()).getBytes());
+        return new DataBuilder(("FINGERADD " + nodeInfo + " " + fingerIndex).getBytes());
     }
 
     private static class FingerAddProcessor extends ChordMessage.Processor {
@@ -58,34 +50,33 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
         public void compute() {
             try {
                 Chord chord = getChord();
-                Chord.NodeInfo r = chord.getNodeInfo();
-                Chord.NodeInfo f = message.getPeerInfo();
+                Chord.NodeInfo n = chord.getNodeInfo();
+                Chord.NodeInfo s = message.nodeInfo;
                 Chord.NodeInfo p = chord.getPredecessor();
 
                 // If the new node to update the fingers table is itself, ignore
-                if(r.equals(f)){
+                if(n.equals(s)){
                     readAllBytesAndClose(getSocket());
                     return;
                 }
 
                 // Update fingers if necessary
-                int i = message.getFingerIndex();
+                int i = message.fingerIndex;
                 boolean updatedFingers = false;
                 while(
                     i >= 0 &&
-                    Chord.distance(r.key.add(1L << i), f.key) < Chord.distance(r.key.add(1L << i), chord.getFinger(i).key)
+                    Chord.distance(n.key.add(1L << i), s.key) < Chord.distance(n.key.add(1L << i), chord.getFinger(i).key)
                 ){
                     updatedFingers = true;
-                    chord.setFinger(i--, f);
+                    chord.setFinger(i--, s);
                 }
 
                 // If at least one finger was updated, and the predecessor was
                 // not the one that sent the message, redirect to predecessor.
                 // (this is already prevented by the `r.equals(f)` check on
                 // arrival, but we can also check that on departure)
-                if(updatedFingers && !p.equals(f)){
-                    Socket predecessorSocket = chord.send(p, message);
-                    readAllBytesAndClose(predecessorSocket);
+                if(updatedFingers && !p.equals(s)){
+                    message.sendTo(chord, p.address);
                 }
 
                 readAllBytesAndClose(getSocket());

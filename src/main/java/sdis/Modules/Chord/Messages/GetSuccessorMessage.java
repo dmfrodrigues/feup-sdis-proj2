@@ -24,13 +24,9 @@ public class GetSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
         key = chord.newKey(Long.parseLong(splitString[1]));
     }
 
-    private Chord.Key getKey() {
-        return key;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("GETSUCCESSOR " + getKey()).getBytes());
+        return new DataBuilder(("GETSUCCESSOR " + key).getBytes());
     }
 
     private static class GetSuccessorProcessor extends ChordMessage.Processor {
@@ -44,7 +40,7 @@ public class GetSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
 
         @Override
         public void compute() {
-            GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(getChord(), message.getKey());
+            GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(getChord(), message.key);
             Chord.NodeInfo nodeInfo = getSuccessorProtocol.invoke();
             try {
                 byte[] response = message.formatResponse(nodeInfo);
