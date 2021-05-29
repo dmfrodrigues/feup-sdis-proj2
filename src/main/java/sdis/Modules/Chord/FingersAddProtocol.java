@@ -4,7 +4,6 @@ import sdis.Modules.Chord.Messages.FingerAddMessage;
 import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.RecursiveTask;
 
@@ -18,6 +17,7 @@ public class FingersAddProtocol extends ProtocolTask<Void> {
 
     @Override
     public Void compute() {
+        Chord.NodeInfo r = chord.getNodeInfo();
         RecursiveTask<?>[] tasks = new RecursiveTask[chord.getKeySize()];
         for(int i = 0; i < chord.getKeySize(); ++i){
             Chord.Key k = chord.getKey().subtract(1L << i);
@@ -25,12 +25,10 @@ public class FingersAddProtocol extends ProtocolTask<Void> {
             RecursiveTask<Void> task = new ProtocolTask<>() {
                 @Override
                 protected Void compute() {
-                    GetPredecessorProtocol getPredecessorProtocol = new GetPredecessorProtocol(chord, k);
-                    Chord.NodeInfo predecessor = getPredecessorProtocol.compute();
+                    Chord.NodeInfo predecessor = chord.getPredecessor(k);
                     try {
                         FingerAddMessage m = new FingerAddMessage(chord.getNodeInfo(), finalI);
-                        Socket socket = chord.send(predecessor, m);
-                        readAllBytesAndClose(socket);
+                        m.sendTo(chord, predecessor.address);
                         return null;
                     } catch (IOException | InterruptedException e) {
                         throw new CompletionException(e);
