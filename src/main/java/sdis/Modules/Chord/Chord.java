@@ -2,7 +2,6 @@ package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.ChordMessage;
 import sdis.Modules.ProtocolTask;
-import sdis.Utils.Pair;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,6 +34,19 @@ public class Chord {
 
         public Key subtract(long l){
             return new Key(chord, k - l);
+        }
+
+        /**
+         * @brief Checks if the key is in range [a, b].
+         *
+         * @param a     Left limit of range
+         * @param b     Right limit of range
+         * @return      True if in range, false otherwise
+         */
+        public boolean inRange(Key a, Key b) {
+            long d1 = Chord.distance(a, this);
+            long d2 = Chord.distance(a, b);
+            return (d1 <= d2);
         }
 
         @Override
@@ -117,6 +129,10 @@ public class Chord {
             fingers[i] = peer;
         }
         return true;
+    }
+
+    public NodeInfo getPredecessor(Chord.Key key){
+        return new GetPredecessorProtocol(this, key).invoke();
     }
 
     public NodeInfo getPredecessor(){
