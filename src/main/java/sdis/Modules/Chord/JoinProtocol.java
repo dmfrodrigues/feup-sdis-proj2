@@ -1,6 +1,6 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Messages.GetSuccessorMessage;
+import sdis.Modules.Chord.Messages.FindSuccessorMessage;
 import sdis.Modules.Chord.Messages.PredecessorMessage;
 import sdis.Modules.ProtocolTask;
 
@@ -30,8 +30,8 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
         // Get predecessor
         try {
             // Get successor
-            GetSuccessorMessage getSuccessorMessage = new GetSuccessorMessage(r.key);
-            Chord.NodeInfo s = getSuccessorMessage.sendTo(chord, g);
+            FindSuccessorMessage findSuccessorMessage = new FindSuccessorMessage(r.key);
+            Chord.NodeInfo s = findSuccessorMessage.sendTo(chord, g);
             chord.setFinger(0, s);
             // Get predecessor
             PredecessorMessage predecessorMessage = new PredecessorMessage();
@@ -44,7 +44,7 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
         for(int i = 0; i < chord.getKeySize(); ++i){
             Chord.Key k = r.key.add(1L << i);
             try {
-                GetSuccessorMessage m = new GetSuccessorMessage(k);
+                FindSuccessorMessage m = new FindSuccessorMessage(k);
                 Socket socket = chord.send(g, m);
                 byte[] response = readAllBytesAndClose(socket);
                 Chord.NodeInfo s = m.parseResponse(chord, response);

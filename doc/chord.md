@@ -28,20 +28,20 @@ When the GetSuccessor protocol is invoked in a node $r$ to find the successor of
 3. Determine the distance $d = distance(r, s)$
 4. Find the finger table index $i = \lfloor \log_2{d} \rfloor$
 5. Store $r' = r.fingers[i]$
-6. Send $r'$ a `GETSUCCESSOR` message with $k$
+6. Send $r'$ a `FINDSUCCESSOR` message with $k$
 7. Get the answer and return it
 
-#### `GETSUCCESSOR` message
+#### `FINDSUCCESSOR` message
 
 | **Request**          | | **Response**            |
 |----------------------|-|-------------------------|
-| `GETSUCCESSOR <Key>` | | `<NodeKey> <IP>:<Port>` |
+| `FINDSUCCESSOR <Key>` | | `<NodeKey> <IP>:<Port>` |
 
 Instructs $r'$ to reply with the key and socket address of the successor of `<Key>` (which is $k$).
 
-On receiving a `GETSUCCESSOR` message, $r'$ triggers the GetSuccessor protocol for itself, and responds to the message with the object returned by the GetSuccessor protocol.
+On receiving a `FINDSUCCESSOR` message, $r'$ triggers the GetSuccessor protocol for itself, and responds to the message with the object returned by the GetSuccessor protocol.
 
-If a new node joins the network, it can simply send a `GETSUCCESSOR` to its gateway node without starting the GetSuccessor protocol locally; it would serve no purpose for the joining node to run the GetSuccessor protocol, as it has not yet built its fingers table.
+If a new node joins the network, it can simply send a `FINDSUCCESSOR` to its gateway node without starting the GetSuccessor protocol locally; it would serve no purpose for the joining node to run the GetSuccessor protocol, as it has not yet built its fingers table.
 
 ### GetPredecessor protocol
 
@@ -156,9 +156,9 @@ The joining node needs to know the socket address of at least one node that is a
 
 ##### Build fingers table
 
-To build its fingers table, $r$ asks to $g$ what is the successor of $k = r + 2^i$, for all values of $0 ≤ i < m$, using several `GETSUCCESSOR` messages directed at $g$.
+To build its fingers table, $r$ asks to $g$ what is the successor of $k = r + 2^i$, for all values of $0 ≤ i < m$, using several `FINDSUCCESSOR` messages directed at $g$.
 
-The joining node can asynchronously make all `GETSUCCESSOR` requests to $g$, but that yields $O(m \log N)$ time complexity, while [@stoica2001] states that, if requests are made sequentially, some trivial tests can be made to skip asking about some fingers.
+The joining node can asynchronously make all `FINDSUCCESSOR` requests to $g$, but that yields $O(m \log N)$ time complexity, while [@stoica2001] states that, if requests are made sequentially, some trivial tests can be made to skip asking about some fingers.
 
 TODO | what's better: full asynchronous, or sequential questioning and tests, with less network usage but probably slower?
 

@@ -10,15 +10,15 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class GetSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
+public class FindSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
 
     private final Chord.Key key;
 
-    public GetSuccessorMessage(Chord.Key key){
+    public FindSuccessorMessage(Chord.Key key){
         this.key = key;
     }
 
-    public GetSuccessorMessage(Chord chord, byte[] data){
+    public FindSuccessorMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         key = chord.newKey(Long.parseLong(splitString[1]));
@@ -26,14 +26,14 @@ public class GetSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("GETSUCCESSOR " + key).getBytes());
+        return new DataBuilder(("FINDSUCCESSOR " + key).getBytes());
     }
 
     private static class GetSuccessorProcessor extends ChordMessage.Processor {
 
-        private final GetSuccessorMessage message;
+        private final FindSuccessorMessage message;
 
-        public GetSuccessorProcessor(Chord chord, Socket socket, GetSuccessorMessage message){
+        public GetSuccessorProcessor(Chord chord, Socket socket, FindSuccessorMessage message){
             super(chord, socket);
             this.message = message;
         }
