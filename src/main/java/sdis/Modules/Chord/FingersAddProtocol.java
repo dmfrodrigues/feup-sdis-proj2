@@ -5,6 +5,7 @@ import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
 public class FingersAddProtocol extends ProtocolTask<Void> {
@@ -20,7 +21,7 @@ public class FingersAddProtocol extends ProtocolTask<Void> {
         Chord.NodeInfo r = chord.getNodeInfo();
         RecursiveTask<?>[] tasks = new RecursiveTask[chord.getKeySize()];
         for(int i = 0; i < chord.getKeySize(); ++i){
-            Chord.Key k = chord.getKey().subtract(1L << i);
+            Chord.Key k = chord.getKey().subtract(1L << i).add(1);
             int finalI = i;
             RecursiveTask<Void> task = new ProtocolTask<>() {
                 @Override
