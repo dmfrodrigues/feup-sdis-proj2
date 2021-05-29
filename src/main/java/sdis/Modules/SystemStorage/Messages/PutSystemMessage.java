@@ -31,19 +31,11 @@ public class PutSystemMessage extends SystemStorageMessage {
         System.arraycopy(data, dataOffset, this.data, 0, this.data.length);
     }
 
-    private UUID getId() {
-        return id;
-    }
-
-    private byte[] getData(){
-        return data;
-    }
-
     @Override
     protected DataBuilder build() {
         return
-            new DataBuilder(("PUTSYSTEM " + getId() + "\n").getBytes())
-            .append(getData())
+            new DataBuilder(("PUTSYSTEM " + id + "\n").getBytes())
+            .append(data)
         ;
     }
 
@@ -58,7 +50,7 @@ public class PutSystemMessage extends SystemStorageMessage {
 
         @Override
         public void compute() {
-            boolean b = getSystemStorage().getDataStorage().put(message.getId(), message.getData());
+            boolean b = getSystemStorage().getDataStorage().put(message.id, message.data);
 
                 try {
                     getSocket().getOutputStream().write(message.formatResponse(b));

@@ -23,10 +23,6 @@ public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> 
         key = chord.newKey(Long.parseLong(splitString[1]));
     }
 
-    private Chord.Key getKey() {
-        return key;
-    }
-
     @Override
     protected DataBuilder build() {
         return new DataBuilder(("CPFINGER " + key).getBytes());

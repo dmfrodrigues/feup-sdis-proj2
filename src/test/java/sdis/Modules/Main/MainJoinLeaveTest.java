@@ -94,7 +94,7 @@ public class MainJoinLeaveTest {
             }
         }));
         for(int i = 0; i < chord2.getMod(); ++i)
-            assertEquals(chord2.getNodeInfo(), chord2.getSuccessor(chord2.newKey(i)));
+            assertEquals(chord2.getNodeInfo(), chord2.findSuccessor(chord2.newKey(i)));
 
         // Remove keys
         RemoveKeysProtocol removeKeysProtocol = new RemoveKeysProtocol(peer1.getSystemStorage());

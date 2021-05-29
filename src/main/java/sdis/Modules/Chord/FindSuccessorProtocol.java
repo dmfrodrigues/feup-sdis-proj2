@@ -17,7 +17,7 @@ public class FindSuccessorProtocol extends ProtocolTask<Chord.NodeInfo> {
 
     @Override
     public Chord.NodeInfo compute() {
-        Chord.NodeInfo p = chord.getPredecessor(key);
+        Chord.NodeInfo p = chord.findPredecessor(key);
         SuccessorMessage successorMessage = new SuccessorMessage();
         try {
             return successorMessage.sendTo(chord, p.address);

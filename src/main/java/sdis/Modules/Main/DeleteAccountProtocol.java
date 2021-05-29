@@ -23,7 +23,7 @@ public class DeleteAccountProtocol extends MainProtocolTask<Boolean> {
     public Boolean compute() {
         Chord chord = main.getSystemStorage().getChord();
         UUID userMetadataFileUUID = username.asFile().getChunk(0).getReplica(0).getUUID();
-        Chord.NodeInfo s = chord.getSuccessor(userMetadataFileUUID.getKey(chord));
+        Chord.NodeInfo s = chord.findSuccessor(userMetadataFileUUID.getKey(chord));
 
         DeleteAccountMessage deleteAccountMessage = new DeleteAccountMessage(username, password);
         try {

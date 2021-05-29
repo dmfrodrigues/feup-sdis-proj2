@@ -25,7 +25,7 @@ public class FingersAddProtocol extends ProtocolTask<Boolean> {
             ProtocolTask<Boolean> task = new ProtocolTask<>() {
                 @Override
                 protected Boolean compute() {
-                    Chord.NodeInfo predecessor = chord.getPredecessor(k);
+                    Chord.NodeInfo predecessor = chord.findPredecessor(k);
                     try {
                         FingerAddMessage m = new FingerAddMessage(chord.getNodeInfo(), finalI);
                         m.sendTo(chord, predecessor.address);

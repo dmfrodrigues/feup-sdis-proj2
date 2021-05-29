@@ -25,7 +25,7 @@ public class FingersRemoveProtocol extends ProtocolTask<Boolean> {
             ProtocolTask<Boolean> task = new ProtocolTask<>() {
                 @Override
                 protected Boolean compute() {
-                    Chord.NodeInfo predecessor = chord.getPredecessor(k);
+                    Chord.NodeInfo predecessor = chord.findPredecessor(k);
                     try {
                         FingerRemoveMessage m = new FingerRemoveMessage(chord.getNodeInfo(), chord.getSuccessor(), finalI);
                         m.sendTo(chord, predecessor.address);

@@ -29,13 +29,9 @@ public class SetPredecessorMessage extends ChordMessage<Boolean> {
         );
     }
 
-    private Chord.NodeInfo getPredecessor() {
-        return predecessor;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("SETPREDECESSOR " + getPredecessor()).getBytes());
+        return new DataBuilder(("SETPREDECESSOR " + predecessor).getBytes());
     }
 
     private static class UpdatePredecessorProcessor extends ChordMessage.Processor {
@@ -49,7 +45,7 @@ public class SetPredecessorMessage extends ChordMessage<Boolean> {
 
         @Override
         public void compute() {
-            getChord().setPredecessor(message.getPredecessor());
+            getChord().setPredecessor(message.predecessor);
             try {
                 readAllBytesAndClose(getSocket());
             } catch (InterruptedException e) {

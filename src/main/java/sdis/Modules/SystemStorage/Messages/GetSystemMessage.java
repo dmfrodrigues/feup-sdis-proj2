@@ -23,13 +23,9 @@ public class GetSystemMessage extends SystemStorageMessage {
         id = new UUID(splitString[1]);
     }
 
-    private UUID getId() {
-        return id;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("GETSYSTEM " + getId()).getBytes());
+        return new DataBuilder(("GETSYSTEM " + id).getBytes());
     }
 
     private static class GetSystemProcessor extends Processor {
@@ -43,7 +39,7 @@ public class GetSystemMessage extends SystemStorageMessage {
 
         @Override
         public void compute() {
-            byte[] data = getSystemStorage().getDataStorage().get(message.getId());
+            byte[] data = getSystemStorage().getDataStorage().get(message.id);
 
             try {
                 getSocket().getOutputStream().write(message.formatResponse(data));
