@@ -1,6 +1,6 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Messages.GetPredecessorMessage;
+import sdis.Modules.Chord.Messages.PredecessorMessage;
 import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ public class GetPredecessorProtocol extends ProtocolTask<Chord.NodeInfo> {
         }
 
         try {
-            GetPredecessorMessage message = new GetPredecessorMessage();
+            PredecessorMessage message = new PredecessorMessage();
             Socket socket = chord.send(s.address, message);
             byte[] response = readAllBytesAndClose(socket);
             return message.parseResponse(chord, response);

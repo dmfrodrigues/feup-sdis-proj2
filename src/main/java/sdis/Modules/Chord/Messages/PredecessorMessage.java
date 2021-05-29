@@ -9,18 +9,18 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class GetPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
+public class PredecessorMessage extends ChordMessage<Chord.NodeInfo> {
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder("GETPREDECESSOR".getBytes());
+        return new DataBuilder("PREDECESSOR".getBytes());
     }
 
-    private static class GetPredecessorProcessor extends ChordMessage.Processor {
+    private static class PredecessorProcessor extends ChordMessage.Processor {
 
-        private final GetPredecessorMessage message;
+        private final PredecessorMessage message;
 
-        public GetPredecessorProcessor(Chord chord, Socket socket, GetPredecessorMessage message){
+        public PredecessorProcessor(Chord chord, Socket socket, PredecessorMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -38,8 +38,8 @@ public class GetPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
     }
 
     @Override
-    public GetPredecessorProcessor getProcessor(Peer peer, Socket socket) {
-        return new GetPredecessorProcessor(peer.getChord(), socket, this);
+    public PredecessorProcessor getProcessor(Peer peer, Socket socket) {
+        return new PredecessorProcessor(peer.getChord(), socket, this);
     }
 
     @Override

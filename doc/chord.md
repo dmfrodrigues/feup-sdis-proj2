@@ -54,14 +54,14 @@ This protocol consists of some very simple steps, as most of the heavy-lifting i
 
 1. Get $s = successor(k)$ using the GetSuccessor protocol
 2. If $s = k$ then return $s$
-3. Send $s$ a `GETPREDECESSOR` message
+3. Send $s$ a `PREDECESSOR` message
 4. Get the answer and return it
 
-#### `GETPREDECESSOR` message
+#### `PREDECESSOR` message
 
 | **Request**      | | **Response**            |
 |------------------|-|-------------------------|
-| `GETPREDECESSOR` | | `<NodeKey> <IP>:<Port>` |
+| `PREDECESSOR` | | `<NodeKey> <IP>:<Port>` |
 
 Instructs $s$ to answer with its predecessor, which it already knows and can access in constant time.
 
@@ -164,7 +164,7 @@ TODO | what's better: full asynchronous, or sequential questioning and tests, wi
 
 ##### Get predecessor
 
-It is enough for $r$ to send a `GETPREDECESSOR` message to its newly-found successor, as it has already built its fingers table so it knows it successor in $O(1)$; it can merely ask its successor about its predecessor (because the successor of $r$ was not yet told that $r$ joined the network, it will return what it thinks is its predecessor, when actually it is the predecessor of $r$).
+It is enough for $r$ to send a `PREDECESSOR` message to its newly-found successor, as it has already built its fingers table so it knows it successor in $O(1)$; it can merely ask its successor about its predecessor (because the successor of $r$ was not yet told that $r$ joined the network, it will return what it thinks is its predecessor, when actually it is the predecessor of $r$).
 
 #### Update other nodes
 

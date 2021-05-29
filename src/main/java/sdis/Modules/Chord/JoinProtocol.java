@@ -1,6 +1,6 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Messages.GetPredecessorMessage;
+import sdis.Modules.Chord.Messages.PredecessorMessage;
 import sdis.Modules.Chord.Messages.GetSuccessorMessage;
 import sdis.Modules.ProtocolTask;
 
@@ -43,7 +43,7 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
         }
         // Get predecessor
         try {
-            GetPredecessorMessage m = new GetPredecessorMessage();
+            PredecessorMessage m = new PredecessorMessage();
             Socket socket = chord.send(chord.getSuccessor(), m);
             byte[] response = readAllBytesAndClose(socket);
             Chord.NodeInfo predecessor = m.parseResponse(chord, response);
