@@ -5,12 +5,12 @@ import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 
-public class GetSuccessorProtocol extends ProtocolTask<Chord.NodeInfo> {
+public class FindSuccessorProtocol extends ProtocolTask<Chord.NodeInfo> {
 
     private final Chord chord;
     private final Chord.Key key;
 
-    public GetSuccessorProtocol(Chord chord, Chord.Key key){
+    public FindSuccessorProtocol(Chord chord, Chord.Key key){
         this.chord = chord;
         this.key = key;
     }

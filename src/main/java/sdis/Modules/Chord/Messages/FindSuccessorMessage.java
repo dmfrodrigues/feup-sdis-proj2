@@ -1,7 +1,7 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.Chord.GetSuccessorProtocol;
+import sdis.Modules.Chord.FindSuccessorProtocol;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
@@ -40,8 +40,8 @@ public class FindSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
 
         @Override
         public void compute() {
-            GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(getChord(), message.key);
-            Chord.NodeInfo nodeInfo = getSuccessorProtocol.invoke();
+            FindSuccessorProtocol findSuccessorProtocol = new FindSuccessorProtocol(getChord(), message.key);
+            Chord.NodeInfo nodeInfo = findSuccessorProtocol.invoke();
             try {
                 byte[] response = message.formatResponse(nodeInfo);
                 getSocket().getOutputStream().write(response);

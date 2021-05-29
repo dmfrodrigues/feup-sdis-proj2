@@ -153,7 +153,7 @@ public class Chord {
     }
 
     public NodeInfo getSuccessor(Chord.Key key){
-        return new GetSuccessorProtocol(this, key).invoke();
+        return new FindSuccessorProtocol(this, key).invoke();
     }
 
     public int getKeySize() {
