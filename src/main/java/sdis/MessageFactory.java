@@ -37,6 +37,7 @@ public class MessageFactory {
             case "FINGERREMOVE"  : return new FingerRemoveMessage  (chord, b);
             case "GETSUCCESSOR"  : return new GetSuccessorMessage  (chord, b);
             case "SETPREDECESSOR": return new SetPredecessorMessage(chord, b);
+            case "SUCCESSOR"     : return new SuccessorMessage     ();
             case "PREDECESSOR"   : return new PredecessorMessage();
 
             case "DELETE"      : return new DeleteMessage      (b);

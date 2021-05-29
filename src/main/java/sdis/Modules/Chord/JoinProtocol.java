@@ -1,7 +1,7 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Messages.PredecessorMessage;
 import sdis.Modules.Chord.Messages.GetSuccessorMessage;
+import sdis.Modules.Chord.Messages.PredecessorMessage;
 import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
@@ -27,6 +27,19 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
         Chord.NodeInfo r = chord.getNodeInfo();
 
         // Initialize fingers table and predecessor
+        // Get predecessor
+        try {
+            // Get successor
+            GetSuccessorMessage getSuccessorMessage = new GetSuccessorMessage(r.key);
+            Chord.NodeInfo s = getSuccessorMessage.sendTo(chord, g);
+            chord.setFinger(0, s);
+            // Get predecessor
+            PredecessorMessage predecessorMessage = new PredecessorMessage();
+            chord.setPredecessor(predecessorMessage.sendTo(chord, s.address));
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return false;
+        }
         // Build fingers table
         for(int i = 0; i < chord.getKeySize(); ++i){
             Chord.Key k = r.key.add(1L << i);
@@ -40,16 +53,6 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-        }
-        // Get predecessor
-        try {
-            PredecessorMessage m = new PredecessorMessage();
-            Socket socket = chord.send(chord.getSuccessor(), m);
-            byte[] response = readAllBytesAndClose(socket);
-            Chord.NodeInfo predecessor = m.parseResponse(chord, response);
-            chord.setPredecessor(predecessor);
-        } catch (IOException | InterruptedException e) {
-            throw new CompletionException(e);
         }
 
         // Update other nodes
