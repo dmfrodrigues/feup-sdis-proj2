@@ -95,6 +95,44 @@ public class TestChordLeave {
     }
 
     @Test(timeout=1000)
+    public void peer2_larger() throws Exception {
+        int keySize = 8;
+        long MOD = (1L << keySize);
+
+        Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        peer1.join();
+        Chord chord1 = peer1.getChord();
+
+        InetSocketAddress addressPeer1 = peer1.getSocketAddress();
+
+        Peer peer2 = new Peer(keySize, 16, InetAddress.getByName("localhost"), Paths.get("bin"));
+        Chord chord2 = peer2.getChord();
+        peer2.join(addressPeer1);
+
+        List<Long> peers = new ArrayList<>(){{ add(0L); add(16L); }};
+        for(int i = 0; i < keySize; ++i){
+            assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFinger(i).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
+        }
+        for(long key = 0; key < peer1.getChord().getMod(); ++key){
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord1.getSuccessor(chord1.newKey(key)).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).key.toLong());
+        }
+
+        peer2.leave();
+
+        peers = new ArrayList<>(){{ add(0L); }};
+        for(int i = 0; i < keySize; ++i){
+            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
+        }
+        for(long key = 0; key < peer1.getChord().getMod(); ++key){
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).key.toLong());
+        }
+
+        peer2.leave();
+    }
+
+    @Test(timeout=1000)
     public void peer3_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
