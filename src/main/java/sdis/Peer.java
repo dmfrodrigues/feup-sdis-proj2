@@ -17,10 +17,7 @@ import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
@@ -35,6 +32,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class Peer implements PeerInterface {
 
+    private final ServerSocket serverSocket;
     private final Chord.Key id;
     private final Path baseStoragePath;
     private final InetSocketAddress socketAddress;
@@ -42,13 +40,14 @@ public class Peer implements PeerInterface {
     private final DataStorage dataStorage;
     private final SystemStorage systemStorage;
     private final Main main;
+    private final Thread serverSocketHandlerThread;
 
     public Peer(int keySize, long id, InetAddress ipAddress) throws IOException {
         this(keySize, id, ipAddress, Paths.get("."));
     }
 
     public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException {
-        ServerSocket serverSocket = new ServerSocket();
+        serverSocket = new ServerSocket();
         serverSocket.bind(null);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
 
@@ -66,7 +65,7 @@ public class Peer implements PeerInterface {
         this.id = chord.newKey(id);
 
         ServerSocketHandler serverSocketHandler = new ServerSocketHandler(this, serverSocket);
-        Thread serverSocketHandlerThread = new Thread(serverSocketHandler);
+        serverSocketHandlerThread = new Thread(serverSocketHandler);
         serverSocketHandlerThread.start();
     }
 
@@ -124,6 +123,18 @@ public class Peer implements PeerInterface {
                 return Utils.deleteRecursive(baseStoragePath.toFile());
             }
         });
+    }
+
+    public boolean die(){
+        try {
+            serverSocketHandlerThread.interrupt();
+            serverSocket.close();
+            serverSocketHandlerThread.join();
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     public Chord.Key getKey() {
@@ -263,7 +274,7 @@ public class Peer implements PeerInterface {
 
         @Override
         public void run() {
-            while (!Thread.currentThread().isInterrupted()) {
+            while (!Thread.interrupted()) {
                 try {
                     Socket socket = serverSocket.accept();
                     InputStream is = socket.getInputStream();
@@ -271,10 +282,14 @@ public class Peer implements PeerInterface {
                     Message message = messageFactory.factoryMethod(data);
                     Message.Processor processor = message.getProcessor(peer, socket);
                     executor.execute(processor::invoke);
+                } catch(SocketException e) {
+                    System.err.println("SocketException in ServerSocketHandler cycle");
                 } catch (Exception e) {
+                    System.err.println("Exception in ServerSocketHandler cycle");
                     e.printStackTrace();
                 }
             }
+            System.err.println("ServerSocketHandler was interrupted");
         }
     }
 }
