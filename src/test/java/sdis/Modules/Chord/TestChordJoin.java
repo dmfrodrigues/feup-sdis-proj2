@@ -58,6 +58,15 @@ public class TestChordJoin {
         assertEquals(0, chord.getSuccessor(chord.newKey(200)).key.toLong());
         assertEquals(0, chord.getSuccessor(chord.newKey(255)).key.toLong());
 
+        assertEquals(0, chord.getPredecessor(chord.newKey(  0)).key.toLong());
+        assertEquals(0, chord.getPredecessor(chord.newKey(  1)).key.toLong());
+        assertEquals(0, chord.getPredecessor(chord.newKey(  5)).key.toLong());
+        assertEquals(0, chord.getPredecessor(chord.newKey( 10)).key.toLong());
+        assertEquals(0, chord.getPredecessor(chord.newKey( 50)).key.toLong());
+        assertEquals(0, chord.getPredecessor(chord.newKey(100)).key.toLong());
+        assertEquals(0, chord.getPredecessor(chord.newKey(200)).key.toLong());
+        assertEquals(0, chord.getPredecessor(chord.newKey(255)).key.toLong());
+
         assertTrue(peer1.leave());
     }
 
@@ -93,8 +102,6 @@ public class TestChordJoin {
 
         Chord chord1 = peer1.getChord();
 
-        assertEquals(10, chord1.getPredecessor().key.toLong());
-        assertEquals(10, chord1.getSuccessor().key.toLong());
         assertEquals(10, chord1.getFinger(0).key.toLong());
         assertEquals(10, chord1.getFinger(1).key.toLong());
         assertEquals(10, chord1.getFinger(2).key.toLong());
@@ -103,11 +110,11 @@ public class TestChordJoin {
         assertEquals( 0, chord1.getFinger(5).key.toLong());
         assertEquals( 0, chord1.getFinger(6).key.toLong());
         assertEquals( 0, chord1.getFinger(7).key.toLong());
+        assertEquals(10, chord1.getPredecessor().key.toLong());
+        assertEquals(10, chord1.getSuccessor().key.toLong());
 
         Chord chord2 = peer2.getChord();
 
-        assertEquals(0, chord2.getPredecessor().key.toLong());
-        assertEquals(0, chord2.getSuccessor().key.toLong());
         assertEquals(0, chord2.getFinger(0).key.toLong());
         assertEquals(0, chord2.getFinger(1).key.toLong());
         assertEquals(0, chord2.getFinger(2).key.toLong());
@@ -116,6 +123,8 @@ public class TestChordJoin {
         assertEquals(0, chord2.getFinger(5).key.toLong());
         assertEquals(0, chord2.getFinger(6).key.toLong());
         assertEquals(0, chord2.getFinger(7).key.toLong());
+        assertEquals(0, chord2.getPredecessor().key.toLong());
+        assertEquals(0, chord2.getSuccessor().key.toLong());
 
         assertTrue(peer1.leave());
         assertTrue(peer2.leave());
