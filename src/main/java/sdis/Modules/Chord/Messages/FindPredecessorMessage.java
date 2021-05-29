@@ -1,7 +1,6 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.Chord.GetPredecessorProtocol;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
@@ -10,15 +9,15 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class GetPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
+public class FindPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
 
     private final Chord.Key key;
 
-    public GetPredecessorMessage(Chord.Key key){
+    public FindPredecessorMessage(Chord.Key key){
         this.key = key;
     }
 
-    public GetPredecessorMessage(Chord chord, byte[] data){
+    public FindPredecessorMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         key = chord.newKey(Long.parseLong(splitString[1]));
@@ -33,11 +32,11 @@ public class GetPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
         return new DataBuilder("PREDECESSOR".getBytes());
     }
 
-    private static class PredecessorProcessor extends ChordMessage.Processor {
+    private static class FindPredecessorProcessor extends ChordMessage.Processor {
 
-        private final GetPredecessorMessage message;
+        private final FindPredecessorMessage message;
 
-        public PredecessorProcessor(Chord chord, Socket socket, GetPredecessorMessage message){
+        public FindPredecessorProcessor(Chord chord, Socket socket, FindPredecessorMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -65,8 +64,8 @@ public class GetPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
     }
 
     @Override
-    public PredecessorProcessor getProcessor(Peer peer, Socket socket) {
-        return new PredecessorProcessor(peer.getChord(), socket, this);
+    public FindPredecessorProcessor getProcessor(Peer peer, Socket socket) {
+        return new FindPredecessorProcessor(peer.getChord(), socket, this);
     }
 
     @Override

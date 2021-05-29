@@ -132,7 +132,7 @@ public class Chord {
     }
 
     public NodeInfo getPredecessor(Chord.Key key){
-        return new GetPredecessorProtocol(this, key).invoke();
+        return new FindPredecessorProtocol(this, key).invoke();
     }
 
     public NodeInfo getPredecessor(){
