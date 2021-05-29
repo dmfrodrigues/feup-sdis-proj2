@@ -34,11 +34,9 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
         try {
             DelistFileMessage m = new DelistFileMessage(file);
             Socket socket = main.send(s.address, m);
-            socket.shutdownOutput();
-            byte[] response = socket.getInputStream().readAllBytes();
-            socket.close();
+            byte[] response = readAllBytesAndClose(socket);
             return m.parseResponse(response);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
     }

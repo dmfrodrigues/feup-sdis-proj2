@@ -55,9 +55,7 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
 
                 // If the new node to update the fingers table is itself, ignore
                 if(n.equals(sOld)){
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
+                    readAllBytesAndClose(getSocket());
                     return;
                 }
 

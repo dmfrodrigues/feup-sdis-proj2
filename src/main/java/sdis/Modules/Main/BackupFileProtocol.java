@@ -44,11 +44,9 @@ public class BackupFileProtocol extends MainProtocolTask<Boolean> {
         try {
             EnlistFileMessage m = new EnlistFileMessage(file);
             Socket socket = main.send(s.address, m);
-            socket.shutdownOutput();
-            byte[] response = socket.getInputStream().readAllBytes();
-            socket.close();
+            byte[] response = readAllBytesAndClose(socket);
             return m.parseResponse(response);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
     }

@@ -30,11 +30,9 @@ public class GetRedirectsProtocol extends ProtocolTask<Set<UUID>> {
         try {
             GetRedirectsMessage m = new GetRedirectsMessage();
             Socket socket = dataStorage.send(address, m);
-            socket.shutdownOutput();
-            byte[] response = socket.getInputStream().readAllBytes();
-            socket.close();
+            byte[] response = readAllBytesAndClose(socket);
             return m.parseResponse(response);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
     }

@@ -26,9 +26,7 @@ public class AuthenticationProtocol extends MainProtocolTask<UserMetadata> {
         try {
             AuthenticateMessage message = new AuthenticateMessage(username, password);
             Socket socket = systemStorage.sendAny(message);
-            socket.shutdownOutput();
-            byte[] response = socket.getInputStream().readAllBytes();
-            socket.close();
+            byte[] response = readAllBytesAndClose(socket);
             Pair<AuthenticateMessage.Status, UserMetadata> reply = message.parseResponse(response);
             switch(reply.first){
                 case SUCCESS:
@@ -37,7 +35,7 @@ public class AuthenticationProtocol extends MainProtocolTask<UserMetadata> {
                     return null;
             }
             return null;
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
     }

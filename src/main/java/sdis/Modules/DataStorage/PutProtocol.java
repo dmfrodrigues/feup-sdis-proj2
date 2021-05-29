@@ -71,15 +71,13 @@ public class PutProtocol extends ProtocolTask<Boolean> {
             // if it already has it, this message just serves as a confirmation that the datapiece is in fact stored.
             PutMessage m = new PutMessage(originalNodeKey, id, data);
             Socket socket = dataStorage.send(s.address, m);
-            socket.shutdownOutput();
-            byte[] responseByte = socket.getInputStream().readAllBytes();
-            socket.close();
+            byte[] responseByte = readAllBytesAndClose(socket);
             boolean response = m.parseResponse(responseByte);
             if (!response) {
                 dataStorage.unregisterSuccessorStored(id);
             }
             return response;
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
     }
