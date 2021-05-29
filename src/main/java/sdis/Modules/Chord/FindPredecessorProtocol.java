@@ -1,6 +1,6 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Messages.FindPredecessorMessage;
+import sdis.Modules.Chord.Messages.ClosestPrecedingFingerMessage;
 import sdis.Modules.Chord.Messages.SuccessorMessage;
 import sdis.Modules.ProtocolTask;
 
@@ -19,13 +19,13 @@ public class FindPredecessorProtocol extends ProtocolTask<Chord.NodeInfo> {
     @Override
     public Chord.NodeInfo compute() {
         SuccessorMessage successorMessage = new SuccessorMessage();
-        FindPredecessorMessage findPredecessorMessage = new FindPredecessorMessage(id);
+        ClosestPrecedingFingerMessage closestPrecedingFingerMessage = new ClosestPrecedingFingerMessage(id);
 
         try {
             Chord.NodeInfo n_ = chord.getNodeInfo();
             Chord.NodeInfo nSuccessor = successorMessage.sendTo(chord, n_.address);
             while (!id.inRange(n_.key.add(1), nSuccessor.key)){
-                n_ = findPredecessorMessage.sendTo(chord, n_.address);
+                n_ = closestPrecedingFingerMessage.sendTo(chord, n_.address);
             }
             return n_;
         } catch (IOException | InterruptedException e) {

@@ -9,15 +9,15 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class FindPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
+public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> {
 
     private final Chord.Key key;
 
-    public FindPredecessorMessage(Chord.Key key){
+    public ClosestPrecedingFingerMessage(Chord.Key key){
         this.key = key;
     }
 
-    public FindPredecessorMessage(Chord chord, byte[] data){
+    public ClosestPrecedingFingerMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         key = chord.newKey(Long.parseLong(splitString[1]));
@@ -29,14 +29,14 @@ public class FindPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder("PREDECESSOR".getBytes());
+        return new DataBuilder(("CPFINGER " + key).getBytes());
     }
 
     private static class FindPredecessorProcessor extends ChordMessage.Processor {
 
-        private final FindPredecessorMessage message;
+        private final ClosestPrecedingFingerMessage message;
 
-        public FindPredecessorProcessor(Chord chord, Socket socket, FindPredecessorMessage message){
+        public FindPredecessorProcessor(Chord chord, Socket socket, ClosestPrecedingFingerMessage message){
             super(chord, socket);
             this.message = message;
         }
