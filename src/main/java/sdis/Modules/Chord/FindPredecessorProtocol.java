@@ -26,6 +26,7 @@ public class FindPredecessorProtocol extends ProtocolTask<Chord.NodeInfo> {
             Chord.NodeInfo nSuccessor = successorMessage.sendTo(chord, n_.address);
             while (!id.inRange(n_.key.add(1), nSuccessor.key)){
                 n_ = closestPrecedingFingerMessage.sendTo(chord, n_.address);
+                nSuccessor = successorMessage.sendTo(chord, n_.address);
             }
             return n_;
         } catch (IOException | InterruptedException e) {

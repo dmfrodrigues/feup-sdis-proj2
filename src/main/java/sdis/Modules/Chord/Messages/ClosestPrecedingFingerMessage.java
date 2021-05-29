@@ -48,7 +48,7 @@ public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> 
             try {
                 for (int i = getChord().getKeySize() - 1; i >= 0; --i) {
                     Chord.NodeInfo f = getChord().getFinger(i);
-                    if (f.key.inRange(n.key, message.key)) {
+                    if (f.key.inRange(n.key.add(1), message.key.subtract(1))) {
                         getSocket().getOutputStream().write(message.formatResponse(f));
                         readAllBytesAndClose(getSocket());
                         return;
