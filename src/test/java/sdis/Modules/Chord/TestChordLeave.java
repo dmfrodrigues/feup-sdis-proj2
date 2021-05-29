@@ -123,13 +123,13 @@ public class TestChordLeave {
 
         peers = new ArrayList<>(){{ add(0L); }};
         for(int i = 0; i < keySize; ++i){
-            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFinger(i).key.toLong());
         }
-        for(long key = 0; key < peer1.getChord().getMod(); ++key){
-            assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.getSuccessor(chord2.newKey(key)).key.toLong());
+        for(long key = 0; key < MOD; ++key){
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord1.getSuccessor(chord1.newKey(key)).key.toLong());
         }
 
-        peer2.leave();
+        peer1.leave();
     }
 
     @Test(timeout=1000)
