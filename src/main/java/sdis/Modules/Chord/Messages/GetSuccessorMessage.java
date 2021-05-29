@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class GetSuccessorMessage extends ChordMessage {
+public class GetSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
 
     private final Chord.Key key;
 
@@ -61,10 +61,12 @@ public class GetSuccessorMessage extends ChordMessage {
         return new GetSuccessorProcessor(peer.getChord(), socket, this);
     }
 
+    @Override
     public byte[] formatResponse(Chord.NodeInfo nodeInfo){
         return nodeInfo.toString().getBytes();
     }
 
+    @Override
     public Chord.NodeInfo parseResponse(Chord chord, byte[] response) {
         String dataString = new String(response);
         String[] splitString = dataString.split(" ");

@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class FingerAddMessage extends ChordMessage {
+public class FingerAddMessage extends ChordMessage<Boolean> {
 
     private final Chord.NodeInfo nodeInfo;
     private final int fingerIndex;
@@ -98,5 +98,15 @@ public class FingerAddMessage extends ChordMessage {
     @Override
     public FingerAddProcessor getProcessor(Peer peer, Socket socket) {
         return new FingerAddProcessor(peer.getChord(), socket, this);
+    }
+
+    @Override
+    protected byte[] formatResponse(Boolean b) {
+        return new byte[]{(byte) (b ? 1 : 0)};
+    }
+
+    @Override
+    protected Boolean parseResponse(Chord chord, byte[] data) {
+        return (data.length == 1 && data[0] == 1);
     }
 }

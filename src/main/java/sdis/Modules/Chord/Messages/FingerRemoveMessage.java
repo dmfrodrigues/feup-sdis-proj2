@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class FingerRemoveMessage extends ChordMessage {
+public class FingerRemoveMessage extends ChordMessage<Void> {
 
     private final Chord.NodeInfo oldPeer;
     private final Chord.NodeInfo newPeer;
@@ -105,5 +105,15 @@ public class FingerRemoveMessage extends ChordMessage {
     @Override
     public FingerRemoveProcessor getProcessor(Peer peer, Socket socket) {
         return new FingerRemoveProcessor(peer.getChord(), socket, this);
+    }
+
+    @Override
+    protected byte[] formatResponse(Void unused) {
+        return null;
+    }
+
+    @Override
+    protected Void parseResponse(Chord chord, byte[] data) {
+        return null;
     }
 }

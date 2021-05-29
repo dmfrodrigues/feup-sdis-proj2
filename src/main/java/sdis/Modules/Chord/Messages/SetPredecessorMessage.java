@@ -8,7 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class SetPredecessorMessage extends ChordMessage {
+public class SetPredecessorMessage extends ChordMessage<Boolean> {
 
     private final Chord.NodeInfo predecessor;
 
@@ -61,5 +61,15 @@ public class SetPredecessorMessage extends ChordMessage {
     @Override
     public UpdatePredecessorProcessor getProcessor(Peer peer, Socket socket) {
         return new UpdatePredecessorProcessor(peer.getChord(), socket, this);
+    }
+
+    @Override
+    protected byte[] formatResponse(Boolean b) {
+        return new byte[]{(byte) (b ? 1 : 0)};
+    }
+
+    @Override
+    protected Boolean parseResponse(Chord chord, byte[] data) {
+        return (data.length == 1 && data[0] == 1);
     }
 }

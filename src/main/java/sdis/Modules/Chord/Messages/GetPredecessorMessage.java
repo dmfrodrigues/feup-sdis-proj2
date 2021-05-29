@@ -9,8 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class GetPredecessorMessage extends ChordMessage {
-    public GetPredecessorMessage(){}
+public class GetPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
 
     @Override
     protected DataBuilder build() {
@@ -43,10 +42,12 @@ public class GetPredecessorMessage extends ChordMessage {
         return new GetPredecessorProcessor(peer.getChord(), socket, this);
     }
 
+    @Override
     public byte[] formatResponse(Chord.NodeInfo nodeInfo){
         return nodeInfo.toString().getBytes();
     }
 
+    @Override
     public Chord.NodeInfo parseResponse(Chord chord, byte[] response) {
         String dataString = new String(response);
         String[] splitString = dataString.split(" ");
