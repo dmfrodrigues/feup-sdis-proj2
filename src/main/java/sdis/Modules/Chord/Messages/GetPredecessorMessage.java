@@ -44,11 +44,19 @@ public class GetPredecessorMessage extends ChordMessage<Chord.NodeInfo> {
 
         @Override
         public void compute() {
-            GetPredecessorProtocol getPredecessorProtocol = new GetPredecessorProtocol(getChord(), message.getKey());
-            Chord.NodeInfo nodeInfo = getPredecessorProtocol.invoke();
+            Chord.NodeInfo n = getChord().getNodeInfo();
+
             try {
-                byte[] response = message.formatResponse(nodeInfo);
-                getSocket().getOutputStream().write(response);
+                for (int i = getChord().getKeySize() - 1; i >= 0; --i) {
+                    Chord.NodeInfo f = getChord().getFinger(i);
+                    if (f.key.inRange(n.key, message.key)) {
+                        getSocket().getOutputStream().write(message.formatResponse(f));
+                        readAllBytesAndClose(getSocket());
+                        return;
+                    }
+                }
+
+                getSocket().getOutputStream().write(message.formatResponse(n));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);

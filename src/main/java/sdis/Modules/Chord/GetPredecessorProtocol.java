@@ -16,30 +16,18 @@ public class GetPredecessorProtocol extends ProtocolTask<Chord.NodeInfo> {
         this.id = key;
     }
 
-    private static Chord.NodeInfo getClosestPrecedingFinger(Chord chord, Chord.Key id) {
-        Chord.NodeInfo n = chord.getNodeInfo();
-        for(int i = chord.getKeySize()-1; i >= 0; --i){
-            Chord.NodeInfo finger = chord.getFinger(i);
-            if(finger.key.inRange(n.key.add(1), id.subtract(1))){
-                return finger;
-            }
-        }
-        return null;
-    }
-
     @Override
     public Chord.NodeInfo compute() {
         SuccessorMessage successorMessage = new SuccessorMessage();
+        GetPredecessorMessage getPredecessorMessage = new GetPredecessorMessage(id);
 
         try {
-            Chord.NodeInfo n = chord.getNodeInfo();
-            Chord.NodeInfo nSuccessor = successorMessage.sendTo(chord, n.address);
-            if (!id.inRange(n.key.add(1), nSuccessor.key)){
-                Chord.NodeInfo closestPrecedingFinger = getClosestPrecedingFinger(chord, id);
-                GetPredecessorMessage getPredecessorMessage = new GetPredecessorMessage(id);
-                return getPredecessorMessage.sendTo(chord, closestPrecedingFinger.address);
+            Chord.NodeInfo n_ = chord.getNodeInfo();
+            Chord.NodeInfo nSuccessor = successorMessage.sendTo(chord, n_.address);
+            while (!id.inRange(n_.key.add(1), nSuccessor.key)){
+                n_ = getPredecessorMessage.sendTo(chord, n_.address);
             }
-            return n;
+            return n_;
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return null;
