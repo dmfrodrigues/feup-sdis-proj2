@@ -132,6 +132,15 @@ public class TestChordJoin {
 
         Chord chord1 = peer1.getChord();
 
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey(  0)).key.toLong());
+        // assertEquals( 0, chord1.getPredecessor(chord1.newKey(  1)).key.toLong());
+        // assertEquals( 0, chord1.getPredecessor(chord1.newKey(  5)).key.toLong());
+        // assertEquals( 0, chord1.getPredecessor(chord1.newKey( 10)).key.toLong());
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey( 50)).key.toLong());
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey(100)).key.toLong());
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey(200)).key.toLong());
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey(255)).key.toLong());
+
         assertEquals( 0, chord1.getSuccessor(chord1.newKey(  0)).key.toLong());
         assertEquals(10, chord1.getSuccessor(chord1.newKey(  1)).key.toLong());
         assertEquals(10, chord1.getSuccessor(chord1.newKey(  5)).key.toLong());
@@ -142,6 +151,15 @@ public class TestChordJoin {
         assertEquals( 0, chord1.getSuccessor(chord1.newKey(255)).key.toLong());
 
         Chord chord2 = peer2.getChord();
+
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey(  0)).key.toLong());
+        // assertEquals( 0, chord1.getPredecessor(chord1.newKey(  1)).key.toLong());
+        // assertEquals( 0, chord1.getPredecessor(chord1.newKey(  5)).key.toLong());
+        // assertEquals( 0, chord1.getPredecessor(chord1.newKey( 10)).key.toLong());
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey( 50)).key.toLong());
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey(100)).key.toLong());
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey(200)).key.toLong());
+        // assertEquals(10, chord1.getPredecessor(chord1.newKey(255)).key.toLong());
 
         assertEquals( 0, chord2.getSuccessor(chord2.newKey(  0)).key.toLong());
         assertEquals(10, chord2.getSuccessor(chord2.newKey(  1)).key.toLong());

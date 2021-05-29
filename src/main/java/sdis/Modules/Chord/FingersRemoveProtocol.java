@@ -8,7 +8,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.RecursiveTask;
 
 public class FingersRemoveProtocol extends ProtocolTask<Boolean> {
 

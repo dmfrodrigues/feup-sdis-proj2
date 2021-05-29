@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.RecursiveTask;
 
 public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
     private final Main main;
