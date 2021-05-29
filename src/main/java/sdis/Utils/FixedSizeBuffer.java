@@ -19,7 +19,7 @@ public class FixedSizeBuffer<T> {
      * Index of the first available element.
      * Does not wrap when it is larger than queue.size().
      */
-    private int begin = 0;
+    private long begin = 0;
 
     public FixedSizeBuffer(int size){
         queue = new ArrayList<>(size);
@@ -33,7 +33,7 @@ public class FixedSizeBuffer<T> {
      *
      * @return  Index of first element in queue
      */
-    public int getBegin(){
+    public long getBegin(){
         return begin;
     }
 
@@ -43,7 +43,7 @@ public class FixedSizeBuffer<T> {
      * @param i     Index in the queue
      * @return      True if an element can be inserted at that index, false otherwise
      */
-    public boolean canSet(int i){
+    public boolean canSet(long i){
         return (i < begin+queue.size());
     }
 
@@ -55,10 +55,10 @@ public class FixedSizeBuffer<T> {
      * @param i     Index in the queue
      * @param e     Element to insert
      */
-    public void set(int i, T e) throws ArrayIndexOutOfBoundsException {
+    public void set(long i, T e) throws ArrayIndexOutOfBoundsException {
         if(i < begin) return;
         if(!canSet(i)) throw new ArrayIndexOutOfBoundsException();
-        int idx = i % queue.size();
+        int idx = (int) (i % queue.size());
         ready[idx] = true;
         queue.set(idx, e);
     }
@@ -69,7 +69,7 @@ public class FixedSizeBuffer<T> {
      * @return  True if the queue already has the next element to be extracted, false otherwise
      */
     public boolean hasNext(){
-        int idx = begin % queue.size();
+        int idx = (int) (begin % queue.size());
         return ready[idx];
     }
 
@@ -82,7 +82,7 @@ public class FixedSizeBuffer<T> {
      */
     public T next(){
         if(!hasNext()) throw new IllegalStateException();
-        int idx = begin % queue.size();
+        int idx = (int) (begin % queue.size());
         T ret = queue.get(idx);
         ready[idx] = false;
         begin++;

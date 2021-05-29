@@ -42,22 +42,15 @@ public class GetSystemMessage extends SystemStorageMessage {
         }
 
         @Override
-        public Void get() {
-            getSystemStorage().getDataStorage().get(message.getId())
-            .thenApplyAsync((byte[] data) -> {
-                try {
-                    getSocket().getOutputStream().write(message.formatResponse(data));
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
-                } catch (IOException e) {
-                    throw new CompletionException(e);
-                }
+        public void compute() {
+            byte[] data = getSystemStorage().getDataStorage().get(message.getId());
 
-                return null;
-            });
-
-            return null;
+            try {
+                getSocket().getOutputStream().write(message.formatResponse(data));
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
+                throw new CompletionException(e);
+            }
         }
     }
 

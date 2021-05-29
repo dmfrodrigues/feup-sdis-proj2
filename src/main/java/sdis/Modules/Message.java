@@ -4,7 +4,7 @@ import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
 import java.net.Socket;
-import java.util.function.Supplier;
+import java.util.concurrent.RecursiveAction;
 
 public abstract class Message {
     public final byte[] asByteArray(){
@@ -13,7 +13,11 @@ public abstract class Message {
 
     protected abstract DataBuilder build();
 
-    public static abstract class Processor implements Supplier<Void> {}
+    public static abstract class Processor extends RecursiveAction {}
 
     public abstract Message.Processor getProcessor(Peer peer, Socket socket);
+
+    protected static void readAllBytesAndClose(Socket socket) throws InterruptedException {
+        ProtocolTask.readAllBytesAndClose(socket);
+    }
 }

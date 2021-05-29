@@ -2,20 +2,22 @@ package sdis.Modules.SystemStorage.Messages;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
+import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.PutSystemProtocol;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;
 import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RecursiveTask;
 
 public class MoveKeysMessage extends SystemStorageMessage {
 
@@ -28,19 +30,15 @@ public class MoveKeysMessage extends SystemStorageMessage {
     public MoveKeysMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
-        Chord.Key key = chord.newKey(Long.parseLong(splitString[0]));
-        String[] splitAddress = splitString[1].split(":");
+        Chord.Key key = chord.newKey(Long.parseLong(splitString[1]));
+        String[] splitAddress = splitString[2].split(":");
         InetSocketAddress address = new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1]));
         nodeInfo = new Chord.NodeInfo(key, address);
     }
 
-    private Chord.NodeInfo getNodeInfo() {
-        return nodeInfo;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("MOVEKEYS " + getNodeInfo()).getBytes());
+        return new DataBuilder(("MOVEKEYS " + nodeInfo).getBytes());
     }
 
     private static class MoveKeysProcessor extends Processor {
@@ -53,51 +51,61 @@ public class MoveKeysMessage extends SystemStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             SystemStorage systemStorage = getSystemStorage();
             DataStorage dataStorage = systemStorage.getDataStorage();
             Chord chord = systemStorage.getChord();
             Chord.NodeInfo r = chord.getNodeInfo();
-            Chord.NodeInfo n = message.getNodeInfo();
+            Chord.NodeInfo n = message.nodeInfo;
 
             Set<UUID> ids = dataStorage.getAll();
-            List<CompletableFuture<Boolean>> futuresList = new LinkedList<>();
+            List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
             for(UUID id: ids){
                 Chord.Key k = id.getKey(chord);
                 if(Chord.distance(k, n.key) < Chord.distance(k, r.key)){
-                    CompletableFuture<Boolean> f =
-                        dataStorage.get(id)
-                        .thenApplyAsync((byte[] data) -> {
+                    RecursiveTask<Boolean> task = new ProtocolTask<>() {
+                        @Override
+                        protected Boolean compute() {
+                            byte[] data = dataStorage.get(id);
                             dataStorage.delete(id);
                             PutSystemProtocol putSystemProtocol = new PutSystemProtocol(systemStorage, id, data);
-                            return putSystemProtocol.get();
-                        });
-                    futuresList.add(f);
-                    try {                                               // TODO: DEV
-                        f.get();                                        // TODO: DEV
-                    } catch (InterruptedException e) {                  // TODO: DEV
-                        throw new CompletionException(e);               // TODO: DEV
-                    } catch (ExecutionException e) {                    // TODO: DEV
-                        throw new CompletionException(e.getCause());    // TODO: DEV
-                    }                                                   // TODO: DEV
+                            return putSystemProtocol.invoke();
+                        }
+                    };
+                    task.fork();
+                    tasks.add(task);
                 }
             }
 
-            CompletableFuture<Void> future = CompletableFuture.allOf((CompletableFuture<?>[]) futuresList.toArray());
-            try {
-                future.get();
-            } catch (InterruptedException e) {
-                throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
+            boolean ret = true;
+            for(RecursiveTask<Boolean> task: tasks) {
+                try {
+                    ret &= task.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    ret = false;
+                }
             }
 
-            return null;
+            try {
+                getSocket().getOutputStream().write(message.formatResponse(ret));
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
+                throw new CompletionException(e);
+            }
         }
     }
 
     @Override
     public MoveKeysProcessor getProcessor(Peer peer, Socket socket) {
         return new MoveKeysProcessor(peer.getSystemStorage(), socket, this);
+    }
+
+    private byte[] formatResponse(boolean b) {
+        return new byte[]{(byte) (b ? 1 : 0)};
+    }
+
+    public boolean parseResponse(byte[] response) {
+        return (response[0] == 1);
     }
 }

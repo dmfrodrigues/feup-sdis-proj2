@@ -29,10 +29,6 @@ public class DataBuilder {
         return append(new DataBuilder(b));
     }
 
-    public DataBuilder append(byte b){
-        return append(new DataBuilder(b));
-    }
-
     public int size(){
         int sz = 0;
         for(DataBuilder d: parts) sz += d.size();

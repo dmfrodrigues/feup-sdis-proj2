@@ -1,12 +1,12 @@
 package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.SetPredecessorMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 import java.net.Socket;
 
-public class SetPredecessorProtocol extends ProtocolSupplier<Void> {
+public class SetPredecessorProtocol extends ProtocolTask<Boolean> {
 
     private final Chord chord;
     private final Chord.NodeInfo nodeInfo;
@@ -17,16 +17,15 @@ public class SetPredecessorProtocol extends ProtocolSupplier<Void> {
     }
 
     @Override
-    public Void get() {
+    public Boolean compute() {
         Chord.NodeInfo s = chord.getSuccessor();
         try {
             Socket socket = chord.send(s, new SetPredecessorMessage(nodeInfo));
-            socket.shutdownOutput();
-            socket.getInputStream().readAllBytes();
-            socket.close();
-        } catch (IOException e) {
+            readAllBytesAndClose(socket);
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+            return false;
         }
-        return null;
+        return true;
     }
 }

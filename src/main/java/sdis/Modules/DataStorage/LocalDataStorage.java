@@ -9,8 +9,12 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Manage peer chunk storage.
@@ -21,12 +25,10 @@ public class LocalDataStorage extends DataStorageAbstract {
     private static final int BUFFER_SIZE = 80000;
 
     private final Path storagePath;
-    private final Executor executor;
     private int capacity;
 
-    public LocalDataStorage(Path storagePath, Executor executor, int capacity){
+    public LocalDataStorage(Path storagePath, int capacity){
         this.storagePath = storagePath;
-        this.executor = executor;
         this.capacity = capacity;
         createStorage();
     }
@@ -65,16 +67,16 @@ public class LocalDataStorage extends DataStorageAbstract {
      *
      * @return int representing the number of bytes stored.
      **/
-    public CompletableFuture<Long> getMemoryUsed(){
+    public long getMemoryUsed(){
         File storage = storagePath.toFile();
         long size = 0;
         for (File file : Objects.requireNonNull(storage.listFiles()))
             size += file.length();
-        return CompletableFuture.completedFuture(size);
+        return size;
     }
 
-    public CompletableFuture<Boolean> canPut(int length){
-        return getMemoryUsed().thenApplyAsync(memoryUsed -> memoryUsed + length <= getCapacity());
+    public boolean canPut(int length){
+        return (getMemoryUsed() + length <= getCapacity());
     }
 
     @Override
@@ -88,7 +90,7 @@ public class LocalDataStorage extends DataStorageAbstract {
         return ret;
     }
 
-    public Boolean has(UUID id){
+    public boolean has(UUID id){
         File file = new File(storagePath + "/" + id);
         return file.canRead();
     }
@@ -101,24 +103,26 @@ public class LocalDataStorage extends DataStorageAbstract {
      * @return true if successful, false otherwise.
      **/
     @Override
-    public CompletableFuture<Boolean> put(UUID id, byte[] data) {
-        return canPut(data.length).thenApplyAsync(canPut -> {
+    public boolean put(UUID id, byte[] data) {
+            boolean canPut = canPut(data.length);
             if(!canPut) return false;
             ByteBuffer buffer = ByteBuffer.wrap(data);
             try {
-                AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(storagePath + "/" + id), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                String pathStr = storagePath + "/" + id;
+                File pathFile = new File(pathStr);
+                if(!pathFile.getParentFile().exists() && !pathFile.getParentFile().mkdirs()) return false;
+                AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(pathStr), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
                 os.write(buffer, 0).get();
                 os.close();
             } catch (InterruptedException | ExecutionException | IOException e) {
+                e.printStackTrace();
                 return false;
             }
             return true;
-        });
     }
 
     @Override
-    public CompletableFuture<byte[]> get(UUID id) {
-        return CompletableFuture.supplyAsync(() -> {
+    public byte[] get(UUID id) {
             if (!has(id)) return null;
 
             AsynchronousFileChannel is;
@@ -140,7 +144,6 @@ public class LocalDataStorage extends DataStorageAbstract {
             } catch (Exception e) {
                 throw new CompletionException(e);
             }
-        }, executor);
     }
 
     /**
@@ -149,14 +152,17 @@ public class LocalDataStorage extends DataStorageAbstract {
      * @param id    data piece identifier
      */
     @Override
-    public CompletableFuture<Boolean> delete(UUID id){
+    public boolean delete(UUID id){
         File datapiece = new File(storagePath + "/" + id);
-        boolean ret = datapiece.delete();
-        return CompletableFuture.completedFuture(ret);
+        return datapiece.delete();
     }
 
     public long getSize(UUID id) {
         File file = new File(storagePath + "/" + id);
         return file.length();
+    }
+
+    public Path getStoragePath() {
+        return storagePath;
     }
 }

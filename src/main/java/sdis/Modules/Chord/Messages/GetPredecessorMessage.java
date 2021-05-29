@@ -27,15 +27,12 @@ public class GetPredecessorMessage extends ChordMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             try {
                 byte[] response = message.formatResponse(getChord().getPredecessor());
                 getSocket().getOutputStream().write(response);
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
-                return null;
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
         }

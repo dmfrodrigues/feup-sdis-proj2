@@ -2,25 +2,21 @@ package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.SystemStorage.Messages.SystemStorageMessage;
+import sdis.Modules.Message;
 import sdis.UUID;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public class SystemStorage {
     private final Chord chord;
     private final DataStorage dataStorage;
-    private Executor executor;
 
-    public SystemStorage(Chord chord, DataStorage dataStorage, Executor executor){
+    public SystemStorage(Chord chord, DataStorage dataStorage){
         this.chord = chord;
         this.dataStorage = dataStorage;
-        this.executor = executor;
     }
 
     public Chord getChord() {
@@ -31,7 +27,7 @@ public class SystemStorage {
         return dataStorage;
     }
 
-    public Socket send(InetSocketAddress to, SystemStorageMessage m) throws IOException {
+    public Socket send(InetSocketAddress to, Message m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());
         OutputStream os = socket.getOutputStream();
         os.write(m.asByteArray());
@@ -39,15 +35,20 @@ public class SystemStorage {
         return socket;
     }
 
-    public CompletableFuture<Boolean> put(UUID id, byte[] data) {
-        return CompletableFuture.supplyAsync(new PutSystemProtocol(this, id, data), executor);
+    public Socket sendAny(Message message) throws IOException {
+        Chord.NodeInfo to = chord.getSuccessor();
+        return send(to.address, message);
     }
 
-    public CompletableFuture<byte[]> get(UUID id) {
-        return CompletableFuture.supplyAsync(new GetSystemProtocol(this, id), executor);
+    public boolean put(UUID id, byte[] data) {
+        return new PutSystemProtocol(this, id, data).invoke();
     }
 
-    public CompletableFuture<Boolean> delete(UUID id) {
-        return CompletableFuture.supplyAsync(new DeleteSystemProtocol(this, id), executor);
+    public byte[] get(UUID id) {
+        return new GetSystemProtocol(this, id).invoke();
+    }
+
+    public boolean delete(UUID id) {
+        return new DeleteSystemProtocol(this, id).invoke();
     }
 }

@@ -44,18 +44,15 @@ public class DeleteMessage extends DataStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.getId());
-            Boolean b = deleteProtocol.get();
+            Boolean b = deleteProtocol.invoke();
             try {
                 getSocket().getOutputStream().write(message.formatResponse(b));
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-            return null;
         }
     }
 

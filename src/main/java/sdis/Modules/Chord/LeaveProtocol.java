@@ -1,37 +1,37 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 
-public class LeaveProtocol extends ProtocolSupplier<Void> {
+public class LeaveProtocol extends ProtocolTask<Boolean> {
     private final Chord chord;
-    private final ProtocolSupplier<Void> moveKeys;
+    private final ProtocolTask<Boolean> moveKeys;
 
-    public LeaveProtocol(Chord chord, ProtocolSupplier<Void> moveKeys){
+    public LeaveProtocol(Chord chord, ProtocolTask<Boolean> moveKeys){
         this.chord = chord;
         this.moveKeys = moveKeys;
     }
 
     @Override
-    public Void get() {
+    public Boolean compute() {
         Chord.NodeInfo r = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessor();
 
-        // If it is alone, just leave
-        if(r.equals(s)) return null;
-
-        // Update predecessors and fingers tables of other nodes
-        // Update predecessor of successor
-        SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getPredecessor());
-        setPredecessorProtocol.get();
-        // Update other nodes' fingers tables
-        FingersRemoveProtocol fingersRemoveProtocol = new FingersRemoveProtocol(chord);
-        fingersRemoveProtocol.get();
+        // If it is not alone, process stuff
+        if(!r.equals(s)) {
+            // Update predecessors and fingers tables of other nodes
+            // Update predecessor of successor
+            SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getPredecessor());
+            if (!setPredecessorProtocol.invoke()) return false;
+            // Update other nodes' fingers tables
+            FingersRemoveProtocol fingersRemoveProtocol = new FingersRemoveProtocol(chord);
+            if (!fingersRemoveProtocol.invoke()) return false;
+        }
 
         // Move keys
-        moveKeys.get();
+        if(!moveKeys.invoke()) return false;
 
         System.out.println("Peer " + chord.getKey() + " done leaving");
 
-        return null;
+        return true;
     }
 }

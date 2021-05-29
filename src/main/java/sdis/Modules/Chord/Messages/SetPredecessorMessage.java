@@ -4,7 +4,6 @@ import sdis.Modules.Chord.Chord;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
@@ -49,14 +48,11 @@ public class SetPredecessorMessage extends ChordMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             getChord().setPredecessor(message.getPredecessor());
             try {
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
-                return null;
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (InterruptedException e) {
                 throw new CompletionException(e);
             }
         }

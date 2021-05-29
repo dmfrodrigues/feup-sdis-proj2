@@ -2,26 +2,26 @@ package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.GetPredecessorMessage;
 import sdis.Modules.Chord.Messages.GetSuccessorMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class JoinProtocol extends ProtocolSupplier<Void> {
+public class JoinProtocol extends ProtocolTask<Boolean> {
     private final Chord chord;
     private final InetSocketAddress g;
-    private final ProtocolSupplier<Void> moveKeys;
+    private final ProtocolTask<Boolean> moveKeys;
 
-    public JoinProtocol(Chord chord, InetSocketAddress gateway, ProtocolSupplier<Void> moveKeys){
+    public JoinProtocol(Chord chord, InetSocketAddress gateway, ProtocolTask<Boolean> moveKeys){
         this.chord = chord;
         this.g = gateway;
         this.moveKeys = moveKeys;
     }
 
     @Override
-    public Void get() {
+    public Boolean compute() {
         System.out.println("Peer " + chord.getKey() + " starting to join");
 
         Chord.NodeInfo r = chord.getNodeInfo();
@@ -33,13 +33,11 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
             try {
                 GetSuccessorMessage m = new GetSuccessorMessage(k);
                 Socket socket = chord.send(g, m);
-                socket.shutdownOutput();
-                byte[] response = socket.getInputStream().readAllBytes();
-                socket.close();
+                byte[] response = readAllBytesAndClose(socket);
                 Chord.NodeInfo s = m.parseResponse(chord, response);
                 if(Chord.distance(k, r.key) < Chord.distance(k, s.key)) s = r;
                 chord.setFinger(i, s);
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
         }
@@ -47,27 +45,26 @@ public class JoinProtocol extends ProtocolSupplier<Void> {
         try {
             GetPredecessorMessage m = new GetPredecessorMessage();
             Socket socket = chord.send(chord.getSuccessor(), m);
-            socket.shutdownOutput();
-            byte[] response = socket.getInputStream().readAllBytes();
+            byte[] response = readAllBytesAndClose(socket);
             Chord.NodeInfo predecessor = m.parseResponse(chord, response);
             chord.setPredecessor(predecessor);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
 
         // Update other nodes
         // Update predecessor of successor
         SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getNodeInfo());
-        setPredecessorProtocol.get();
+        setPredecessorProtocol.invoke();
         // Update other nodes' fingers tables
         FingersAddProtocol fingersAddProtocol = new FingersAddProtocol(chord);
-        fingersAddProtocol.get();
+        fingersAddProtocol.invoke();
 
         // Move keys
-        moveKeys.get();
+        moveKeys.invoke();
 
         System.out.println("Peer " + chord.getKey() + " done joining");
 
-        return null;
+        return true;
     }
 }

@@ -1,25 +1,26 @@
 package sdis;
 
-/*
-import sdis.Protocols.DataStorage.ReclaimProtocol;
-import sdis.Protocols.Main.BackupFileProtocol;
-import sdis.Protocols.Main.DeleteFileProtocol;
-import sdis.Protocols.Main.RestoreFileProtocol;
-*/
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
+import sdis.Modules.Main.*;
 import sdis.Modules.Message;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
+import sdis.Modules.SystemStorage.MoveKeysProtocol;
 import sdis.Modules.SystemStorage.ReclaimProtocol;
+import sdis.Modules.SystemStorage.RemoveKeysProtocol;
 import sdis.Modules.SystemStorage.SystemStorage;
+import sdis.Storage.ChunkIterator;
+import sdis.Storage.ChunkOutput;
 import sdis.Utils.Utils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
@@ -28,27 +29,26 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class Peer implements PeerInterface {
-    private final Random random = new Random(System.currentTimeMillis());
 
     private final Chord.Key id;
     private final Path baseStoragePath;
     private final InetSocketAddress socketAddress;
-    private final ServerSocket serverSocket;
-    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(100);
     private final Chord chord;
     private final DataStorage dataStorage;
     private final SystemStorage systemStorage;
+    private final Main main;
 
     public Peer(int keySize, long id, InetAddress ipAddress) throws IOException {
         this(keySize, id, ipAddress, Paths.get("."));
     }
 
     public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException {
-        serverSocket = new ServerSocket();
+        ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(null);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
 
@@ -58,9 +58,10 @@ public class Peer implements PeerInterface {
         );
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
-        chord = new Chord(getSocketAddress(), getExecutor(), keySize, id);
-        dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), getExecutor(), getChord());
-        systemStorage = new SystemStorage(chord, dataStorage, getExecutor());
+        chord = new Chord(getSocketAddress(), keySize, id);
+        dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), getChord());
+        systemStorage = new SystemStorage(chord, dataStorage);
+        main = new Main(systemStorage);
 
         this.id = chord.newKey(id);
 
@@ -84,55 +85,45 @@ public class Peer implements PeerInterface {
         }));
     }
 
-    public CompletableFuture<Void> join(){
+    public boolean join(){
         System.out.println("Peer " + getKey() + " creating a new chord");
 
         return chord.join();
     }
 
-    public CompletableFuture<Void> join(InetSocketAddress gateway){
+    public boolean join(InetSocketAddress gateway){
         System.out.println("Peer " + getKey() + " joining a chord");
 
-        return chord.join(gateway, new ProtocolSupplier<>() {
+        return chord.join(gateway, new ProtocolTask<>() {
             @Override
-            public Void get() {
+            public Boolean compute() {
                 // Get redirects
-                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(chord, dataStorage);
-                Set<UUID> redirects = getRedirectsProtocol.get();
+                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(dataStorage, chord);
+                Set<UUID> redirects = getRedirectsProtocol.invoke();
                 for(UUID id : redirects)
                     dataStorage.registerSuccessorStored(id);
 
                 // Move keys
-
-                return null;
+                MoveKeysProtocol moveKeysProtocol = new MoveKeysProtocol(systemStorage);
+                return moveKeysProtocol.invoke();
             }
         });
     }
 
-    public CompletableFuture<Void> leave(){
+    public boolean leave(){
         System.out.println("Peer " + getKey() + " leaving its chord");
 
-        return chord.leave(new ProtocolSupplier<>() {
+        return chord.leave(new ProtocolTask<>() {
             @Override
-            public Void get() {
-                return null;
+            public Boolean compute() {
+                // Remove keys
+                RemoveKeysProtocol removeKeysProtocol = new RemoveKeysProtocol(systemStorage);
+                if(!removeKeysProtocol.invoke()) return false;
+
+                // Delete local storage
+                return Utils.deleteRecursive(baseStoragePath.toFile());
             }
-        })
-        .thenRun(() -> {
-            assert(Utils.deleteRecursive(baseStoragePath.toFile()));
         });
-    }
-
-    public Chord getChord() {
-        return chord;
-    }
-
-    public Random getRandom() {
-        return random;
-    }
-
-    public static ScheduledExecutorService getExecutor(){
-        return executor;
     }
 
     public Chord.Key getKey() {
@@ -143,6 +134,10 @@ public class Peer implements PeerInterface {
         return socketAddress;
     }
 
+    public Chord getChord() {
+        return chord;
+    }
+
     public DataStorage getDataStorage() {
         return dataStorage;
     }
@@ -151,73 +146,109 @@ public class Peer implements PeerInterface {
         return systemStorage;
     }
 
+    public Main getMain() {
+        return main;
+    }
+
     /**
-     * Backup file specified by pathname, with a certain replication degree.
-     *
-     * @param pathname          Pathname of file to be backed up
-     * @param replicationDegree Replication degree (number of copies of each file chunk over all machines in the network)
+     * Backup file.
      */
-    public void backup(String pathname, int replicationDegree) throws IOException {
-        /*
-        File file = new File(pathname);
-        FileChunkIterator fileChunkIterator;
+    public boolean backup(Username username, Password password, Main.Path path, int replicationDegree, ChunkIterator chunkIterator) {
         try {
-            fileChunkIterator = new FileChunkIterator(file);
-        } catch (NoSuchFileException e) {
-            System.err.println("File " + pathname + " not found");
-            return;
+            UserMetadata userMetadata = authenticate(username, password);
+            if(userMetadata == null){
+                System.err.println("Failed to authenticate");
+                return false;
+            }
+
+            if(userMetadata.getFile(path) != null){
+                System.err.println("Failed to backup: file already exists");
+            }
+
+            Main.File file = new Main.File(username, path, chunkIterator.length(), replicationDegree);
+
+            return main.backupFile(file, chunkIterator);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
-        getFileTable().insert(file.getName(), fileChunkIterator.getFileId(), fileChunkIterator.length());
-        BackupFileProtocol backupFileProtocol = new BackupFileProtocol(this, fileChunkIterator, replicationDegree);
-        CompletableFuture.runAsync(backupFileProtocol);
-         */
     }
 
     /**
-     * Restore file specified by pathname.
-     *
-     * That file's chunks are retrieved from peers, assembled and then saved to the provided pathname.
-     *
-     * @param pathname  Pathname of file to be restored
+     * Restore file.
      */
-    public void restore(String pathname) throws IOException {
-        /*
-        RestoreFileProtocol callable = new RestoreFileProtocol(this, pathname);
-        executor.submit(callable);
-         */
+    public boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput) {
+            UserMetadata userMetadata = authenticate(username, password);
+            if(userMetadata == null){
+                System.err.println("Failed to authenticate");
+                return false;
+            }
+
+            Main.File file = userMetadata.getFile(path);
+            if(file == null){
+                System.err.println("No such file with path " + path);
+                Set<Main.Path> files = userMetadata.getFiles();
+                System.err.println("Available files (" + files.size() + "):");
+                for(Main.Path f: files){
+                    System.err.println("    " + f);
+                }
+                return false;
+            }
+
+            return main.restoreFile(file, chunkOutput);
     }
 
     /**
-     * Delete file specified by pathname.
-     *
-     * @param pathname  Pathname of file to be deleted over all peers
+     * Delete file.
      */
-    public void delete(String pathname) {
-        /*
-        DeleteFileProtocol callable = new DeleteFileProtocol(this, pathname);
-        executor.submit(callable);
-         */
+    public boolean delete(Username username, Password password, Main.Path path) {
+            UserMetadata userMetadata = authenticate(username, password);
+            if(userMetadata == null){
+                System.err.println("Failed to authenticate");
+                return false;
+            }
+
+            Main.File file = userMetadata.getFile(path);
+            if(file == null){
+                System.err.println("No such file with path " + path);
+                Set<Main.Path> files = userMetadata.getFiles();
+                System.err.println("Available files (" + files.size() + "):");
+                for(Main.Path f: files){
+                    System.err.println("    " + f);
+                }
+                return false;
+            }
+
+            return main.deleteFile(file);
+    }
+
+    @Override
+    public boolean deleteAccount(Username username, Password password) {
+        return new DeleteAccountProtocol(main, username, password).invoke();
     }
 
     /**
      * Set space the peer may use to backup chunks from other machines.
      *
-     * @param spaceBytes    Amount of space, in bytes
+     * @param space_bytes   Amount of space, in bytes
      */
-    public void reclaim(int spaceBytes) {
-        try {
+    public boolean reclaim(int space_bytes) {
             LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
-            localDataStorage.setCapacity(spaceBytes);
-            if(localDataStorage.getMemoryUsed().get() > localDataStorage.getCapacity()) {
+            localDataStorage.setCapacity(space_bytes);
+            if(localDataStorage.getMemoryUsed() > localDataStorage.getCapacity()) {
                 ReclaimProtocol reclaimProtocol = new ReclaimProtocol(systemStorage);
-                reclaimProtocol.get();
+                reclaimProtocol.invoke();
             }
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
+            return true;
+    }
+
+    public UserMetadata authenticate(Username username, Password password) {
+        AuthenticationProtocol authenticationProtocol = new AuthenticationProtocol(main, username, password);
+        return authenticationProtocol.invoke();
     }
 
     public static class ServerSocketHandler implements Runnable {
+        private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(20);
         private final Peer peer;
         private final ServerSocket serverSocket;
 
@@ -230,14 +261,6 @@ public class Peer implements PeerInterface {
             messageFactory = new MessageFactory(peer);
         }
 
-        public ServerSocket getServerSocket() {
-            return serverSocket;
-        }
-
-        public Peer getPeer() {
-            return peer;
-        }
-
         @Override
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
@@ -247,7 +270,7 @@ public class Peer implements PeerInterface {
                     byte[] data = is.readAllBytes();
                     Message message = messageFactory.factoryMethod(data);
                     Message.Processor processor = message.getProcessor(peer, socket);
-                    CompletableFuture.supplyAsync(processor, executor);
+                    executor.execute(processor::invoke);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

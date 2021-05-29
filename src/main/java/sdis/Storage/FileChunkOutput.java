@@ -1,4 +1,4 @@
-package sdis.Modules.Main;
+package sdis.Storage;
 
 import sdis.Utils.FixedSizeBuffer;
 
@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutionException;
  * Is in sync with a local filesystem file.
  * Buffers chunks saved using FileChunkOutput#set(int, byte[]), and writes them to the file whenever possible.
  */
-public class FileChunkOutput {
+public class FileChunkOutput implements ChunkOutput {
     private final static int BUFFER_SIZE = 10;
 
     private final AsynchronousFileChannel fileOutputStream;
@@ -35,29 +35,19 @@ public class FileChunkOutput {
         buffer = new FixedSizeBuffer<>(BUFFER_SIZE);
     }
 
-    /**
-     * @brief Add a chunk.
-     *
-     * Fails if the chunk index is too far ahead of the first missing chunk.
-     *
-     * @param i     Index of the chunk in the file
-     * @param e     Chunk
-     * @throws IOException                      If write to file fails
-     * @throws ArrayIndexOutOfBoundsException   If chunk index was not accepted
-     */
-    public void set(int i, byte[] e) throws Throwable {
+    @Override
+    public boolean set(long i, byte[] e) {
         ByteBuffer byteBuffer = ByteBuffer.wrap(e);
         buffer.set(i, byteBuffer);
         if(buffer.hasNext()){
             ByteBuffer next = buffer.next();
             try {
                 filePosition += fileOutputStream.write(next, filePosition).get();
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            } catch (ExecutionException ex) {
-                throw ex.getCause();
+            } catch (InterruptedException | ExecutionException ex) {
+                return false;
             }
         }
+        return true;
     }
 
     /**

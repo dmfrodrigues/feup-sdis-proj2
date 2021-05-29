@@ -1,4 +1,4 @@
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Peer;
 
 import java.io.IOException;
@@ -8,8 +8,8 @@ import java.rmi.AlreadyBoundException;
 
 public class PeerDriver {
     public static void main(String[] args) throws IOException, AlreadyBoundException {
-        if(args.length != 3 && args.length != 4){
-            System.out.println("ERROR: not enough arguments");
+        if(args.length != 5 && args.length != 6){
+            System.out.println("ERROR: wrong number of arguments");
             System.out.print(getUsage());
             return;
         }
@@ -21,18 +21,13 @@ public class PeerDriver {
         String serviceAccessPoint = args[1];
         peer.bindAsRemoteObject(serviceAccessPoint);
 
-        if(args.length <= 3){
-            peer.getChord().join();
+        if(args.length <= 5){
+            peer.join();
         } else {
-            String socketAddressString = args[3];
+            String socketAddressString = args[5];
             String[] socketAddressSplit = socketAddressString.split(":");
             InetSocketAddress gateway = new InetSocketAddress(socketAddressSplit[0], Integer.parseInt(socketAddressSplit[1]));
-            peer.getChord().join(gateway, new ProtocolSupplier<>() {
-                @Override
-                public Void get() {
-                    return null;
-                }
-            });
+            peer.join(gateway);
         }
     }
 

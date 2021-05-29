@@ -3,15 +3,14 @@ package sdis.Modules.DataStorage;
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.Messages.DeleteMessage;
 import sdis.Modules.DataStorage.Messages.PutMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
-public class PutProtocol extends ProtocolSupplier<Boolean> {
+public class PutProtocol extends ProtocolTask<Boolean> {
 
     private final Chord chord;
     private final DataStorage dataStorage;
@@ -31,22 +30,13 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
     }
 
     @Override
-    public Boolean get() {
-        Chord.NodeInfo r = chord.getNodeInfo();
+    public Boolean compute() {
         Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStoredLocally = localDataStorage.has(id);
-        boolean hasSpaceLocally;
+        boolean hasSpaceLocally = localDataStorage.canPut(data.length);
         boolean pointsToSuccessor = dataStorage.successorHasStored(id);
-        boolean isBase = dataStorage.has(id);
-        try {
-            hasSpaceLocally = localDataStorage.canPut(data.length).get();
-        } catch (InterruptedException e) {
-            throw new CompletionException(e);
-        } catch (ExecutionException e) {
-            throw new CompletionException(e.getCause());
-        }
 
         // If r has stored the datapiece, returns
         if(hasStoredLocally) {
@@ -57,20 +47,16 @@ public class PutProtocol extends ProtocolSupplier<Boolean> {
         // If r has space
         if(hasSpaceLocally){
             try {
-                localDataStorage.put(id, data).get();    // Store the datapiece
+                if(!localDataStorage.put(id, data)) return false;    // Store the datapiece
                 if(pointsToSuccessor) {
                     // If it was pointing to its successor, delete it from the successor
                     // so that less steps are required to reach the datapiece
                     Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
-                    socket.shutdownOutput();
-                    socket.getInputStream().readAllBytes();
-                    socket.close();
+                    readAllBytesAndClose(socket);
                 }
                 return true;
-            } catch (InterruptedException | IOException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
-            } catch (ExecutionException e) {
-                throw new CompletionException(e.getCause());
             }
         }
         // Everything beyond this point assumes the node does not have the datapiece locally,

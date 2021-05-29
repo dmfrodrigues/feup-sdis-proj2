@@ -17,12 +17,13 @@ author:
   email: up201806330@edu.fe.up.pt
 authorshort: Class 7, group 21
 
-date: 21st of May, 2021
+date: 2nd of June, 2021
 
 header-includes:
     - \usepackage{newunicodechar}
     - \newunicodechar{≤}{\ensuremath{\leq}}
     - \usepackage{multicol}
+    - \usepackage[binary-units=true]{siunitx}
 
 toc: 1
 csl: apa.csl

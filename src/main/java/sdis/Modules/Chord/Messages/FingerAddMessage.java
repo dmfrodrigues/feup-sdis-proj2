@@ -55,7 +55,7 @@ public class FingerAddMessage extends ChordMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             try {
                 Chord chord = getChord();
                 Chord.NodeInfo r = chord.getNodeInfo();
@@ -64,10 +64,8 @@ public class FingerAddMessage extends ChordMessage {
 
                 // If the new node to update the fingers table is itself, ignore
                 if(r.equals(f)){
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
-                    return null;
+                    readAllBytesAndClose(getSocket());
+                    return;
                 }
 
                 // Update fingers if necessary
@@ -87,17 +85,11 @@ public class FingerAddMessage extends ChordMessage {
                 // arrival, but we can also check that on departure)
                 if(updatedFingers && !p.equals(f)){
                     Socket predecessorSocket = chord.send(p, message);
-                    predecessorSocket.shutdownOutput();
-                    predecessorSocket.getInputStream().readAllBytes();
-                    predecessorSocket.close();
+                    readAllBytesAndClose(predecessorSocket);
                 }
 
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
-
-                return null;
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
         }

@@ -1,6 +1,5 @@
 package sdis.Modules.SystemStorage.Messages;
 
-import sdis.Modules.Chord.Chord;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;
 import sdis.UUID;
@@ -16,12 +15,12 @@ public class PutSystemMessage extends SystemStorageMessage {
     private final UUID id;
     private final byte[] data;
 
-    public PutSystemMessage(Chord.Key nodeKey, UUID id, byte[] data){
+    public PutSystemMessage(UUID id, byte[] data){
         this.id = id;
         this.data = data;
     }
 
-    public PutSystemMessage(Chord chord, byte[] data){
+    public PutSystemMessage(byte[] data){
         int headerSize = Utils.find_nth(data, "\n".getBytes(), 1);
         String dataString = new String(data, 0, headerSize);
         String[] splitString = dataString.split(" ");
@@ -58,22 +57,15 @@ public class PutSystemMessage extends SystemStorageMessage {
         }
 
         @Override
-        public Void get() {
-            getSystemStorage().getDataStorage().put(message.getId(), message.getData())
-            .thenApplyAsync((Boolean b) -> {
+        public void compute() {
+            boolean b = getSystemStorage().getDataStorage().put(message.getId(), message.getData());
+
                 try {
                     getSocket().getOutputStream().write(message.formatResponse(b));
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
-                } catch (IOException e) {
+                    readAllBytesAndClose(getSocket());
+                } catch (IOException | InterruptedException e) {
                     throw new CompletionException(e);
                 }
-
-                return null;
-            });
-
-            return null;
         }
     }
 

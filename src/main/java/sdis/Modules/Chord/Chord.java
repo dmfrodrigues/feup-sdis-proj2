@@ -1,15 +1,14 @@
 package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.ChordMessage;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
+import sdis.Utils.Pair;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public class Chord {
     public static class Key {
@@ -76,22 +75,23 @@ public class Chord {
             return key + " " + address.getAddress().getHostAddress() + ":" + address.getPort();
         }
 
-        public boolean equals(NodeInfo obj){
-            return (key.equals(obj.key) && address.equals(obj.address));
+        public boolean equals(Object o){
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            NodeInfo info = (NodeInfo) o;
+            return (key.equals(info.key) && address.equals(info.address));
         }
     }
 
-    private int keySize;
+    private final int keySize;
 
     private final InetSocketAddress socketAddress;
-    private final Executor executor;
     private final Chord.Key key;
     private final NodeInfo[] fingers;
     private final NodeInfo predecessor;
 
-    public Chord(InetSocketAddress socketAddress, Executor executor, int keySize, long key){
+    public Chord(InetSocketAddress socketAddress, int keySize, long key){
         this.socketAddress = socketAddress;
-        this.executor = executor;
         this.keySize = keySize;
         this.key = newKey(key);
         fingers = new NodeInfo[this.keySize];
@@ -100,10 +100,6 @@ public class Chord {
 
     public Chord.Key newKey(long k){
         return new Chord.Key(this, k);
-    }
-
-    public Executor getExecutor() {
-        return executor;
     }
 
     public Chord.Key getKey() {
@@ -116,10 +112,11 @@ public class Chord {
         }
     }
 
-    public void setFinger(int i, NodeInfo peer){
+    public boolean setFinger(int i, NodeInfo peer){
         synchronized(fingers) {
             fingers[i] = peer;
         }
+        return true;
     }
 
     public NodeInfo getPredecessor(){
@@ -128,23 +125,19 @@ public class Chord {
         }
     }
 
-    public void setPredecessor(NodeInfo peer){
+    public boolean setPredecessor(NodeInfo peer){
         synchronized(predecessor) {
             predecessor.copy(peer);
         }
+        return true;
     }
 
     public NodeInfo getSuccessor() {
         return getFinger(0);
     }
 
-    public CompletableFuture<NodeInfo> getSuccessor(Chord.Key key){
-        GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(this, key);
-        return CompletableFuture.supplyAsync(getSuccessorProtocol, getExecutor());
-    }
-
-    public void setKeySize(int i) {
-        keySize = i;
+    public NodeInfo getSuccessor(Chord.Key key){
+        return new GetSuccessorProtocol(this, key).invoke();
     }
 
     public int getKeySize() {
@@ -165,17 +158,14 @@ public class Chord {
 
     /**
      * @brief Create a new chord system.
-     *
-     * @return Future that will resolve when join is complete.
      */
-    public CompletableFuture<Void> join(){
-        return CompletableFuture.runAsync(() -> {
-            NodeInfo nodeInfo = getNodeInfo();
-            setPredecessor(nodeInfo);
-            for(int i = 0; i < getKeySize(); ++i){
-                setFinger(i, nodeInfo);
-            }
-        }, getExecutor());
+    public boolean join(){
+        NodeInfo nodeInfo = getNodeInfo();
+        if(!setPredecessor(nodeInfo)) return false;
+        for(int i = 0; i < getKeySize(); ++i) {
+            if(!setFinger(i, nodeInfo)) return false;
+        }
+        return true;
     }
 
     /**
@@ -183,16 +173,13 @@ public class Chord {
      *
      * @param gateway   Socket address of the gateway node that will be used to join the system
      * @param moveKeys  Whatever operations the upper layer may want to execute just before ending the Join
-     * @return  Future of the completion of the join procedure
      */
-    public CompletableFuture<Void> join(InetSocketAddress gateway, ProtocolSupplier<Void> moveKeys) {
-        JoinProtocol joinProtocol = new JoinProtocol(this, gateway, moveKeys);
-        return CompletableFuture.supplyAsync(joinProtocol, getExecutor());
+    public boolean join(InetSocketAddress gateway, ProtocolTask<Boolean> moveKeys) {
+        return new JoinProtocol(this, gateway, moveKeys).invoke();
     }
 
-    public CompletableFuture<Void> leave(ProtocolSupplier<Void> moveKeys) {
-        LeaveProtocol leaveProtocol = new LeaveProtocol(this, moveKeys);
-        return CompletableFuture.supplyAsync(leaveProtocol, getExecutor());
+    public boolean leave(ProtocolTask<Boolean> moveKeys) {
+        return new LeaveProtocol(this, moveKeys).invoke();
     }
 
     public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {

@@ -8,7 +8,6 @@ import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
@@ -45,18 +44,15 @@ public class GetMessage extends DataStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.getId());
-            byte[] data = getProtocol.get();
+            byte[] data = getProtocol.invoke();
             try {
                 getSocket().getOutputStream().write(message.formatResponse(data));
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-            return null;
         }
     }
 

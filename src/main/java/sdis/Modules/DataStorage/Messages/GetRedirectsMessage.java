@@ -2,7 +2,6 @@ package sdis.Modules.DataStorage.Messages;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.DataStorage.GetProtocol;
 import sdis.Peer;
 import sdis.UUID;
 import sdis.Utils.DataBuilder;
@@ -17,9 +16,6 @@ import java.util.concurrent.CompletionException;
 public class GetRedirectsMessage extends DataStorageMessage {
 
     public GetRedirectsMessage(){
-    }
-
-    public GetRedirectsMessage(byte[] data){
     }
 
     @Override
@@ -37,16 +33,15 @@ public class GetRedirectsMessage extends DataStorageMessage {
         }
 
         @Override
-        public Void get() {
+        public void compute() {
             Set<UUID> ids = getDataStorage().getRedirects();
             try {
                 OutputStream os = getSocket().getOutputStream();
                 os.write(message.formatResponse(ids));
-                getSocket().close();
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-            return null;
         }
     }
 

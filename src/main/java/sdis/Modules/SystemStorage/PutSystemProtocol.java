@@ -1,23 +1,17 @@
 package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.DataStorage.LocalDataStorage;
-import sdis.Modules.DataStorage.Messages.DeleteMessage;
-import sdis.Modules.DataStorage.Messages.PutMessage;
-import sdis.Modules.DataStorage.PutProtocol;
-import sdis.Modules.ProtocolSupplier;
+import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.Messages.PutSystemMessage;
 import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
-public class PutSystemProtocol extends ProtocolSupplier<Boolean> {
+public class PutSystemProtocol extends ProtocolTask<Boolean> {
 
-    private SystemStorage systemStorage;
+    private final SystemStorage systemStorage;
     private final UUID id;
     private final byte[] data;
 
@@ -28,19 +22,17 @@ public class PutSystemProtocol extends ProtocolSupplier<Boolean> {
     }
 
     @Override
-    public Boolean get() {
+    public Boolean compute() {
         Chord chord = systemStorage.getChord();
         try{
-            Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord)).get();
-            PutSystemMessage putSystemMessage = new PutSystemMessage(s.key, id, data);
+            Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord));
+            PutSystemMessage putSystemMessage = new PutSystemMessage(id, data);
             Socket socket = systemStorage.send(s.address, putSystemMessage);
-            socket.shutdownOutput();
-            byte[] response = socket.getInputStream().readAllBytes();
-            socket.close();
+            byte[] response = readAllBytesAndClose(socket);
             return putSystemMessage.parseResponse(response);
-        } catch (InterruptedException | IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
-        } catch (ExecutionException | CompletionException e) {
+        } catch (CompletionException e) {
             throw new CompletionException(e.getCause());
         }
     }

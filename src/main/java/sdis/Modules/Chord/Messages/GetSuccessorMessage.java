@@ -43,19 +43,16 @@ public class GetSuccessorMessage extends ChordMessage {
         }
 
         @Override
-        public Void get() {
-            GetSuccessorProtocol protocol = new GetSuccessorProtocol(getChord(), message.getKey());
-            Chord.NodeInfo nodeInfo = protocol.get();
+        public void compute() {
+            GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(getChord(), message.getKey());
+            Chord.NodeInfo nodeInfo = getSuccessorProtocol.invoke();
             try {
                 byte[] response = message.formatResponse(nodeInfo);
                 getSocket().getOutputStream().write(response);
-                getSocket().shutdownOutput();
-                getSocket().getInputStream().readAllBytes();
-                getSocket().close();
-            } catch (IOException e) {
+                readAllBytesAndClose(getSocket());
+            } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-            return null;
         }
     }
 

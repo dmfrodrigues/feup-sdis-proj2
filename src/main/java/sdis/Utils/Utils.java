@@ -50,17 +50,35 @@ public class Utils {
         return hexString.toString();
     }
 
+    public static long bytesToLong(byte[] array) {
+        int sz = Math.min(array.length, 8);
+        long l = 0;
+        for(int i = 0; i < sz; ++i){
+            l <<= 8;
+            l ^= (long) array[i] & 0xff;
+        }
+        return l;
+    }
+
     public static int log2(long n) {
         return 63 - Long.numberOfLeadingZeros(n);
     }
 
+    /**
+     * @brief Delete file and, if a directory, all its contents recursively.
+     *
+     * @param directoryToBeDeleted  Directory to be deleted
+     * @return                      True if successful, false otherwise.
+     */
     public static boolean deleteRecursive(File directoryToBeDeleted) {
+        boolean ret = true;
         File[] allContents = directoryToBeDeleted.listFiles();
         if (allContents != null) {
             for (File file : allContents) {
-                deleteRecursive(file);
+                ret &= deleteRecursive(file);
             }
         }
-        return directoryToBeDeleted.delete();
+        ret &= directoryToBeDeleted.delete();
+        return ret;
     }
 }

@@ -1,12 +1,18 @@
 package sdis;
 
-import java.io.IOException;
+import sdis.Modules.Main.Main;
+import sdis.Modules.Main.Password;
+import sdis.Modules.Main.Username;
+import sdis.Storage.ChunkIterator;
+import sdis.Storage.ChunkOutput;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface PeerInterface extends Remote {
-    void backup(String pathname, int replicationDegree) throws IOException;
-    void restore(String pathname) throws IOException;
-    void delete(String pathname) throws RemoteException;
-    void reclaim(int space_kb) throws RemoteException;
+    boolean backup(Username username, Password password, Main.Path path, int replicationDegree, ChunkIterator chunkIterator);
+    boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput);
+    boolean delete(Username username, Password password, Main.Path path);
+    boolean deleteAccount(Username username, Password password);
+    boolean reclaim(int space_bytes) throws RemoteException;
 }
