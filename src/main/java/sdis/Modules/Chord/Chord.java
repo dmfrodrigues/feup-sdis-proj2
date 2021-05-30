@@ -164,12 +164,8 @@ public class Chord {
         return (1L << getKeySize());
     }
 
-    public InetSocketAddress getSocketAddress(){
-        return socketAddress;
-    }
-
     public NodeInfo getNodeInfo() {
-        return new NodeInfo(key, getSocketAddress());
+        return new NodeInfo(key, socketAddress);
     }
 
     /**

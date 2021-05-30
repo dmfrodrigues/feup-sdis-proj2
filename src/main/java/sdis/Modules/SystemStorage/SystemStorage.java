@@ -29,9 +29,8 @@ public class SystemStorage {
 
     public Socket send(InetSocketAddress to, Message m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());
-        OutputStream os = socket.getOutputStream();
-        os.write(m.asByteArray());
-        os.flush();
+        socket.getOutputStream().write(m.asByteArray());
+        socket.getOutputStream().flush();
         return socket;
     }
 
