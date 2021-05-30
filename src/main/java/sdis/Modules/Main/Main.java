@@ -158,10 +158,6 @@ public class Main {
         public String toString() {
             return file.toString() + "-" + chunkIndex;
         }
-
-        public Main.File getFile() {
-            return file;
-        }
     }
 
     public static class Replica {

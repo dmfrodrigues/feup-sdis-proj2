@@ -60,10 +60,6 @@ public class Utils {
         return l;
     }
 
-    public static int log2(long n) {
-        return 63 - Long.numberOfLeadingZeros(n);
-    }
-
     /**
      * @brief Delete file and, if a directory, all its contents recursively.
      *

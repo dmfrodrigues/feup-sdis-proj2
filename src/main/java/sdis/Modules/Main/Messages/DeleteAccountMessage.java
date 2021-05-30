@@ -3,8 +3,6 @@ package sdis.Modules.Main.Messages;
 import sdis.Modules.Main.*;
 import sdis.Modules.ProtocolTask;
 import sdis.Peer;
-import sdis.Storage.ChunkOutput;
-import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
