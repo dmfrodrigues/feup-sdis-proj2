@@ -31,7 +31,7 @@ public class PutProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeInfo s = chord.getSuccessor();
+        Chord.NodeConn s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStoredLocally = localDataStorage.has(id);
@@ -52,7 +52,7 @@ public class PutProtocol extends ProtocolTask<Boolean> {
                     // If it was pointing to its successor, delete it from the successor
                     // so that less steps are required to reach the datapiece
                     DeleteMessage deleteMessage = new DeleteMessage(id);
-                    deleteMessage.sendTo(s.address);
+                    deleteMessage.sendTo(s.nodeInfo.address);
                 }
                 return true;
             } catch (IOException | InterruptedException e) {
@@ -62,7 +62,7 @@ public class PutProtocol extends ProtocolTask<Boolean> {
         // Everything beyond this point assumes the node does not have the datapiece locally,
         // nor does it have enough space to store it
 
-        if(s.key == originalNodeKey) return false;
+        if(s.nodeInfo.key == originalNodeKey) return false;
 
         // If it does not yet point to the successor, point to successor
         if(!pointsToSuccessor) dataStorage.registerSuccessorStored(id);
@@ -70,7 +70,7 @@ public class PutProtocol extends ProtocolTask<Boolean> {
             // Send a PUT message to the successor; if it does not yet have that datapiece, the successor will store it;
             // if it already has it, this message just serves as a confirmation that the datapiece is in fact stored.
             PutMessage m = new PutMessage(originalNodeKey, id, data);
-            boolean response = m.sendTo(s.address);
+            boolean response = m.sendTo(s.nodeInfo.address);
             if (!response) {
                 dataStorage.unregisterSuccessorStored(id);
             }

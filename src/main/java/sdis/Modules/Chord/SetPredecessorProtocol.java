@@ -18,10 +18,10 @@ public class SetPredecessorProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeInfo s = chord.getSuccessor();
+        Chord.NodeConn s = chord.getSuccessor();
         try {
             SetPredecessorMessage setPredecessorMessage = new SetPredecessorMessage(nodeInfo);
-            setPredecessorMessage.sendTo(chord, s.address);
+            setPredecessorMessage.sendTo(chord, s.nodeInfo.address);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return false;

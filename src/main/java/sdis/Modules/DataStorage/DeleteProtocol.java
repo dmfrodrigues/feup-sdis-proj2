@@ -23,7 +23,7 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeInfo s = chord.getSuccessor();
+        Chord.NodeConn s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStored = localDataStorage.has(id);
@@ -45,7 +45,7 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
         // If r has a pointer to its successor reporting that it might have stored
         try {
             DeleteMessage m = new DeleteMessage(id);
-            boolean response = m.sendTo(s.address);
+            boolean response = m.sendTo(s.nodeInfo.address);
             if(response){
                 dataStorage.unregisterSuccessorStored(id);
             }

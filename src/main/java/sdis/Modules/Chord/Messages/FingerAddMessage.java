@@ -65,7 +65,7 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
                 boolean updatedFingers = false;
                 while(
                     i >= 0 &&
-                    Chord.distance(n.key.add(1L << i), s.key) < Chord.distance(n.key.add(1L << i), chord.getFinger(i).key)
+                    Chord.distance(n.key.add(1L << i), s.key) < Chord.distance(n.key.add(1L << i), chord.getFingerInfo(i).key)
                 ){
                     updatedFingers = true;
                     chord.setFinger(i--, s);

@@ -1,6 +1,7 @@
 package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.ChordMessage;
+import sdis.Modules.Chord.Messages.HelloMessage;
 import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
@@ -135,9 +136,28 @@ public class Chord {
         return key;
     }
 
-    public NodeInfo getFinger(int i){
+    public NodeInfo getFingerRaw(int i){
         synchronized(fingers) {
             return fingers[i];
+        }
+    }
+
+    public NodeInfo getFingerInfo(int i) {
+        synchronized (fingers){
+            try {
+                Socket socket = new Socket(fingers[i].address.getAddress(), fingers[i].address.getPort());
+                HelloMessage helloMessage = new HelloMessage();
+                helloMessage.sendTo(this, socket);
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
+            return fingers[i];
+        }
+    }
+
+    public NodeConn getFinger(int i){
+        synchronized (fingers){
+            return new NodeConn(fingers[i], null);
         }
     }
 
@@ -165,7 +185,11 @@ public class Chord {
         return true;
     }
 
-    public NodeInfo getSuccessor() {
+    public NodeInfo getSuccessorInfo() {
+        return getFingerInfo(0);
+    }
+
+    public NodeConn getSuccessor() {
         return getFinger(0);
     }
 

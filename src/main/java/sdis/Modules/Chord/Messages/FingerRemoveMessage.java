@@ -64,7 +64,7 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
                 boolean updatedFingers = false;
                 while(
                     i >= 0 &&
-                    getChord().getFinger(i).equals(sOld)
+                    getChord().getFingerInfo(i).equals(sOld)
                 ){
                     updatedFingers = true;
                     getChord().setFinger(i--, sNew);

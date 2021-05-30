@@ -14,7 +14,7 @@ public class LeaveProtocol extends ProtocolTask<Boolean> {
     @Override
     public Boolean compute() {
         Chord.NodeInfo r = chord.getNodeInfo();
-        Chord.NodeInfo s = chord.getSuccessor();
+        Chord.NodeInfo s = chord.getSuccessorInfo();
 
         // If it is not alone, process stuff
         if(!r.equals(s)) {

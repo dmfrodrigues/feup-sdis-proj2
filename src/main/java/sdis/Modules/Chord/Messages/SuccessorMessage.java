@@ -29,7 +29,7 @@ public class SuccessorMessage extends ChordMessage<Chord.NodeInfo> {
         @Override
         public void compute() {
             try {
-                Chord.NodeInfo successor = getChord().getSuccessor();
+                Chord.NodeInfo successor = getChord().getSuccessorInfo();
                 byte[] response = message.formatResponse(successor);
                 getSocket().getOutputStream().write(response);
                 readAllBytesAndClose(getSocket());

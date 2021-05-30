@@ -23,7 +23,7 @@ public class GetProtocol extends ProtocolTask<byte[]> {
 
     @Override
     public byte[] compute() {
-        Chord.NodeInfo s = chord.getSuccessor();
+        Chord.NodeConn s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStored = localDataStorage.has(id);
@@ -35,7 +35,7 @@ public class GetProtocol extends ProtocolTask<byte[]> {
         if(pointsToSuccessor){
             try {
                 GetMessage m = new GetMessage(id);
-                return m.sendTo(s.address);
+                return m.sendTo(s.nodeInfo.address);
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }

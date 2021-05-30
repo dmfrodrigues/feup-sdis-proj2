@@ -29,15 +29,15 @@ public class TestChordJoin {
         Chord chord1 = peer1.getChord();
 
         assertEquals(0, chord1.getPredecessor().key.toLong());
-        assertEquals(0, chord1.getSuccessor().key.toLong());
-        assertEquals(0, chord1.getFinger(0).key.toLong());
-        assertEquals(0, chord1.getFinger(1).key.toLong());
-        assertEquals(0, chord1.getFinger(2).key.toLong());
-        assertEquals(0, chord1.getFinger(3).key.toLong());
-        assertEquals(0, chord1.getFinger(4).key.toLong());
-        assertEquals(0, chord1.getFinger(5).key.toLong());
-        assertEquals(0, chord1.getFinger(6).key.toLong());
-        assertEquals(0, chord1.getFinger(7).key.toLong());
+        assertEquals(0, chord1.getSuccessorInfo().key.toLong());
+        assertEquals(0, chord1.getFingerInfo(0).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(1).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(2).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(3).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(4).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(5).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(6).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(7).key.toLong());
 
         assertTrue(peer1.leave());
     }
@@ -106,26 +106,26 @@ public class TestChordJoin {
         assertEquals(10, chord1.getPredecessor().key.toLong());
         assertEquals(0, chord2.getPredecessor().key.toLong());
 
-        assertEquals(0, chord2.getFinger(0).key.toLong());
-        assertEquals(0, chord2.getFinger(1).key.toLong());
-        assertEquals(0, chord2.getFinger(2).key.toLong());
-        assertEquals(0, chord2.getFinger(3).key.toLong());
-        assertEquals(0, chord2.getFinger(4).key.toLong());
-        assertEquals(0, chord2.getFinger(5).key.toLong());
-        assertEquals(0, chord2.getFinger(6).key.toLong());
-        assertEquals(0, chord2.getFinger(7).key.toLong());
+        assertEquals(0, chord2.getFingerInfo(0).key.toLong());
+        assertEquals(0, chord2.getFingerInfo(1).key.toLong());
+        assertEquals(0, chord2.getFingerInfo(2).key.toLong());
+        assertEquals(0, chord2.getFingerInfo(3).key.toLong());
+        assertEquals(0, chord2.getFingerInfo(4).key.toLong());
+        assertEquals(0, chord2.getFingerInfo(5).key.toLong());
+        assertEquals(0, chord2.getFingerInfo(6).key.toLong());
+        assertEquals(0, chord2.getFingerInfo(7).key.toLong());
 
-        assertEquals(10, chord1.getFinger(0).key.toLong());
-        assertEquals(10, chord1.getFinger(1).key.toLong());
-        assertEquals(10, chord1.getFinger(2).key.toLong());
-        assertEquals(10, chord1.getFinger(3).key.toLong());
-        assertEquals( 0, chord1.getFinger(4).key.toLong());
-        assertEquals( 0, chord1.getFinger(5).key.toLong());
-        assertEquals( 0, chord1.getFinger(6).key.toLong());
-        assertEquals( 0, chord1.getFinger(7).key.toLong());
+        assertEquals(10, chord1.getFingerInfo(0).key.toLong());
+        assertEquals(10, chord1.getFingerInfo(1).key.toLong());
+        assertEquals(10, chord1.getFingerInfo(2).key.toLong());
+        assertEquals(10, chord1.getFingerInfo(3).key.toLong());
+        assertEquals( 0, chord1.getFingerInfo(4).key.toLong());
+        assertEquals( 0, chord1.getFingerInfo(5).key.toLong());
+        assertEquals( 0, chord1.getFingerInfo(6).key.toLong());
+        assertEquals( 0, chord1.getFingerInfo(7).key.toLong());
 
-        assertEquals(10, chord1.getSuccessor().key.toLong());
-        assertEquals(0, chord2.getSuccessor().key.toLong());
+        assertEquals(10, chord1.getSuccessorInfo().key.toLong());
+        assertEquals(0, chord2.getSuccessorInfo().key.toLong());
 
         assertTrue(peer1.leave());
         assertTrue(peer2.leave());
@@ -209,7 +209,7 @@ public class TestChordJoin {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=2000)
     public void peer2_larger() throws Exception {
         int keySize = 10;
         long MOD = 1L << keySize;
@@ -228,8 +228,8 @@ public class TestChordJoin {
         }};
 
         for(int i = 0; i < keySize; ++i){
-            assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFinger(i).key.toLong());
-            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFingerInfo(i).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFingerInfo(i).key.toLong());
         }
 
         for(long key = 0; key < peer1.getChord().getMod(); ++key){
@@ -258,8 +258,8 @@ public class TestChordJoin {
 
         List<Long> peers = new ArrayList<>(){{ add(0L); add(100L); }};
         for(int i = 0; i < keySize; ++i){
-            assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFinger(i).key.toLong());
-            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFingerInfo(i).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFingerInfo(i).key.toLong());
         }
 
         Peer peer3 = new Peer(keySize, 356, InetAddress.getByName("localhost"), Paths.get("bin"));
@@ -273,9 +273,9 @@ public class TestChordJoin {
         assertEquals(100, chord3.getPredecessor().key.toLong());
         
         for(int i = 0; i < keySize; ++i){
-            assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFinger(i).key.toLong());
-            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFinger(i).key.toLong());
-            assertEquals(getExpectedSuccessor(peers, chord3.getKey().toLong() + (1L << i), MOD), chord3.getFinger(i).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFingerInfo(i).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, chord2.getKey().toLong() + (1L << i), MOD), chord2.getFingerInfo(i).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, chord3.getKey().toLong() + (1L << i), MOD), chord3.getFingerInfo(i).key.toLong());
         }
 
         for(long key = 0; key < peer1.getChord().getMod(); key += 10){
@@ -323,7 +323,7 @@ public class TestChordJoin {
             for (Peer p : peers) {
                 Chord chord = p.getChord();
                 for (int j = 0; j < keySize; ++j) {
-                    assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << j), MOD), chord.getFinger(j).key.toLong());
+                    assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << j), MOD), chord.getFingerInfo(j).key.toLong());
                 }
             }
         }
@@ -371,7 +371,7 @@ public class TestChordJoin {
         for (Peer peer : peers) {
             for (int i = 0; i < keySize; ++i) {
                 Chord chord = peer.getChord();
-                assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << i), MOD), chord.getFinger(i).key.toLong());
+                assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << i), MOD), chord.getFingerInfo(i).key.toLong());
             }
         }
 

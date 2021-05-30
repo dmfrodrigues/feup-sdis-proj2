@@ -26,7 +26,7 @@ public class Main {
         return systemStorage;
     }
 
-    public Socket send(InetSocketAddress to, MainMessage m) throws IOException {
+    public Socket send(InetSocketAddress to, MainMessage<?> m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());
         OutputStream os = socket.getOutputStream();
         os.write(m.asByteArray());
