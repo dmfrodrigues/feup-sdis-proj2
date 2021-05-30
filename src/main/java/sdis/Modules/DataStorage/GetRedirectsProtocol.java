@@ -7,21 +7,18 @@ import sdis.UUID;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 
 public class GetRedirectsProtocol extends ProtocolTask<Set<UUID>> {
 
-    private final DataStorage dataStorage;
     private final InetSocketAddress address;
 
-    public GetRedirectsProtocol(DataStorage dataStorage, Chord chord){
-        this(dataStorage, chord.getPredecessor().address);
+    public GetRedirectsProtocol(Chord chord){
+        this(chord.getPredecessor().address);
     }
 
-    public GetRedirectsProtocol(DataStorage dataStorage, InetSocketAddress address){
-        this.dataStorage = dataStorage;
+    public GetRedirectsProtocol(InetSocketAddress address){
         this.address = address;
     }
 
