@@ -3,10 +3,14 @@ package sdis.Modules;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
+import java.util.stream.Collectors;
 
 /**
  * Protocol supplier.
@@ -14,8 +18,25 @@ import java.util.concurrent.RecursiveTask;
  * Can (and should) throw a ProtocolException when it fails.
  */
 public abstract class ProtocolTask<T> extends RecursiveTask<T> {
+    private static int PARALLELISM_LEVEL = 6;
 
-    protected boolean reduceTasks(Collection<ProtocolTask<Boolean>> tasks){
+    public static void invokeTasks(List<ProtocolTask<?>> tasks) {
+        Queue<ProtocolTask<?>> q = new LinkedList<>();
+        for(ProtocolTask<?> task: tasks){
+            if(q.size() >= PARALLELISM_LEVEL) {
+                q.remove().join();
+            }
+
+            task.fork();
+            q.add(task);
+        }
+
+        while(!q.isEmpty()){
+            q.remove().join();
+        }
+    }
+
+    public static boolean reduceTasks(Collection<ProtocolTask<Boolean>> tasks){
         return tasks.stream().map((RecursiveTask<Boolean> task) -> {
             try {
                 return task.get();
@@ -25,8 +46,8 @@ public abstract class ProtocolTask<T> extends RecursiveTask<T> {
         }).reduce((Boolean a, Boolean b) -> a && b).orElse(true);
     }
 
-    protected boolean invokeAndReduceTasks(Collection<ProtocolTask<Boolean>> tasks) {
-        invokeAll(tasks);
+    static public boolean invokeAndReduceTasks(Collection<ProtocolTask<Boolean>> tasks) {
+        invokeTasks(tasks.stream().map((ProtocolTask<Boolean> task) -> (ProtocolTask<?>)task).collect(Collectors.toList()));
         return reduceTasks(tasks);
     }
 
