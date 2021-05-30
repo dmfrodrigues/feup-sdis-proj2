@@ -34,9 +34,7 @@ public class RemoveKeysProtocol extends ProtocolTask<Boolean> {
                 PutSystemMessage putSystemMessage = new PutSystemMessage(id, data);
 
                 try {
-                    Socket socket = systemStorage.send(s.address, putSystemMessage);
-                    byte[] response = readAllBytesAndClose(socket);
-                    return putSystemMessage.parseResponse(response);
+                    return putSystemMessage.sendTo(s.address);
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                     return false;

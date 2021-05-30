@@ -27,9 +27,7 @@ public class PutSystemProtocol extends ProtocolTask<Boolean> {
         try{
             Chord.NodeInfo s = chord.findSuccessor(id.getKey(chord));
             PutSystemMessage putSystemMessage = new PutSystemMessage(id, data);
-            Socket socket = systemStorage.send(s.address, putSystemMessage);
-            byte[] response = readAllBytesAndClose(socket);
-            return putSystemMessage.parseResponse(response);
+            return putSystemMessage.sendTo(s.address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         } catch (CompletionException e) {

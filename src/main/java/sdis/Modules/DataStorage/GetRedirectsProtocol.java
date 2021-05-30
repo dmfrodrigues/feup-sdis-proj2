@@ -29,9 +29,7 @@ public class GetRedirectsProtocol extends ProtocolTask<Set<UUID>> {
     public Set<UUID> compute() {
         try {
             GetRedirectsMessage m = new GetRedirectsMessage();
-            Socket socket = dataStorage.send(address, m);
-            byte[] response = readAllBytesAndClose(socket);
-            return m.parseResponse(response);
+            return m.sendTo(address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }

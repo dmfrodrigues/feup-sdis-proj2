@@ -33,9 +33,7 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
         Chord.NodeInfo s = chord.findSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord));
         try {
             DelistFileMessage m = new DelistFileMessage(file);
-            Socket socket = main.send(s.address, m);
-            byte[] response = readAllBytesAndClose(socket);
-            return m.parseResponse(response);
+            return m.sendTo(s.address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }

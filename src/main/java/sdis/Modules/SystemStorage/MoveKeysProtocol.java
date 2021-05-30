@@ -24,9 +24,7 @@ public class MoveKeysProtocol extends ProtocolTask<Boolean> {
         Chord.NodeInfo s = chord.getSuccessor();
         try{
             MoveKeysMessage moveKeysMessage = new MoveKeysMessage(r);
-            Socket socket = systemStorage.send(s.address, moveKeysMessage);
-            byte[] data = readAllBytesAndClose(socket);
-            return moveKeysMessage.parseResponse(data);
+            return moveKeysMessage.sendTo(s.address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }

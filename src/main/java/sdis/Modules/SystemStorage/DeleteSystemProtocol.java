@@ -25,9 +25,7 @@ public class DeleteSystemProtocol extends ProtocolTask<Boolean> {
         try{
             Chord.NodeInfo s = chord.findSuccessor(id.getKey(chord));
             DeleteSystemMessage deleteSystemMessage = new DeleteSystemMessage(id);
-            Socket socket = systemStorage.send(s.address, deleteSystemMessage);
-            byte[] response = readAllBytesAndClose(socket);
-            return deleteSystemMessage.parseResponse(response);
+            return deleteSystemMessage.sendTo(s.address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         } catch (CompletionException e) {

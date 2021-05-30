@@ -27,9 +27,7 @@ public class DeleteAccountProtocol extends MainProtocolTask<Boolean> {
 
         DeleteAccountMessage deleteAccountMessage = new DeleteAccountMessage(username, password);
         try {
-            Socket socket = main.send(s.address, deleteAccountMessage);
-            byte[] data = readAllBytesAndClose(socket);
-            return deleteAccountMessage.parseResponse(data);
+            return deleteAccountMessage.sendTo(s.address);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
 

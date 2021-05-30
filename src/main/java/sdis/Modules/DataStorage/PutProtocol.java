@@ -51,8 +51,8 @@ public class PutProtocol extends ProtocolTask<Boolean> {
                 if(pointsToSuccessor) {
                     // If it was pointing to its successor, delete it from the successor
                     // so that less steps are required to reach the datapiece
-                    Socket socket = dataStorage.send(s.address, new DeleteMessage(id));
-                    readAllBytesAndClose(socket);
+                    DeleteMessage deleteMessage = new DeleteMessage(id);
+                    deleteMessage.sendTo(s.address);
                 }
                 return true;
             } catch (IOException | InterruptedException e) {
@@ -70,9 +70,7 @@ public class PutProtocol extends ProtocolTask<Boolean> {
             // Send a PUT message to the successor; if it does not yet have that datapiece, the successor will store it;
             // if it already has it, this message just serves as a confirmation that the datapiece is in fact stored.
             PutMessage m = new PutMessage(originalNodeKey, id, data);
-            Socket socket = dataStorage.send(s.address, m);
-            byte[] responseByte = readAllBytesAndClose(socket);
-            boolean response = m.parseResponse(responseByte);
+            boolean response = m.sendTo(s.address);
             if (!response) {
                 dataStorage.unregisterSuccessorStored(id);
             }
