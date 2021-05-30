@@ -27,11 +27,14 @@ public class SystemStorage {
         return dataStorage;
     }
 
-    public Socket send(InetSocketAddress to, Message m) throws IOException {
-        Socket socket = new Socket(to.getAddress(), to.getPort());
+    public Socket send(Socket socket, Message m) throws IOException {
         socket.getOutputStream().write(m.asByteArray());
         socket.getOutputStream().flush();
         return socket;
+    }
+
+    public Socket send(InetSocketAddress to, Message m) throws IOException {
+        return send(new Socket(to.getAddress(), to.getPort()), m);
     }
 
     public Socket sendAny(Message message) throws IOException {

@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Objects;
+import java.util.concurrent.CompletionException;
 
 public class Chord {
     public static class Key {
@@ -83,10 +84,16 @@ public class Chord {
             address = nodeInfo.address;
         }
 
+        public Socket createSocket() throws IOException {
+            return new Socket(address.getAddress(), address.getPort());
+        }
+
+        @Override
         public String toString() {
             return key + " " + address.getAddress().getHostAddress() + ":" + address.getPort();
         }
 
+        @Override
         public boolean equals(Object o){
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
