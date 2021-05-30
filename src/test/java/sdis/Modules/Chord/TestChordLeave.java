@@ -41,7 +41,7 @@ public class TestChordLeave {
 
         Chord chord1 = peer1.getChord();
 
-        assertEquals(0, chord1.getPredecessor().key.toLong());
+        assertEquals(0, chord1.getPredecessorInfo().key.toLong());
 
         assertEquals(0, chord1.getFingerInfo(0).key.toLong());
         assertEquals(0, chord1.getFingerInfo(1).key.toLong());

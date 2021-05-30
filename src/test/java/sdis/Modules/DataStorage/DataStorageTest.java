@@ -240,12 +240,12 @@ public class DataStorageTest {
         assertTrue(dataStorage1.put(id2, data2));
 
         assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord1).invoke());
-        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord1.getNodeInfo().address).invoke());
-        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord2.getNodeInfo().address).invoke());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord1.getNodeInfo().createSocket()).invoke());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord2.getNodeInfo().createSocket()).invoke());
 
         assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord2).invoke());
-        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord1.getNodeInfo().address).invoke());
-        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord2.getNodeInfo().address).invoke());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord1.getNodeInfo().createSocket()).invoke());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord2.getNodeInfo().createSocket()).invoke());
 
         peer1.leave();
         peer2.leave();

@@ -7,26 +7,27 @@ import sdis.UUID;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 
 public class GetRedirectsProtocol extends ProtocolTask<Set<UUID>> {
 
-    private final InetSocketAddress address;
+    private final Socket socket;
 
     public GetRedirectsProtocol(Chord chord){
-        this(chord.getPredecessor().address);
+        this(chord.getPredecessor().socket);
     }
 
-    public GetRedirectsProtocol(InetSocketAddress address){
-        this.address = address;
+    public GetRedirectsProtocol(Socket socket){
+        this.socket = socket;
     }
 
     @Override
     public Set<UUID> compute() {
         try {
             GetRedirectsMessage m = new GetRedirectsMessage();
-            return m.sendTo(address);
+            return m.sendTo(socket);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }

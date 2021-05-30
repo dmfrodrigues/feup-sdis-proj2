@@ -28,7 +28,7 @@ public class TestChordJoin {
 
         Chord chord1 = peer1.getChord();
 
-        assertEquals(0, chord1.getPredecessor().key.toLong());
+        assertEquals(0, chord1.getPredecessorInfo().key.toLong());
         assertEquals(0, chord1.getSuccessorInfo().key.toLong());
         assertEquals(0, chord1.getFingerInfo(0).key.toLong());
         assertEquals(0, chord1.getFingerInfo(1).key.toLong());
@@ -103,8 +103,8 @@ public class TestChordJoin {
         Chord chord1 = peer1.getChord();
         Chord chord2 = peer2.getChord();
 
-        assertEquals(10, chord1.getPredecessor().key.toLong());
-        assertEquals(0, chord2.getPredecessor().key.toLong());
+        assertEquals(10, chord1.getPredecessorInfo().key.toLong());
+        assertEquals(0, chord2.getPredecessorInfo().key.toLong());
 
         assertEquals(0, chord2.getFingerInfo(0).key.toLong());
         assertEquals(0, chord2.getFingerInfo(1).key.toLong());
@@ -268,9 +268,9 @@ public class TestChordJoin {
 
         peers = new ArrayList<>(){{ add(0L); add(100L); add(356L); }};
 
-        assertEquals(356, chord1.getPredecessor().key.toLong());
-        assertEquals(  0, chord2.getPredecessor().key.toLong());
-        assertEquals(100, chord3.getPredecessor().key.toLong());
+        assertEquals(356, chord1.getPredecessorInfo().key.toLong());
+        assertEquals(  0, chord2.getPredecessorInfo().key.toLong());
+        assertEquals(100, chord3.getPredecessorInfo().key.toLong());
         
         for(int i = 0; i < keySize; ++i){
             assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFingerInfo(i).key.toLong());

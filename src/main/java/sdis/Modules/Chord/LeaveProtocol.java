@@ -20,7 +20,7 @@ public class LeaveProtocol extends ProtocolTask<Boolean> {
         if(!r.equals(s)) {
             // Update predecessors and fingers tables of other nodes
             // Update predecessor of successor
-            SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getPredecessor());
+            SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getPredecessorInfo());
             if (!setPredecessorProtocol.invoke()) return false;
             // Update other nodes' fingers tables
             FingersRemoveProtocol fingersRemoveProtocol = new FingersRemoveProtocol(chord);

@@ -173,9 +173,27 @@ public class Chord {
         return true;
     }
 
-    public NodeInfo getPredecessor(){
+    public NodeInfo getPredecessorInfo(){
         synchronized(predecessor) {
+            try {
+                Socket socket = predecessor.createSocket();
+                HelloMessage helloMessage = new HelloMessage();
+                helloMessage.sendTo(this, socket);
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
             return new NodeInfo(predecessor);
+        }
+    }
+
+    public NodeConn getPredecessor(){
+        synchronized(predecessor) {
+            try {
+                return new NodeConn(new NodeInfo(predecessor), predecessor.createSocket());
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
         }
     }
 

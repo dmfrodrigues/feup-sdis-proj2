@@ -28,7 +28,7 @@ public class PredecessorMessage extends ChordMessage<Chord.NodeInfo> {
         @Override
         public void compute() {
             try {
-                byte[] response = message.formatResponse(getChord().getPredecessor());
+                byte[] response = message.formatResponse(getChord().getPredecessorInfo());
                 getSocket().getOutputStream().write(response);
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
