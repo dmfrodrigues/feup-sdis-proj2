@@ -60,15 +60,7 @@ public class DeleteAccountMessage extends AccountMessage<Boolean> {
                     return new DeleteFileProtocol(getMain(), f);
                 }).collect(Collectors.toList());
 
-                invokeAll(tasks);
-                for (RecursiveTask<Boolean> task : tasks) {
-                    try {
-                        success &= task.get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                        success = false;
-                    }
-                }
+                success = ProtocolTask.invokeAndReduceTasks(tasks);
 
                 // Delete user metadata
                 getMain().deleteFile(userMetadata.asFile());
