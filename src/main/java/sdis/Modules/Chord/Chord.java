@@ -102,6 +102,16 @@ public class Chord {
         }
     }
 
+    public static class NodeConn {
+        public NodeInfo nodeInfo;
+        public Socket socket;
+
+        public NodeConn(NodeInfo nodeInfo, Socket socket){
+            this.nodeInfo = nodeInfo;
+            this.socket = socket;
+        }
+    }
+
     private final int keySize;
 
     private final InetSocketAddress socketAddress;
