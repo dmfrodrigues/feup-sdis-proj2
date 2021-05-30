@@ -28,11 +28,11 @@ public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> 
         return new DataBuilder(("CPFINGER " + key).getBytes());
     }
 
-    private static class FindPredecessorProcessor extends ChordMessage.Processor {
+    private static class ClosestPrecedingFingerProcessor extends ChordMessage.Processor {
 
         private final ClosestPrecedingFingerMessage message;
 
-        public FindPredecessorProcessor(Chord chord, Socket socket, ClosestPrecedingFingerMessage message){
+        public ClosestPrecedingFingerProcessor(Chord chord, Socket socket, ClosestPrecedingFingerMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -43,7 +43,7 @@ public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> 
 
             try {
                 for (int i = getChord().getKeySize() - 1; i >= 0; --i) {
-                    Chord.NodeInfo f = getChord().getFingerInfo(i);
+                    Chord.NodeInfo f = getChord().getFingerRaw(i);
                     if (f.key.inRange(n.key.add(1), message.key.subtract(1))) {
                         getSocket().getOutputStream().write(message.formatResponse(f));
                         readAllBytesAndClose(getSocket());
@@ -60,8 +60,8 @@ public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> 
     }
 
     @Override
-    public FindPredecessorProcessor getProcessor(Peer peer, Socket socket) {
-        return new FindPredecessorProcessor(peer.getChord(), socket, this);
+    public ClosestPrecedingFingerProcessor getProcessor(Peer peer, Socket socket) {
+        return new ClosestPrecedingFingerProcessor(peer.getChord(), socket, this);
     }
 
     @Override
