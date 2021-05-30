@@ -76,11 +76,14 @@ public class TestChordLeave {
 
     @Test(timeout=1000)
     public void peer2_large() throws Exception {
-        Peer peer1 = new Peer(6, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        int keySize = 6;
+        long MOD = (1L << keySize);
+
+        Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
-        Peer peer2 = new Peer(6, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
+        Peer peer2 = new Peer(keySize, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord2 = peer2.getChord();
         peer2.join(addressPeer1);
 
@@ -91,7 +94,7 @@ public class TestChordLeave {
         }};
 
         for(long key = 0; key < peer1.getChord().getMod(); ++key){
-            assertEquals(getExpectedSuccessor(peers, key, 1L<<6), chord2.findSuccessor(chord2.newKey(key)).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.findSuccessor(chord2.newKey(key)).key.toLong());
         }
     }
 
@@ -102,14 +105,13 @@ public class TestChordLeave {
 
         Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
-        Chord chord1 = peer1.getChord();
-
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
         Peer peer2 = new Peer(keySize, 16, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord2 = peer2.getChord();
         peer2.join(addressPeer1);
 
+        Chord chord1 = peer1.getChord();
         List<Long> peers = new ArrayList<>(){{ add(0L); add(16L); }};
         for(int i = 0; i < keySize; ++i){
             assertEquals(getExpectedSuccessor(peers, chord1.getKey().toLong() + (1L << i), MOD), chord1.getFingerInfo(i).key.toLong());

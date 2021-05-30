@@ -1,5 +1,6 @@
 package sdis.Modules.Main;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
@@ -167,7 +168,7 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    /*
+    @Ignore
     @Test(timeout=10000)
     public void die_2peers() throws Exception {
         int KEY_SIZE = 10;
@@ -202,19 +203,18 @@ public class MainJoinLeaveTest {
 
         assertTrue(peer1.die());
 
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-0")));
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-1")));
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-2")));
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-3")));
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-4")));
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-5")));
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-6")));
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-7")));
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-8")));
-//        assertNotNull(dataStorage2.get(new UUID("user1-0-9")));
-//        assertNotNull(dataStorage2.get(new UUID("user1/mydata-0-0")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-0")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-1")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-2")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-3")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-4")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-5")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-6")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-7")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-8")));
+        assertNotNull(dataStorage2.get(new UUID("user1-0-9")));
+        assertNotNull(dataStorage2.get(new UUID("user1/mydata-0-0")));
 
         assertTrue(peer2.leave());
     }
-    */
 }
