@@ -33,6 +33,8 @@ public class MessageFactory {
         System.arraycopy(b, 0, start, 0, i);
         String startStr = new String(start);
         switch(startStr){
+            case "HELLO"         : return new HelloMessage();
+
             case "FINGERADD"     : return new FingerAddMessage             (chord, b);
             case "FINGERREMOVE"  : return new FingerRemoveMessage          (chord, b);
             case "CPFINGER"      : return new ClosestPrecedingFingerMessage(chord, b);
