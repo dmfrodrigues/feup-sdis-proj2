@@ -145,7 +145,7 @@ public class Chord {
     public NodeInfo getFingerInfo(int i) {
         synchronized (fingers){
             try {
-                Socket socket = new Socket(fingers[i].address.getAddress(), fingers[i].address.getPort());
+                Socket socket = fingers[i].createSocket();
                 HelloMessage helloMessage = new HelloMessage();
                 helloMessage.sendTo(this, socket);
             } catch (IOException | InterruptedException e) {
