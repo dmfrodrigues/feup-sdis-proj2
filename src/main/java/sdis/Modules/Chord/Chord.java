@@ -103,8 +103,8 @@ public class Chord {
     }
 
     public static class NodeConn {
-        public NodeInfo nodeInfo;
-        public Socket socket;
+        public final NodeInfo nodeInfo;
+        public final Socket socket;
 
         public NodeConn(NodeInfo nodeInfo, Socket socket){
             this.nodeInfo = nodeInfo;
