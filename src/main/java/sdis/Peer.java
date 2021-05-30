@@ -284,13 +284,13 @@ public class Peer implements PeerInterface {
                     Message.Processor processor = message.getProcessor(peer, socket);
                     executor.execute(processor::invoke);
                 } catch(SocketException e) {
-                    System.err.println("SocketException in ServerSocketHandler cycle");
+                    System.err.println("Peer " + peer.getKey() + ": SocketException in ServerSocketHandler cycle");
                 } catch (Exception e) {
-                    System.err.println("Exception in ServerSocketHandler cycle");
+                    System.err.println("Peer " + peer.getKey() + ": Exception in ServerSocketHandler cycle");
                     e.printStackTrace();
                 }
             }
-            System.err.println("ServerSocketHandler was interrupted");
+            System.err.println("Peer " + peer.getKey() + ": ServerSocketHandler was interrupted");
         }
     }
 }
