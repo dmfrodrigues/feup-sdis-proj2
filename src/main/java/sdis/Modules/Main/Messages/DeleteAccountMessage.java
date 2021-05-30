@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
+import java.util.stream.Collectors;
 
 public class DeleteAccountMessage extends AccountMessage<Boolean> {
     private final Username username;
@@ -54,11 +55,10 @@ public class DeleteAccountMessage extends AccountMessage<Boolean> {
 
                 // Delete all files
                 Set<Main.Path> paths = userMetadata.getFiles();
-                List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
-                for (Main.Path p : paths) {
+                List<ProtocolTask<Boolean>> tasks = paths.stream().map((Main.Path p) -> {
                     Main.File f = userMetadata.getFile(p);
-                    tasks.add(new DeleteFileProtocol(getMain(), f));
-                }
+                    return new DeleteFileProtocol(getMain(), f);
+                }).collect(Collectors.toList());
 
                 invokeAll(tasks);
                 for (RecursiveTask<Boolean> task : tasks) {
