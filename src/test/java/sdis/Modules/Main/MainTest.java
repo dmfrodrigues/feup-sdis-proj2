@@ -23,7 +23,7 @@ public class MainTest {
         int KEY_SIZE = 10;
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join();
+        assertTrue(peer.join());
         Main main = peer.getMain();
 
         byte[] data = "my data".getBytes();
@@ -51,7 +51,7 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         for(int i = 1; i < ids.length; ++i)
             peers[i].join(peers[0].getSocketAddress());
 
@@ -88,7 +88,7 @@ public class MainTest {
         int KEY_SIZE = 10;
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join();
+        assertTrue(peer.join());
 
         Username username = new Username("user1");
         Password password = new Password("1234");
@@ -115,7 +115,7 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         for(int i = 1; i < ids.length; ++i)
             peers[i].join(peers[0].getSocketAddress());
 
@@ -156,7 +156,7 @@ public class MainTest {
         Main.File file = new Main.File(username, path, 1, 1);
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join();
+        assertTrue(peer.join());
 
         peer.authenticate(username, password);
 
@@ -182,7 +182,7 @@ public class MainTest {
         ChunkIterator chunkIterator = new ByteArrayChunkIterator(data, Main.CHUNK_SIZE);
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join();
+        assertTrue(peer.join());
 
         assertTrue(peer.backup(username, password, path, 1, chunkIterator));
 
@@ -207,7 +207,7 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for (int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         for (int i = 1; i < ids.length; ++i)
             peers[i].join(peers[0].getSocketAddress());
 
@@ -233,7 +233,7 @@ public class MainTest {
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
 
-        peer.join();
+        assertTrue(peer.join());
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -260,7 +260,7 @@ public class MainTest {
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
 
-        peer.join();
+        assertTrue(peer.join());
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -284,7 +284,7 @@ public class MainTest {
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));
 
-        peer1.join();
+        assertTrue(peer1.join());
         peer2.join(peer1.getSocketAddress());
 
         Username username = new Username("user");
@@ -314,7 +314,7 @@ public class MainTest {
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));
 
-        peer1.join();
+        assertTrue(peer1.join());
         peer2.join(peer1.getSocketAddress());
 
         Username username = new Username("user");
@@ -335,7 +335,7 @@ public class MainTest {
         peer2.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=2000)
     public void backup_manyFiles_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -344,7 +344,7 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         for(int i = 1; i < ids.length; ++i)
             peers[i].join(peers[0].getSocketAddress());
 
@@ -386,7 +386,7 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         for(int i = 1; i < ids.length; ++i)
             peers[i].join(peers[0].getSocketAddress());
 
@@ -426,7 +426,7 @@ public class MainTest {
         int KEY_SIZE = 10;
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join();
+        assertTrue(peer.join());
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -442,7 +442,7 @@ public class MainTest {
         int KEY_SIZE = 10;
 
         Peer peer = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer.join();
+        assertTrue(peer.join());
         DataStorage dataStorage = peer.getDataStorage();
 
         Username username = new Username("user");
@@ -476,7 +476,7 @@ public class MainTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         for(int i = 1; i < ids.length; ++i)
             peers[i].join(peers[0].getSocketAddress());
 

@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestChordLeave {
     public long getExpectedSuccessor(List<Long> listOfPeers, long key, long MOD){
@@ -23,7 +24,7 @@ public class TestChordLeave {
     @Test(timeout=1000)
     public void peer1() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         peer1.leave();
     }
@@ -31,7 +32,7 @@ public class TestChordLeave {
     @Test(timeout=1000)
     public void peer2_small_checkFingers() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
@@ -56,7 +57,7 @@ public class TestChordLeave {
     public void peer2_small() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord1 = peer1.getChord();
-        peer1.join();
+        assertTrue(peer1.join());
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
@@ -76,7 +77,7 @@ public class TestChordLeave {
     @Test(timeout=1000)
     public void peer2_large() throws Exception {
         Peer peer1 = new Peer(6, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
 
         Peer peer2 = new Peer(6, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
@@ -100,7 +101,7 @@ public class TestChordLeave {
         long MOD = (1L << keySize);
 
         Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
         Chord chord1 = peer1.getChord();
 
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
@@ -138,7 +139,7 @@ public class TestChordLeave {
         long MOD = (1L << keySize);
 
         Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
         Chord chord1 = peer1.getChord();
 
         InetSocketAddress addressPeer1 = peer1.getSocketAddress();
@@ -217,7 +218,7 @@ public class TestChordLeave {
             idsSorted.add(ids[i]);
             Collections.sort(idsSorted);
             if (i == 0) {
-                peer.join();
+                assertTrue(peer.join());
             } else {
                 InetSocketAddress gateway = peers.get(addressIndexes[i]).getSocketAddress();
                 peer.join(gateway);
