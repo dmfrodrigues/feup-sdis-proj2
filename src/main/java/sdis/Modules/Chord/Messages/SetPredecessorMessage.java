@@ -34,11 +34,11 @@ public class SetPredecessorMessage extends ChordMessage<Boolean> {
         return new DataBuilder(("SETPREDECESSOR " + predecessor).getBytes());
     }
 
-    private static class UpdatePredecessorProcessor extends ChordMessage.Processor {
+    private static class SetPredecessorProcessor extends ChordMessage.Processor {
 
         private final SetPredecessorMessage message;
 
-        public UpdatePredecessorProcessor(Chord chord, Socket socket, SetPredecessorMessage message){
+        public SetPredecessorProcessor(Chord chord, Socket socket, SetPredecessorMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -55,8 +55,8 @@ public class SetPredecessorMessage extends ChordMessage<Boolean> {
     }
 
     @Override
-    public UpdatePredecessorProcessor getProcessor(Peer peer, Socket socket) {
-        return new UpdatePredecessorProcessor(peer.getChord(), socket, this);
+    public SetPredecessorProcessor getProcessor(Peer peer, Socket socket) {
+        return new SetPredecessorProcessor(peer.getChord(), socket, this);
     }
 
     @Override
