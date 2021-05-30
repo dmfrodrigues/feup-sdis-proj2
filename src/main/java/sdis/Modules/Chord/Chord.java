@@ -194,18 +194,6 @@ public class Chord {
         return new LeaveProtocol(this, moveKeys).invoke();
     }
 
-    public Socket send(InetSocketAddress to, ChordMessage<?> m) throws IOException {
-        Socket socket = new Socket(to.getAddress(), to.getPort());
-        OutputStream os = socket.getOutputStream();
-        os.write(m.asByteArray());
-        os.flush();
-        return socket;
-    }
-
-    public Socket send(Chord.NodeInfo to, ChordMessage<?> m) throws IOException {
-        return send(to.address, m);
-    }
-
     public static long distance(Chord.Key a, Chord.Key b) {
         assert(a.chord.getMod() == b.chord.getMod());
         long MOD = a.chord.getMod();

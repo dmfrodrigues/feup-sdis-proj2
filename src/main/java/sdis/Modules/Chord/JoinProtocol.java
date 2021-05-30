@@ -45,9 +45,7 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
             Chord.Key k = r.key.add(1L << i);
             try {
                 FindSuccessorMessage m = new FindSuccessorMessage(k);
-                Socket socket = chord.send(g, m);
-                byte[] response = readAllBytesAndClose(socket);
-                Chord.NodeInfo s = m.parseResponse(chord, response);
+                Chord.NodeInfo s = m.sendTo(chord, g);
                 if(Chord.distance(k, r.key) < Chord.distance(k, s.key)) s = r;
                 chord.setFinger(i, s);
             } catch (IOException | InterruptedException e) {

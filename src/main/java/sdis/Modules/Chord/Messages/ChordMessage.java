@@ -34,6 +34,11 @@ public abstract class ChordMessage<T> extends Message {
     protected abstract T parseResponse(Chord chord, byte[] data);
 
     public T sendTo(Chord chord, InetSocketAddress address) throws IOException, InterruptedException {
-        return parseResponse(chord, readAllBytesAndClose(chord.send(address, this)));
+        return sendTo(chord, new Socket(address.getAddress(), address.getPort()));
+    }
+
+    public T sendTo(Chord chord, Socket socket) throws IOException, InterruptedException {
+        socket.getOutputStream().write(this.asByteArray());
+        return parseResponse(chord, readAllBytesAndClose(socket));
     }
 }

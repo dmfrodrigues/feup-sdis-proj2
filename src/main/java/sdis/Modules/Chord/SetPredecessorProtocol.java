@@ -20,8 +20,8 @@ public class SetPredecessorProtocol extends ProtocolTask<Boolean> {
     public Boolean compute() {
         Chord.NodeInfo s = chord.getSuccessor();
         try {
-            Socket socket = chord.send(s, new SetPredecessorMessage(nodeInfo));
-            readAllBytesAndClose(socket);
+            SetPredecessorMessage setPredecessorMessage = new SetPredecessorMessage(nodeInfo);
+            setPredecessorMessage.sendTo(chord, s.address);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return false;
