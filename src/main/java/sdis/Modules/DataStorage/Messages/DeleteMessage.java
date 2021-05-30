@@ -25,13 +25,9 @@ public class DeleteMessage extends DataStorageMessage {
         id = new UUID(splitString[1]);
     }
 
-    private UUID getId() {
-        return id;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("DELETE " + getId()).getBytes());
+        return new DataBuilder(("DELETE " + id).getBytes());
     }
 
     private static class DeleteProcessor extends DataStorageMessage.Processor {
@@ -45,7 +41,7 @@ public class DeleteMessage extends DataStorageMessage {
 
         @Override
         public void compute() {
-            DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.getId());
+            DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.id);
             Boolean b = deleteProtocol.invoke();
             try {
                 getSocket().getOutputStream().write(message.formatResponse(b));

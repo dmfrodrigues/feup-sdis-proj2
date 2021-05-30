@@ -8,62 +8,51 @@ This module provides very basic interfaces to use the chord protocol. It allows 
 - Inform all nodes that need to know that a new node was added to system and they should update their fingers tables
 - Inform all nodes that need to know that a node was removed from the system and they should update their fingers tables
 
-### GetSuccessor protocol
+Our implementation closely follows the one provided in [@stoica2001].
 
-- **Arguments:** key
-- **Returns:** key and socket address of the successor of that key
+Consider that $x \in [a, b]$ means that $distance(a, x) \leq distance(a, b)$.
 
-The GetSuccessor protocol allows to find the successor of a certain key $k$.
+### Simple messages
 
-Let $d = distance(r, s)$ be the distance from $r$ to $k$ (assume $r \neq k$ to discard the trivial case); $r' = r + 2^{\lfloor\log_2{d}\rfloor}$ is the key with the largest power of two that is less than or equal to $d$.
+#### `SUCCESSOR` message
 
-It is trivial that $r' ≤ r \implies successor(r') ≤ successor(r)$; as such, by going to $successor(r')$ we are also getting closer to $successor(k)$.
-Thus, we use the fingers table of $r$, and jump to $successor(r')$, which is in the fingers table at index $i=\lfloor \log_2{d} \rfloor$.
-The base case is when $distance(k, r) < distance(p, r)$ ($p = predecessor(r)$), in which case node $r$ is responsible for key $k$.
+| **Request** | | **Response**            |
+|-------------|-|-------------------------|
+| `SUCCESSOR` | | `<NodeKey> <IP>:<Port>` |
 
-When the GetSuccessor protocol is invoked in a node $r$ to find the successor of $k$, the node does the following:
+Upon receiving this message, the node responds with its locally-stored successor, which is its 0-th finger.
 
-1. If $r$ is alone in the system, return $r$
-2. If $r$ is the successor of $k$ (i.e., if $distance(k, r) < distance(p, r)$), return $r$
-3. Determine the distance $d = distance(r, s)$
-4. Find the finger table index $i = \lfloor \log_2{d} \rfloor$
-5. Store $r' = r.fingers[i]$
-6. Send $r'$ a `GETSUCCESSOR` message with $k$
-7. Get the answer and return it
+#### `PREDECESSOR` message
 
-#### `GETSUCCESSOR` message
+| **Request**   | | **Response**            |
+|---------------|-|-------------------------|
+| `PREDECESSOR` | | `<NodeKey> <IP>:<Port>` |
 
-| **Request**          | | **Response**            |
-|----------------------|-|-------------------------|
-| `GETSUCCESSOR <Key>` | | `<NodeKey> <IP>:<Port>` |
+Upon receiving this message, the node responds with its locally-stored predecessor.
 
-Instructs $r'$ to reply with the key and socket address of the successor of `<Key>` (which is $k$).
-
-On receiving a `GETSUCCESSOR` message, $r'$ triggers the GetSuccessor protocol for itself, and responds to the message with the object returned by the GetSuccessor protocol.
-
-If a new node joins the network, it can simply send a `GETSUCCESSOR` to its gateway node without starting the GetSuccessor protocol locally; it would serve no purpose for the joining node to run the GetSuccessor protocol, as it has not yet built its fingers table.
-
-### GetPredecessor protocol
+### FindPredecessor protocol
 
 - **Arguments:** node we are asking to
 - **Returns:** predecessor of said node
 
-This protocol is very similar to the GetSuccessor protocol, except it yield the predecessor of a key.
+This protocol allows to find the predecessor of a certain key $k$.
 
-This protocol consists of some very simple steps, as most of the heavy-lifting is already done by GetSuccessor:
+We know a node $n'$ (with successor $s'$) is the predecessor of $k$ iff $k \in (n', s']$. Thus, until we do not reach that condition, we must update $n'$ for it to get ever closer to meeting that condition. We can do that by successively updating $n'$ with the approximation $n'$ gives for the predecessor of $k$, through the `CPFINGER` message.
 
-1. Get $s = successor(k)$ using the GetSuccessor protocol
-2. If $s = k$ then return $s$
-3. Send $s$ a `PREDECESSOR` message
-4. Get the answer and return it
-
-#### `PREDECESSOR` message
+#### `CPFINGER` message
 
 | **Request**      | | **Response**            |
 |------------------|-|-------------------------|
-| `PREDECESSOR` | | `<NodeKey> <IP>:<Port>` |
+| `CPFINGER <Key>` | | `<NodeKey> <IP>:<Port>` |
 
-Instructs $s$ to answer with its predecessor, which it already knows and can access in constant time.
+Instructs $n'$ to search, using its fingers table, for the largest finger $f$ that precedes $k$.
+
+### FindSuccessor protocol
+
+- **Arguments:** key
+- **Returns:** key and socket address of the successor of that key
+
+The FindSuccessor protocol allows to find the successor of a certain key $k$. It essentially performs the heavy-lifting using the FindPredecessor protocol, and then sends that node a `SUCCESSOR` message.
 
 ### SetPredecessor protocol
 
@@ -154,17 +143,15 @@ The joining node needs to know the socket address of at least one node that is a
 
 #### Initialize fingers table and predecessor
 
-##### Build fingers table
-
-To build its fingers table, $r$ asks to $g$ what is the successor of $k = r + 2^i$, for all values of $0 ≤ i < m$, using several `GETSUCCESSOR` messages directed at $g$.
-
-The joining node can asynchronously make all `GETSUCCESSOR` requests to $g$, but that yields $O(m \log N)$ time complexity, while [@stoica2001] states that, if requests are made sequentially, some trivial tests can be made to skip asking about some fingers.
-
-TODO | what's better: full asynchronous, or sequential questioning and tests, with less network usage but probably slower?
-
 ##### Get predecessor
 
-It is enough for $r$ to send a `PREDECESSOR` message to its newly-found successor, as it has already built its fingers table so it knows it successor in $O(1)$; it can merely ask its successor about its predecessor (because the successor of $r$ was not yet told that $r$ joined the network, it will return what it thinks is its predecessor, when actually it is the predecessor of $r$).
+$r$ gets its successor by asking $g$ for its 0-th finger. Then it sends a `PREDECESSOR` message to its newly-found successor. Because the successor of $r$ was not yet told that $r$ joined the network, it will return what it thinks is its predecessor, when actually it is the predecessor of $r$.
+
+##### Build fingers table
+
+To build its fingers table, $r$ asks to $g$ what is the successor of $k = r + 2^i$, for all values of $0 ≤ i < m$, using several `FINDSUCCESSOR` messages directed at $g$.
+
+The joining node can asynchronously make all `FINDSUCCESSOR` requests to $g$, but that yields $O(m \log N)$ time complexity, while [@stoica2001] states that, if requests are made sequentially, some trivial tests can be made to skip asking about some fingers. We decided to keep everything asynchronous and ignore this improvement.
 
 #### Update other nodes
 

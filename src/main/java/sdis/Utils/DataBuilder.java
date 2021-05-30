@@ -16,10 +16,6 @@ public class DataBuilder {
         this.data = b;
     }
 
-    public DataBuilder(byte b){
-        this(new byte[]{ b });
-    }
-
     public DataBuilder append(DataBuilder b){
         parts.add(b);
         return this;

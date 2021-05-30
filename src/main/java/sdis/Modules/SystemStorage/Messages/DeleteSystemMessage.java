@@ -23,13 +23,9 @@ public class DeleteSystemMessage extends SystemStorageMessage {
         id = new UUID(splitString[1]);
     }
 
-    private UUID getId() {
-        return id;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("DELETESYSTEM " + getId()).getBytes());
+        return new DataBuilder(("DELETESYSTEM " + id).getBytes());
     }
 
     private static class DeleteSystem extends Processor {
@@ -43,7 +39,7 @@ public class DeleteSystemMessage extends SystemStorageMessage {
 
         @Override
         public void compute() {
-            boolean b = getSystemStorage().getDataStorage().delete(message.getId());
+            boolean b = getSystemStorage().getDataStorage().delete(message.id);
             try {
                 getSocket().getOutputStream().write(message.formatResponse(b));
                 readAllBytesAndClose(getSocket());

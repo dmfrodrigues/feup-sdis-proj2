@@ -48,6 +48,7 @@ public class Peer implements PeerInterface {
 
     public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException {
         serverSocket = new ServerSocket();
+        serverSocket.setReuseAddress(true);
         serverSocket.bind(null);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
 

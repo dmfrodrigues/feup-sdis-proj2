@@ -25,13 +25,9 @@ public class GetMessage extends DataStorageMessage {
         id = new UUID(splitString[1]);
     }
 
-    private UUID getId() {
-        return id;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("GET " + getId()).getBytes());
+        return new DataBuilder(("GET " + id).getBytes());
     }
 
     private static class GetProcessor extends Processor {
@@ -45,7 +41,7 @@ public class GetMessage extends DataStorageMessage {
 
         @Override
         public void compute() {
-            GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.getId());
+            GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.id);
             byte[] data = getProtocol.invoke();
             try {
                 getSocket().getOutputStream().write(message.formatResponse(data));

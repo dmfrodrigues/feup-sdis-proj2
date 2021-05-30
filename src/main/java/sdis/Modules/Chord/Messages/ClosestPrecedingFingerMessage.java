@@ -1,7 +1,6 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.Chord.GetSuccessorProtocol;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
@@ -10,15 +9,15 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class GetSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
+public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> {
 
     private final Chord.Key key;
 
-    public GetSuccessorMessage(Chord.Key key){
+    public ClosestPrecedingFingerMessage(Chord.Key key){
         this.key = key;
     }
 
-    public GetSuccessorMessage(Chord chord, byte[] data){
+    public ClosestPrecedingFingerMessage(Chord chord, byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         key = chord.newKey(Long.parseLong(splitString[1]));
@@ -26,25 +25,33 @@ public class GetSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("GETSUCCESSOR " + key).getBytes());
+        return new DataBuilder(("CPFINGER " + key).getBytes());
     }
 
-    private static class GetSuccessorProcessor extends ChordMessage.Processor {
+    private static class FindPredecessorProcessor extends ChordMessage.Processor {
 
-        private final GetSuccessorMessage message;
+        private final ClosestPrecedingFingerMessage message;
 
-        public GetSuccessorProcessor(Chord chord, Socket socket, GetSuccessorMessage message){
+        public FindPredecessorProcessor(Chord chord, Socket socket, ClosestPrecedingFingerMessage message){
             super(chord, socket);
             this.message = message;
         }
 
         @Override
         public void compute() {
-            GetSuccessorProtocol getSuccessorProtocol = new GetSuccessorProtocol(getChord(), message.key);
-            Chord.NodeInfo nodeInfo = getSuccessorProtocol.invoke();
+            Chord.NodeInfo n = getChord().getNodeInfo();
+
             try {
-                byte[] response = message.formatResponse(nodeInfo);
-                getSocket().getOutputStream().write(response);
+                for (int i = getChord().getKeySize() - 1; i >= 0; --i) {
+                    Chord.NodeInfo f = getChord().getFinger(i);
+                    if (f.key.inRange(n.key.add(1), message.key.subtract(1))) {
+                        getSocket().getOutputStream().write(message.formatResponse(f));
+                        readAllBytesAndClose(getSocket());
+                        return;
+                    }
+                }
+
+                getSocket().getOutputStream().write(message.formatResponse(n));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -53,8 +60,8 @@ public class GetSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
     }
 
     @Override
-    public GetSuccessorProcessor getProcessor(Peer peer, Socket socket) {
-        return new GetSuccessorProcessor(peer.getChord(), socket, this);
+    public FindPredecessorProcessor getProcessor(Peer peer, Socket socket) {
+        return new FindPredecessorProcessor(peer.getChord(), socket, this);
     }
 
     @Override

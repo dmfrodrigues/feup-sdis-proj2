@@ -10,20 +10,17 @@ public class Username implements Serializable {
         this.s = s;
     }
 
-    public Main.Path getPath(){
-        return new Main.Path(s);
-    }
-
-    public String toString(){
-        return s;
-    }
-
     public Main.File asFile(long numberOfChunks){
         return new Main.UserMetadataFile(this, numberOfChunks);
     }
 
     public Main.File asFile(){
         return asFile(0);
+    }
+
+    @Override
+    public String toString(){
+        return s;
     }
 
     @Override

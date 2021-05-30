@@ -131,14 +131,14 @@ public class Chord {
         return true;
     }
 
-    public NodeInfo getPredecessor(Chord.Key key){
-        return new GetPredecessorProtocol(this, key).invoke();
-    }
-
     public NodeInfo getPredecessor(){
         synchronized(predecessor) {
             return new NodeInfo(predecessor);
         }
+    }
+
+    public NodeInfo findPredecessor(Chord.Key key){
+        return new FindPredecessorProtocol(this, key).invoke();
     }
 
     public boolean setPredecessor(NodeInfo peer){
@@ -152,8 +152,8 @@ public class Chord {
         return getFinger(0);
     }
 
-    public NodeInfo getSuccessor(Chord.Key key){
-        return new GetSuccessorProtocol(this, key).invoke();
+    public NodeInfo findSuccessor(Chord.Key key){
+        return new FindSuccessorProtocol(this, key).invoke();
     }
 
     public int getKeySize() {
@@ -198,7 +198,7 @@ public class Chord {
         return new LeaveProtocol(this, moveKeys).invoke();
     }
 
-    public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {
+    public Socket send(InetSocketAddress to, ChordMessage<?> m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());
         OutputStream os = socket.getOutputStream();
         os.write(m.asByteArray());
@@ -206,7 +206,7 @@ public class Chord {
         return socket;
     }
 
-    public Socket send(Chord.NodeInfo to, ChordMessage m) throws IOException {
+    public Socket send(Chord.NodeInfo to, ChordMessage<?> m) throws IOException {
         return send(to.address, m);
     }
 

@@ -16,7 +16,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void put_get_1peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
@@ -56,7 +56,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void delete_1peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
@@ -86,7 +86,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void put_retry_1peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
@@ -117,7 +117,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void put_get_2peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress());
@@ -166,7 +166,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void delete_2peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress());
@@ -217,7 +217,7 @@ public class DataStorageTest {
     @Test(timeout=2000)
     public void redirects_2peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress());

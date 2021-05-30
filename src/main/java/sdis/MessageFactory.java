@@ -33,12 +33,13 @@ public class MessageFactory {
         System.arraycopy(b, 0, start, 0, i);
         String startStr = new String(start);
         switch(startStr){
-            case "FINGERADD"     : return new FingerAddMessage     (chord, b);
-            case "FINGERREMOVE"  : return new FingerRemoveMessage  (chord, b);
-            case "GETSUCCESSOR"  : return new GetSuccessorMessage  (chord, b);
-            case "SETPREDECESSOR": return new SetPredecessorMessage(chord, b);
-            case "SUCCESSOR"     : return new SuccessorMessage     ();
-            case "PREDECESSOR"   : return new PredecessorMessage();
+            case "FINGERADD"      : return new FingerAddMessage      (chord, b);
+            case "FINGERREMOVE"   : return new FingerRemoveMessage   (chord, b);
+            case "CPFINGER"      : return new ClosestPrecedingFingerMessage(chord, b);
+            case "FINDSUCCESSOR"  : return new FindSuccessorMessage  (chord, b);
+            case "SETPREDECESSOR" : return new SetPredecessorMessage (chord, b);
+            case "SUCCESSOR"      : return new SuccessorMessage      ();
+            case "PREDECESSOR"    : return new PredecessorMessage    ();
 
             case "DELETE"      : return new DeleteMessage      (b);
             case "GET"         : return new GetMessage         (b);

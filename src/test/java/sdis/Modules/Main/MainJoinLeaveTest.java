@@ -23,7 +23,7 @@ public class MainJoinLeaveTest {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
         DataStorage dataStorage1 = peer1.getDataStorage();
 
         Username username = new Username("user1");
@@ -59,7 +59,7 @@ public class MainJoinLeaveTest {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
         DataStorage dataStorage1 = peer1.getDataStorage();
 
         Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));
@@ -94,7 +94,7 @@ public class MainJoinLeaveTest {
             }
         }));
         for(int i = 0; i < chord2.getMod(); ++i)
-            assertEquals(chord2.getNodeInfo(), chord2.getSuccessor(chord2.newKey(i)));
+            assertEquals(chord2.getNodeInfo(), chord2.findSuccessor(chord2.newKey(i)));
 
         // Remove keys
         RemoveKeysProtocol removeKeysProtocol = new RemoveKeysProtocol(peer1.getSystemStorage());
@@ -123,7 +123,7 @@ public class MainJoinLeaveTest {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
         DataStorage dataStorage1 = peer1.getDataStorage();
 
         Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));
@@ -173,7 +173,7 @@ public class MainJoinLeaveTest {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
         DataStorage dataStorage1 = peer1.getDataStorage();
 
         Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));

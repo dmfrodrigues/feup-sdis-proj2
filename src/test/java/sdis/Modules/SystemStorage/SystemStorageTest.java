@@ -20,7 +20,7 @@ public class SystemStorageTest {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
@@ -38,7 +38,7 @@ public class SystemStorageTest {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
@@ -61,7 +61,7 @@ public class SystemStorageTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
             peers[i].join(address);
@@ -119,7 +119,7 @@ public class SystemStorageTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
             peers[i].join(address);
@@ -194,7 +194,7 @@ public class SystemStorageTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
             peers[i].join(address);
@@ -242,7 +242,7 @@ public class SystemStorageTest {
         Peer[] peers = new Peer[ids.length];
         for(int i = 0; i < ids.length; ++i)
             peers[i] = new Peer(KEY_SIZE, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
-        peers[0].join();
+        assertTrue(peers[0].join());
         InetSocketAddress address = peers[0].getSocketAddress();
         for(int i = 1; i < ids.length; ++i){
             peers[i].join(address);

@@ -23,7 +23,7 @@ public class GetSystemProtocol extends ProtocolTask<byte[]> {
     public byte[] compute() {
         Chord chord = systemStorage.getChord();
         try{
-            Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord));
+            Chord.NodeInfo s = chord.findSuccessor(id.getKey(chord));
             GetSystemMessage getSystemMessage = new GetSystemMessage(id);
             Socket socket = systemStorage.send(s.address, getSystemMessage);
             byte[] response = readAllBytesAndClose(socket);

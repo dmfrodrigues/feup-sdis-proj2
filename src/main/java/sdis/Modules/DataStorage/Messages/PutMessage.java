@@ -36,23 +36,11 @@ public class PutMessage extends DataStorageMessage {
         System.arraycopy(data, dataOffset, this.data, 0, this.data.length);
     }
 
-    private Chord.Key getNodeKey() {
-        return nodeKey;
-    }
-
-    private UUID getId() {
-        return id;
-    }
-
-    private byte[] getData(){
-        return data;
-    }
-
     @Override
     protected DataBuilder build() {
         return
-            new DataBuilder(("PUT " + getNodeKey() + " " + getId() + "\n").getBytes())
-            .append(getData())
+            new DataBuilder(("PUT " + nodeKey + " " + id + "\n").getBytes())
+            .append(data)
         ;
     }
 
@@ -67,7 +55,7 @@ public class PutMessage extends DataStorageMessage {
 
         @Override
         public void compute() {
-            PutProtocol putProtocol = new PutProtocol(getChord(), getDataStorage(), message.getNodeKey(), message.getId(), message.getData());
+            PutProtocol putProtocol = new PutProtocol(getChord(), getDataStorage(), message.nodeKey, message.id, message.data);
             Boolean b = putProtocol.invoke();
             try {
                 getSocket().getOutputStream().write(message.formatResponse(b));

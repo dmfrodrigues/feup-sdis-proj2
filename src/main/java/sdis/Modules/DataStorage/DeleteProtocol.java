@@ -46,15 +46,13 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
         try {
             DeleteMessage m = new DeleteMessage(id);
             Socket socket = dataStorage.send(s.address, m);
-            socket.shutdownOutput();
-            byte[] responseByte = socket.getInputStream().readAllBytes();
-            socket.close();
+            byte[] responseByte = readAllBytesAndClose(socket);
             boolean response = m.parseResponse(responseByte);
             if(response){
                 dataStorage.unregisterSuccessorStored(id);
             }
             return response;
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
     }

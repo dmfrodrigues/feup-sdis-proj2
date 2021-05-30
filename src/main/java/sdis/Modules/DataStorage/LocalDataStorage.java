@@ -50,10 +50,6 @@ public class LocalDataStorage extends DataStorageAbstract {
         }
     }
 
-    public Path getPath() {
-        return storagePath;
-    }
-
     public int getCapacity() {
         return capacity;
     }
