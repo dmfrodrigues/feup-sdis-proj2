@@ -133,7 +133,7 @@ public class TestChordLeave {
         peer1.leave();
     }
 
-    @Test(timeout=2000)
+    @Test(timeout=1000)
     public void peer3_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);

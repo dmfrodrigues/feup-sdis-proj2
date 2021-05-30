@@ -31,7 +31,6 @@ public class PutProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeConn s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStoredLocally = localDataStorage.has(id);
@@ -43,6 +42,8 @@ public class PutProtocol extends ProtocolTask<Boolean> {
             return true;
         }
         // Everything beyond this point assumes the datapiece is not locally stored
+
+        Chord.NodeConn s = chord.getSuccessor();
 
         // If r has space
         if(hasSpaceLocally){

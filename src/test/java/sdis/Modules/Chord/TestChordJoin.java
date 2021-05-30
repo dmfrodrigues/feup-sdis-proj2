@@ -209,9 +209,9 @@ public class TestChordJoin {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=2000)
+    @Test(timeout=1000)
     public void peer2_larger() throws Exception {
-        int keySize = 10;
+        int keySize = 6;
         long MOD = 1L << keySize;
         Peer peer1 = new Peer(keySize, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
@@ -233,15 +233,15 @@ public class TestChordJoin {
         }
 
         for(long key = 0; key < peer1.getChord().getMod(); ++key){
-            assertEquals(getExpectedSuccessor(peers, key, 1L<<10), chord1.findSuccessor(chord1.newKey(key)).key.toLong());
-            assertEquals(getExpectedSuccessor(peers, key, 1L<<10), chord2.findSuccessor(chord2.newKey(key)).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord1.findSuccessor(chord1.newKey(key)).key.toLong());
+            assertEquals(getExpectedSuccessor(peers, key, MOD), chord2.findSuccessor(chord2.newKey(key)).key.toLong());
         }
 
         assertTrue(peer1.leave());
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=2000)
+    @Test(timeout=1000)
     public void peer3_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
@@ -332,7 +332,7 @@ public class TestChordJoin {
             assertTrue(p.leave());
     }
 
-    @Test(timeout=3000)
+    @Test(timeout=1000)
     public void peer20_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
@@ -375,7 +375,7 @@ public class TestChordJoin {
             }
         }
 
-        int increment = 20;
+        int increment = 60;
         long startTime = System.nanoTime();
         for (Peer peer : peers) {
             for (long key = 0; key < MOD; key += increment) {

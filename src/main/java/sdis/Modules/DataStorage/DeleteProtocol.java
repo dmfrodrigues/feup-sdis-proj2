@@ -23,7 +23,6 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeConn s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStored = localDataStorage.has(id);
@@ -41,6 +40,8 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
                 return true;
         }
         // We may now assume the datapiece is not locally stored
+
+        Chord.NodeConn s = chord.getSuccessor();
 
         // If r has a pointer to its successor reporting that it might have stored
         try {

@@ -377,7 +377,7 @@ public class MainTest {
         for(Peer p: peers) p.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=2000)
     public void delete_manyFiles_10peer() throws Exception {
         int KEY_SIZE = 10;
 
