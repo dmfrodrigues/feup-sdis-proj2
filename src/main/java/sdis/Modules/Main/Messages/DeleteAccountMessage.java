@@ -63,7 +63,7 @@ public class DeleteAccountMessage extends AccountMessage<Boolean> {
                 success = ProtocolTask.invokeAndReduceTasks(tasks);
 
                 // Delete user metadata
-                getMain().deleteFile(userMetadata.asFile());
+                success &= getMain().deleteFile(userMetadata.asFile(), false);
 
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();

@@ -432,7 +432,7 @@ public class MainTest {
         assertNotNull(peer.authenticate(username, password));
         assertTrue(peer.deleteAccount(username, password));
 
-        peer.leave();
+        assertTrue(peer.leave());
     }
 
     @Test(timeout=1000)

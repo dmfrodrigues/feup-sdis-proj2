@@ -46,6 +46,10 @@ public class Main {
         return new DeleteFileProtocol(this, file).invoke();
     }
 
+    public Boolean deleteFile(Main.File file, boolean delist) {
+        return new DeleteFileProtocol(this, file, delist).invoke();
+    }
+
     public static class Path implements Serializable {
         final String s;
 
