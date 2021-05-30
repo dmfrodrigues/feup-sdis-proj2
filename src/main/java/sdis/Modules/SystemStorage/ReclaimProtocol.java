@@ -53,7 +53,7 @@ public class ReclaimProtocol extends ProtocolTask<Void> {
                 });
             }
 
-            invokeAll(tasks);
+            invokeAndReduceTasks(tasks);
 
             if(localDataStorage.getMemoryUsed() > capacity) return get();
         } catch (InterruptedException e) {

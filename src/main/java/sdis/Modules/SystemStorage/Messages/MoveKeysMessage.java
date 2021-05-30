@@ -59,11 +59,11 @@ public class MoveKeysMessage extends SystemStorageMessage<Boolean> {
             Chord.NodeInfo n = message.nodeInfo;
 
             Set<UUID> ids = dataStorage.getAll();
-            List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
+            List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
             for(UUID id: ids){
                 Chord.Key k = id.getKey(chord);
                 if(Chord.distance(k, n.key) < Chord.distance(k, r.key)){
-                    RecursiveTask<Boolean> task = new ProtocolTask<>() {
+                    ProtocolTask<Boolean> task = new ProtocolTask<>() {
                         @Override
                         protected Boolean compute() {
                             byte[] data = dataStorage.get(id);
@@ -72,20 +72,11 @@ public class MoveKeysMessage extends SystemStorageMessage<Boolean> {
                             return putSystemProtocol.invoke();
                         }
                     };
-                    task.fork();
                     tasks.add(task);
                 }
             }
 
-            boolean ret = true;
-            for(RecursiveTask<Boolean> task: tasks) {
-                try {
-                    ret &= task.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                    ret = false;
-                }
-            }
+            boolean ret = ProtocolTask.invokeAndReduceTasks(tasks);
 
             try {
                 getSocket().getOutputStream().write(message.formatResponse(ret));

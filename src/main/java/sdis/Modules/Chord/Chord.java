@@ -157,7 +157,12 @@ public class Chord {
 
     public NodeConn getFinger(int i){
         synchronized (fingers){
-            return new NodeConn(fingers[i], null);
+            try {
+                return new NodeConn(fingers[i], fingers[i].createSocket());
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
         }
     }
 

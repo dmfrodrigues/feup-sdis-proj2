@@ -21,9 +21,10 @@ public class SetPredecessorProtocol extends ProtocolTask<Boolean> {
         Chord.NodeConn s = chord.getSuccessor();
         try {
             SetPredecessorMessage setPredecessorMessage = new SetPredecessorMessage(nodeInfo);
-            setPredecessorMessage.sendTo(chord, s.nodeInfo.address);
+            setPredecessorMessage.sendTo(chord, s.socket);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
             return false;
         }
         return true;

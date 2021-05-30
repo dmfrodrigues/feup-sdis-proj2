@@ -23,6 +23,7 @@ public class RemoveKeysProtocol extends ProtocolTask<Boolean> {
     @Override
     public Boolean compute() {
         DataStorage dataStorage = systemStorage.getDataStorage();
+        Chord.NodeInfo s = systemStorage.getChord().getSuccessorInfo();
 
         Set<UUID> ids = dataStorage.getAll();
         List<ProtocolTask<Boolean>> tasks = ids.stream().map((UUID id) -> new ProtocolTask<Boolean>() {
@@ -32,9 +33,8 @@ public class RemoveKeysProtocol extends ProtocolTask<Boolean> {
                 if(!dataStorage.delete(id)) return false;
                 PutSystemMessage putSystemMessage = new PutSystemMessage(id, data);
 
-                Chord.NodeConn s = systemStorage.getChord().getSuccessor();
                 try {
-                    return putSystemMessage.sendTo(s.nodeInfo.address);
+                    return putSystemMessage.sendTo(s.address);
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                     return false;

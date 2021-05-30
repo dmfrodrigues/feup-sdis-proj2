@@ -39,7 +39,7 @@ public class SystemStorage {
 
     public Socket sendAny(Message message) throws IOException {
         Chord.NodeConn to = chord.getSuccessor();
-        return send(to.nodeInfo.address, message);
+        return send(to.socket, message);
     }
 
     public boolean put(UUID id, byte[] data) {

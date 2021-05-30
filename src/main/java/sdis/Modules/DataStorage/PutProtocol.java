@@ -1,6 +1,7 @@
 package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.Chord.Messages.HelloMessage;
 import sdis.Modules.DataStorage.Messages.DeleteMessage;
 import sdis.Modules.DataStorage.Messages.PutMessage;
 import sdis.Modules.ProtocolTask;
@@ -53,7 +54,9 @@ public class PutProtocol extends ProtocolTask<Boolean> {
                     // If it was pointing to its successor, delete it from the successor
                     // so that less steps are required to reach the datapiece
                     DeleteMessage deleteMessage = new DeleteMessage(id);
-                    deleteMessage.sendTo(s.nodeInfo.address);
+                    deleteMessage.sendTo(s.socket);
+                } else {
+                    new HelloMessage().sendTo(chord, s.socket);
                 }
                 return true;
             } catch (IOException | InterruptedException e) {
@@ -63,7 +66,10 @@ public class PutProtocol extends ProtocolTask<Boolean> {
         // Everything beyond this point assumes the node does not have the datapiece locally,
         // nor does it have enough space to store it
 
-        if(s.nodeInfo.key == originalNodeKey) return false;
+        if(s.nodeInfo.key == originalNodeKey){
+            try { new HelloMessage().sendTo(chord, s.socket); } catch (IOException | InterruptedException e) { e.printStackTrace(); }
+            return false;
+        }
 
         // If it does not yet point to the successor, point to successor
         if(!pointsToSuccessor) dataStorage.registerSuccessorStored(id);
@@ -71,12 +77,13 @@ public class PutProtocol extends ProtocolTask<Boolean> {
             // Send a PUT message to the successor; if it does not yet have that datapiece, the successor will store it;
             // if it already has it, this message just serves as a confirmation that the datapiece is in fact stored.
             PutMessage m = new PutMessage(originalNodeKey, id, data);
-            boolean response = m.sendTo(s.nodeInfo.address);
+            boolean response = m.sendTo(s.socket);
             if (!response) {
                 dataStorage.unregisterSuccessorStored(id);
             }
             return response;
         } catch (IOException | InterruptedException e) {
+            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
             throw new CompletionException(e);
         }
     }

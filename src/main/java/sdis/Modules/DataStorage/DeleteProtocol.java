@@ -46,12 +46,13 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
         // If r has a pointer to its successor reporting that it might have stored
         try {
             DeleteMessage m = new DeleteMessage(id);
-            boolean response = m.sendTo(s.nodeInfo.address);
+            boolean response = m.sendTo(s.socket);
             if(response){
                 dataStorage.unregisterSuccessorStored(id);
             }
             return response;
         } catch (IOException | InterruptedException e) {
+            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
             throw new CompletionException(e);
         }
     }

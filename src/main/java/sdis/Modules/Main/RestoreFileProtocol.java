@@ -9,6 +9,7 @@ import sdis.Utils.FixedSizeList;
 import java.util.*;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
     private final Main main;
@@ -42,7 +43,7 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
             });
         }
 
-        invokeAll(tasks);
+        ProtocolTask.invokeTasks(tasks.stream().map((ProtocolTask<byte[]> task) -> (ProtocolTask<?>) task).collect(Collectors.toList()));
         try {
             byte[] ret = null;
             for (ProtocolTask<byte[]> task : tasks) {
@@ -69,23 +70,8 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Queue<ProtocolTask<Boolean>> tasks = new FixedSizeList<>(maxNumberFutures);
+        List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
         for (long i = 0; i < file.getNumberOfChunks(); ++i) {
-            while (tasks.size() >= maxNumberFutures) {
-                ProtocolTask<Boolean> task = tasks.remove();
-
-                boolean b;
-                try {
-                    b = task.get();
-                } catch (ExecutionException | InterruptedException e) {
-                    b = false;
-                }
-                if (!b) {
-                    reduceTasks(tasks);
-                    return false;
-                }
-            }
-
             long finalI = i;
             ProtocolTask<Boolean> task = new ProtocolTask<>() {
                 @Override
@@ -95,10 +81,8 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
                     return destination.set(finalI, data);
                 }
             };
-            task.fork();
             tasks.add(task);
         }
-
-        return reduceTasks(tasks);
+        return invokeAndReduceTasks(tasks);
     }
 }
