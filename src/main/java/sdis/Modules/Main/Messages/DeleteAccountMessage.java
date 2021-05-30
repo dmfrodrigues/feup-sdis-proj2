@@ -15,7 +15,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RecursiveTask;
 
-public class DeleteAccountMessage extends AccountMessage {
+public class DeleteAccountMessage extends AccountMessage<Boolean> {
     private final Username username;
     private final Password password;
 
@@ -92,11 +92,13 @@ public class DeleteAccountMessage extends AccountMessage {
         return new DeleteAccountProcessor(peer.getMain(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
+    @Override
+    protected byte[] formatResponse(Boolean b) {
         return new byte[]{(byte) (b ? 1 : 0)};
     }
 
-    public boolean parseResponse(byte[] response) {
+    @Override
+    public Boolean parseResponse(byte[] response) {
         return (response[0] == 1);
     }
 }

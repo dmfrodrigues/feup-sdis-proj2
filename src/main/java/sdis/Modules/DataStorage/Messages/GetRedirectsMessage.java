@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 
-public class GetRedirectsMessage extends DataStorageMessage {
+public class GetRedirectsMessage extends DataStorageMessage<Set<UUID>> {
 
     public GetRedirectsMessage(){
     }
@@ -50,6 +50,7 @@ public class GetRedirectsMessage extends DataStorageMessage {
         return new GetRedirectsProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 
+    @Override
     public byte[] formatResponse(Set<UUID> ids) {
         DataBuilder builder = new DataBuilder();
         for(UUID id: ids){
@@ -58,6 +59,7 @@ public class GetRedirectsMessage extends DataStorageMessage {
         return builder.get();
     }
 
+    @Override
     public Set<UUID> parseResponse(byte[] data) {
         String s = new String(data);
         String[] split = s.split("\n", -1);

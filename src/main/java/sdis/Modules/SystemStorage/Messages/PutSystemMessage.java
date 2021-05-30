@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class PutSystemMessage extends SystemStorageMessage {
+public class PutSystemMessage extends SystemStorageMessage<Boolean> {
 
     private final UUID id;
     private final byte[] data;
@@ -66,13 +66,15 @@ public class PutSystemMessage extends SystemStorageMessage {
         return new PutSystemProcessor(peer.getSystemStorage(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
+    @Override
+    protected byte[] formatResponse(Boolean b) {
         byte[] ret = new byte[1];
         ret[0] = (byte) (b ? 1 : 0);
         return ret;
     }
 
-    public boolean parseResponse(byte[] response) {
+    @Override
+    public Boolean parseResponse(byte[] response) {
         return (response[0] != 0);
     }
 }

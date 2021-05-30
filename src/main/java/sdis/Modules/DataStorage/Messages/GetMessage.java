@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class GetMessage extends DataStorageMessage {
+public class GetMessage extends DataStorageMessage<byte[]> {
 
     private final UUID id;
 
@@ -57,7 +57,8 @@ public class GetMessage extends DataStorageMessage {
         return new GetProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 
-    private byte[] formatResponse(byte[] data) {
+    @Override
+    protected byte[] formatResponse(byte[] data) {
         if(data == null) return new byte[]{0};
         byte[] ret = new byte[data.length+1];
         ret[0] = 1;
@@ -65,6 +66,7 @@ public class GetMessage extends DataStorageMessage {
         return ret;
     }
 
+    @Override
     public byte[] parseResponse(byte[] response) {
         if(response[0] == 0) return null;
         else {

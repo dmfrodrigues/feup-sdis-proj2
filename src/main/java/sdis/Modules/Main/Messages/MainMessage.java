@@ -4,9 +4,11 @@ import sdis.Modules.Main.Main;
 import sdis.Modules.Message;
 import sdis.Peer;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
-public abstract class MainMessage extends Message {
+public abstract class MainMessage<T> extends Message {
     public static abstract class Processor extends Message.Processor {
         private final Main main;
         private final Socket socket;
@@ -26,4 +28,17 @@ public abstract class MainMessage extends Message {
     }
 
     public abstract MainMessage.Processor getProcessor(Peer peer, Socket socket);
+
+    protected abstract byte[] formatResponse(T t);
+
+    protected abstract T parseResponse(byte[] data);
+
+    public T sendTo(InetSocketAddress address) throws IOException, InterruptedException {
+        return sendTo(new Socket(address.getAddress(), address.getPort()));
+    }
+
+    public T sendTo(Socket socket) throws IOException, InterruptedException {
+        socket.getOutputStream().write(this.asByteArray());
+        return parseResponse(readAllBytesAndClose(socket));
+    }
 }

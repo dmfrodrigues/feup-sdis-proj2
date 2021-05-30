@@ -6,7 +6,7 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 
-public abstract class AccountMessage extends MainMessage {
+public abstract class AccountMessage<T> extends MainMessage<T> {
     protected static UserMetadata getUserMetadata(Main main, Username owner) throws IOException, ClassNotFoundException {
         // Get user metadata
         DataBuilder builder = new DataBuilder();

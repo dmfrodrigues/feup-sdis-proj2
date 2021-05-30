@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class DeleteSystemMessage extends SystemStorageMessage {
+public class DeleteSystemMessage extends SystemStorageMessage<Boolean> {
 
     private final UUID id;
 
@@ -54,13 +54,15 @@ public class DeleteSystemMessage extends SystemStorageMessage {
         return new DeleteSystem(peer.getSystemStorage(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
+    @Override
+    protected byte[] formatResponse(Boolean b) {
         byte[] ret = new byte[1];
         ret[0] = (byte) (b ? 1 : 0);
         return ret;
     }
 
-    public boolean parseResponse(byte[] response) {
+    @Override
+    public Boolean parseResponse(byte[] response) {
         return (response[0] != 0);
     }
 }

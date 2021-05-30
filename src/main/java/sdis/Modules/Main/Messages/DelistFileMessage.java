@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class DelistFileMessage extends AccountMessage {
+public class DelistFileMessage extends AccountMessage<Boolean> {
 
     private final Main.File file;
 
@@ -75,11 +75,13 @@ public class DelistFileMessage extends AccountMessage {
         return new DelistFileProcessor(peer.getMain(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
+    @Override
+    protected byte[] formatResponse(Boolean b) {
         return new byte[]{(byte)(b ? 1 : 0)};
     }
 
-    public boolean parseResponse(byte[] response) {
+    @Override
+    public Boolean parseResponse(byte[] response) {
         return (response != null && response.length >= 1 && response[0] == 1);
     }
 }

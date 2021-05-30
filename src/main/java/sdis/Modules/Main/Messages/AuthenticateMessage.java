@@ -16,7 +16,7 @@ import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class AuthenticateMessage extends MainMessage {
+public class AuthenticateMessage extends MainMessage<Pair<AuthenticateMessage.Status, UserMetadata>> {
     public enum Status {
         SUCCESS,
         BROKEN,
@@ -105,7 +105,7 @@ public class AuthenticateMessage extends MainMessage {
             }
 
             try {
-                getSocket().getOutputStream().write(message.formatResponse(status, userMetadata));
+                getSocket().getOutputStream().write(message.formatResponse(new Pair<>(status, userMetadata)));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -118,12 +118,12 @@ public class AuthenticateMessage extends MainMessage {
         return new AuthenticateProcessor(peer.getMain(), socket, this);
     }
 
-    private byte[] formatResponse(Status status, UserMetadata userMetadata) {
+    protected byte[] formatResponse(Pair<Status, UserMetadata> p) {
         try {
-            switch(status){
+            switch(p.first){
                 case SUCCESS:
                     DataBuilder builder = new DataBuilder(new byte[]{0});
-                    builder.append(userMetadata.serialize());
+                    builder.append(p.second.serialize());
                     return builder.get();
                 case BROKEN:
                     return new byte[]{1};
