@@ -73,7 +73,7 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
 
                 // If at least one finger was updated, and the predecessor was
                 // not the one that sent the message, redirect to predecessor.
-                // (this is already prevented by the `r.equals(fOld)` check on
+                // (this is already prevented by the `r.equals(sOld)` check on
                 // arrival, but we can also check that on departure)
                 if(updatedFingers && !p.nodeInfo.equals(sOld)){
                     message.sendTo(chord, p.socket);
