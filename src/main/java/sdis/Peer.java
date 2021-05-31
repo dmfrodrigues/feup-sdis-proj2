@@ -322,127 +322,34 @@ public class Peer implements PeerInterface {
         return ret;
     }
 
-    public static class ServerSocketHandler extends SSLsocket implements Runnable {
+    public static class ServerSocketHandler implements Runnable {
         private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(20);
         private final Peer peer;
-        private final SSLEngine engine;
         private final ServerSocketChannel serverSocket;
-        private SSLContext context;
-
-
-        // Manages multiple channels
-        private Selector selector;
 
         private final MessageFactory messageFactory;
 
-        public ServerSocketHandler(Peer peer, ServerSocketChannel serverSocket) throws IOException {
+        public ServerSocketHandler(Peer peer, ServerSocketChannel serverSocket) {
             this.peer = peer;
-            this.engine = peer.sslEngine;
             this.serverSocket = serverSocket;
 
-            selector = SelectorProvider.provider().openSelector();
-
-            // Registers this channel with the given selector. Listens to a accept event
-            serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-
-
-            appData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
-            netData = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
-            peerAppData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
-            peerNetData = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
-
             messageFactory = new MessageFactory(peer);
-        }
-
-        private void read(SocketChannel socketChannel) throws IOException {
-            int bytes = socketChannel.read(peerNetData);
-            if(bytes > 0) {
-                while (peerNetData.hasRemaining()) {
-                    SSLEngineResult res = engine.unwrap(peerNetData, peerAppData);
-                    // Process status of call
-                    switch (res.getStatus()) {
-                        case OK:
-                            peerAppData.flip();
-                            break;
-                        case BUFFER_OVERFLOW:
-                            if (engine.getSession().getApplicationBufferSize() > peerAppData.capacity()) {
-                                peerAppData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
-                            } else {
-                                peerAppData = ByteBuffer.allocate(peerAppData.capacity() * 2);
-                            }
-                            break;
-
-                        case BUFFER_UNDERFLOW:
-                            if (engine.getSession().getPacketBufferSize() > peerNetData.capacity()) {
-                                peerNetData = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
-                            } else {
-                                peerNetData.compact();
-                            }
-                            break;
-                        case CLOSED:
-                            // Close connection
-                            engine.closeOutbound();
-                            handshake(socketChannel, engine);
-                            socketChannel.close();
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }else if(bytes < 0){
-                // No more inbound messages to process
-                engine.closeInbound();
-            }
-        }
-
-        /*
-        * Starts the handshake and register the channel if successful
-        * */
-        private void registerChannel(Selector selector, ServerSocketChannel serverSocket) throws IOException {
-            SocketChannel socket = serverSocket.accept();
-            socket.configureBlocking(false);
-            SSLEngine engine = context.createSSLEngine();
-            engine.setUseClientMode(false);
-
-            // Moves the SSLEngine into the initial handshaking state
-            engine.beginHandshake();
-
-            if(handshake(socket, engine))
-                socket.register(selector, SelectionKey.OP_READ);
-            else {
-                socket.close();
-                System.err.println("Unable to complete handshake");
-            }
-
         }
 
         @Override
         public void run() {
             while (true) {
                 try {
-                    selector.select();
-                    Set<SelectionKey> selectedKeys = selector.selectedKeys();
-                    Iterator<SelectionKey> it = selectedKeys.iterator();
-                    while(it.hasNext()){
-                        SelectionKey key = it.next();
-
-                        if(key.isAcceptable()){
-                            registerChannel(selector, serverSocket);
-                        }
-                        if(key.isReadable()){
-                            // read buffer
-                            SocketChannel socketChannel = (SocketChannel) key.channel(); // client socket
-                            read(socketChannel);
-                            byte[] data = peerAppData.array();
-                            Message message = messageFactory.factoryMethod(data);
-                            Message.Processor processor = message.getProcessor(peer, socketChannel);
-                            executor.execute(processor::invoke);
-                        }
-
-                        it.remove();
-                    }
-                } catch(SocketException e) {
-                    System.out.println("Peer " + peer.id + ": Socket exception, exiting server socket handler");
+                    SocketChannel socket = serverSocket.accept();
+                    ByteBuffer buffer = ByteBuffer.allocate(CHUNK_SIZE + MAX_HEADER_SIZE);
+                    int size = socket.read(buffer);
+                    byte[] data = new byte[size];
+                    System.arraycopy(buffer.array(), 0, data, 0, size);
+                    Message message = messageFactory.factoryMethod(data);
+                    Message.Processor processor = message.getProcessor(peer, socket);
+                    executor.execute(processor::invoke);
+                } catch(AsynchronousCloseException e) {
+                    System.out.println("Peer " + peer.id + ": Asynchronous close exception, exiting server socket handler");
                     return;
                 } catch (Exception e) {
                     System.err.println("Peer " + peer.id + ": Exception in ServerSocketHandler cycle");
