@@ -1,7 +1,6 @@
 package sdis;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.Chord.FixChordProtocol;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
@@ -17,9 +16,12 @@ import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.Utils.Utils;
 
+import javax.net.ssl.*;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -34,14 +36,12 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-
-import javax.net.ssl.*;
-import java.security.*;
 
 public class Peer implements PeerInterface {
 

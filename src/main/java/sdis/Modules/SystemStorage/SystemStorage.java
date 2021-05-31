@@ -6,7 +6,6 @@ import sdis.Modules.Message;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.nio.channels.SocketChannel;
 
 public class SystemStorage {

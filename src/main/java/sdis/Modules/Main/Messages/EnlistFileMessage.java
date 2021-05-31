@@ -7,7 +7,6 @@ import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;

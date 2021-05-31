@@ -6,13 +6,6 @@ import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
-import java.nio.channels.SocketChannel;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.concurrent.CompletionException;
 
 public class DeleteProtocol extends ProtocolTask<Boolean> {

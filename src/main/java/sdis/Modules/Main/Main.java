@@ -6,17 +6,6 @@ import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.nio.channels.SocketChannel;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.io.Serializable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

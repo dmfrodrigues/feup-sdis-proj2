@@ -3,7 +3,6 @@ package sdis.Modules;
 import sdis.Modules.Main.Main;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
