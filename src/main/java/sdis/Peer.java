@@ -47,7 +47,8 @@ import static sdis.Modules.Main.Main.MAX_HEADER_SIZE;
 
 public class Peer implements PeerInterface {
 
-    private final SSLEngine sslEngine;
+    private final SSLEngine serverSSLEngine;
+    private final SSLEngine clientSSLEngine;
     private final ServerSocketChannel serverSocket;
 
     private final Chord.Key id;
@@ -69,8 +70,10 @@ public class Peer implements PeerInterface {
         serverSocket.socket().bind(null);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.socket().getLocalPort());
 
-        // sslEngine = initializeSSLEngine(id);
-        sslEngine = null;
+        serverSSLEngine = initializeServerSSLEngine(id);
+        clientSSLEngine = initializeClientSSLEngine(id);
+
+//        serverSocket.setSSLEngine(serverSSLEngine);
 
         System.out.println(
             "Starting peer " + id +
@@ -78,10 +81,10 @@ public class Peer implements PeerInterface {
         );
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
-        chord = new Chord(sslEngine, socketAddress, keySize, id);
-        dataStorage = new DataStorage(sslEngine, Paths.get(this.baseStoragePath.toString(), "storage/data"), getChord());
-        systemStorage = new SystemStorage(sslEngine, chord, dataStorage);
-        main = new Main(sslEngine, systemStorage);
+        chord = new Chord(clientSSLEngine, socketAddress, keySize, id);
+        dataStorage = new DataStorage(clientSSLEngine, Paths.get(this.baseStoragePath.toString(), "storage/data"), getChord());
+        systemStorage = new SystemStorage(clientSSLEngine, chord, dataStorage);
+        main = new Main(clientSSLEngine, systemStorage);
 
         this.id = chord.newKey(id);
 
@@ -93,7 +96,7 @@ public class Peer implements PeerInterface {
         serverSocketHandlerThread.start();
     }
 
-    private SSLEngine initializeSSLEngine(long id) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
+    private SSLEngine initializeServerSSLEngine(long id) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
         // Create and initialize the SSLContext with key material
         char[] password = Files.readString(Path.of("keys/password")).toCharArray();
 
@@ -116,6 +119,34 @@ public class Peer implements PeerInterface {
 
         SSLEngine sslEngine = sslContext.createSSLEngine(Long.toString(id), socketAddress.getPort());
         sslEngine.setUseClientMode(false);
+
+        sslEngine.beginHandshake();
+        return sslEngine;
+    }
+
+    private SSLEngine initializeClientSSLEngine(long id) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
+        // Create and initialize the SSLContext with key material
+        char[] password = Files.readString(Path.of("keys/password")).toCharArray();
+
+        // First initialize the key and trust material
+        KeyStore ksKeys = KeyStore.getInstance("JKS");
+        ksKeys.load(new FileInputStream("keys/client"), password);
+        KeyStore ksTrust = KeyStore.getInstance("JKS");
+        ksTrust.load(new FileInputStream("keys/truststore"), password);
+
+        // KeyManagers decide which key material to use
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+        kmf.init(ksKeys, password);
+
+        // TrustManagers decide whether to allow connections
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+        tmf.init(ksTrust);
+
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+        SSLEngine sslEngine = sslContext.createSSLEngine(Long.toString(id), socketAddress.getPort());
+        sslEngine.setUseClientMode(true);
 
         sslEngine.beginHandshake();
         return sslEngine;
