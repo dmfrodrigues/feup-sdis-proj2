@@ -264,8 +264,8 @@ public class Peer implements PeerInterface {
     }
 
     public boolean fix() {
-        boolean ret = new FixMainProtocol(main).invoke();
-        ret &= new FixChordProtocol(chord).invoke();
+        boolean ret = chord.fix();
+        ret &= main.fix();
         return ret;
     }
 
