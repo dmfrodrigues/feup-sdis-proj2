@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
@@ -63,46 +64,17 @@ public class Peer implements PeerInterface {
     }
 
     public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
-        SSLContext sslContext;
-
-        // Create and initialize the SSLContext with key material
-        char[] passphrase = "123456".toCharArray();
-
-        // First initialize the key and trust material
-        KeyStore ksKeys = KeyStore.getInstance("JKS");
-        ksKeys.load(new FileInputStream("keys/server"), passphrase);
-        KeyStore ksTrust = KeyStore.getInstance("JKS");
-        ksTrust.load(new FileInputStream("keys/truststore"), passphrase);
-
-        // KeyManagers decide which key material to use
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
-        kmf.init(ksKeys, passphrase);
-
-        // TrustManagers decide whether to allow connections
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
-        tmf.init(ksTrust);
-
-        sslContext = SSLContext.getInstance("TLSv1.2");
-        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-
-
-        sslEngine = sslContext.createSSLEngine(ipAddress.getHostName(), 8080);
-        sslEngine.setUseClientMode(false);
-        socketAddress = new InetSocketAddress(ipAddress, sslEngine.getPeerPort());
-
-        // Create Session
-
-        // Moves the SSLEngine into the initial handshaking state
-        sslEngine.beginHandshake();
-
         serverSocket = ServerSocketChannel.open();
         serverSocket.configureBlocking(true);
         serverSocket.socket().bind(null);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.socket().getLocalPort());
 
+        // sslEngine = initializeSSLEngine(id);
+        sslEngine = null;
+
         System.out.println(
             "Starting peer " + id +
-            " with address " + socketAddress + ":" + sslEngine.getPeerPort()
+            " with address " + socketAddress
         );
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
@@ -119,6 +91,37 @@ public class Peer implements PeerInterface {
         ServerSocketHandler serverSocketHandler = new ServerSocketHandler(this, serverSocket);
         serverSocketHandlerThread = new Thread(serverSocketHandler);
         serverSocketHandlerThread.start();
+    }
+
+    private SSLEngine initializeSSLEngine(long id) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
+        final SSLEngine sslEngine;
+        SSLContext sslContext;
+
+        // Create and initialize the SSLContext with key material
+        char[] password = Files.readString(Path.of("keys/password")).toCharArray();
+
+        // First initialize the key and trust material
+        KeyStore ksKeys = KeyStore.getInstance("JKS");
+        ksKeys.load(new FileInputStream("keys/server"), password);
+        KeyStore ksTrust = KeyStore.getInstance("JKS");
+        ksTrust.load(new FileInputStream("keys/truststore"), password);
+
+        // KeyManagers decide which key material to use
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+        kmf.init(ksKeys, password);
+
+        // TrustManagers decide whether to allow connections
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+        tmf.init(ksTrust);
+
+        sslContext = SSLContext.getInstance("TLSv1.2");
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+        sslEngine = sslContext.createSSLEngine(Long.toString(id), socketAddress.getPort());
+        sslEngine.setUseClientMode(false);
+
+        sslEngine.beginHandshake();
+        return sslEngine;
     }
 
     public void bindAsRemoteObject(String remoteObjName) throws RemoteException, AlreadyBoundException {
