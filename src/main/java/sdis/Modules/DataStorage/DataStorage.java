@@ -3,6 +3,7 @@ package sdis.Modules.DataStorage;
 import sdis.Modules.Chord.Chord;
 import sdis.UUID;
 
+import javax.net.ssl.SSLEngine;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,14 +14,20 @@ public class DataStorage extends DataStorageAbstract {
      */
     private static final int INITIAL_STORAGE_SIZE = 1000000000;
 
+    private final SSLEngine sslEngine;
     private final LocalDataStorage localDataStorage;
     private final Set<UUID> storedBase = new HashSet<>();
     private final Set<UUID> storedBySuccessor = new HashSet<>();
     private final Chord chord;
 
-    public DataStorage(Path storagePath, Chord chord){
+    public DataStorage(SSLEngine sslEngine, Path storagePath, Chord chord){
+        this.sslEngine = sslEngine;
         localDataStorage = new LocalDataStorage(storagePath, INITIAL_STORAGE_SIZE);
         this.chord = chord;
+    }
+
+    public SSLEngine getSSLEngine() {
+        return sslEngine;
     }
 
     public void storeBase(UUID id) {

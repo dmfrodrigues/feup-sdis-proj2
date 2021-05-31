@@ -1,5 +1,6 @@
 package sdis.Utils;
 
+import javax.net.ssl.SSLEngine;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -82,7 +83,7 @@ public class Utils {
         return ret;
     }
 
-    public static SocketChannel createSocket(InetSocketAddress address) throws IOException {
+    public static SocketChannel createSocket(SSLEngine sslEngine, InetSocketAddress address) throws IOException {
         SocketChannel socket = SocketChannel.open();
         socket.connect(address);
         return socket;

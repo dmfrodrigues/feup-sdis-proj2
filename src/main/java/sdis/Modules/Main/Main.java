@@ -5,6 +5,7 @@ import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
+import javax.net.ssl.SSLEngine;
 import java.io.Serializable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -16,12 +17,18 @@ public class Main {
     public static final int USER_METADATA_REPDEG = 10;
     public static final int FIXES_DELTA_MILLIS = 60000;
 
+    private final SSLEngine sslEngine;
     private final SystemStorage systemStorage;
 
     private final ScheduledExecutorService executorOfFixes = Executors.newSingleThreadScheduledExecutor();
 
-    public Main(SystemStorage systemStorage){
+    public Main(SSLEngine sslEngine, SystemStorage systemStorage){
+        this.sslEngine = sslEngine;
         this.systemStorage = systemStorage;
+    }
+
+    public SSLEngine getSSLEngine() {
+        return sslEngine;
     }
 
     public void scheduleFixes(){

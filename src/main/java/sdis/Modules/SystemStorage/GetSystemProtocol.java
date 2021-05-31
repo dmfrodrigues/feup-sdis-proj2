@@ -24,7 +24,7 @@ public class GetSystemProtocol extends ProtocolTask<byte[]> {
         try{
             Chord.NodeInfo s = chord.findSuccessor(id.getKey(chord));
             GetSystemMessage getSystemMessage = new GetSystemMessage(id);
-            return getSystemMessage.sendTo(s.address);
+            return getSystemMessage.sendTo(systemStorage, s.address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         } catch (CompletionException e) {
