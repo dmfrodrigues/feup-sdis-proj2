@@ -94,9 +94,6 @@ public class Peer implements PeerInterface {
     }
 
     private SSLEngine initializeSSLEngine(long id) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
-        final SSLEngine sslEngine;
-        SSLContext sslContext;
-
         // Create and initialize the SSLContext with key material
         char[] password = Files.readString(Path.of("keys/password")).toCharArray();
 
@@ -114,10 +111,10 @@ public class Peer implements PeerInterface {
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
         tmf.init(ksTrust);
 
-        sslContext = SSLContext.getInstance("TLSv1.2");
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
-        sslEngine = sslContext.createSSLEngine(Long.toString(id), socketAddress.getPort());
+        SSLEngine sslEngine = sslContext.createSSLEngine(Long.toString(id), socketAddress.getPort());
         sslEngine.setUseClientMode(false);
 
         sslEngine.beginHandshake();
