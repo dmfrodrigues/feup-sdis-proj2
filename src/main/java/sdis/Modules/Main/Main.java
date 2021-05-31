@@ -1,7 +1,6 @@
 package sdis.Modules.Main;
 
 import sdis.Modules.SystemStorage.SystemStorage;
-import sdis.Sockets.ClientSocket;
 import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.UUID;
@@ -11,7 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class Main extends ClientSocket {
+public class Main {
     public static final int CHUNK_SIZE = 64000;
     public static final int MAX_HEADER_SIZE = 100;
     public static final int USER_METADATA_REPDEG = 10;

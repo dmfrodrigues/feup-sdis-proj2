@@ -5,7 +5,7 @@ import sdis.UUID;
 
 import java.util.Set;
 
-public abstract class DataStorageAbstract extends ClientSocket{
+public abstract class DataStorageAbstract {
 
     /**
      * @brief Check if the object has a certain datapiece.
