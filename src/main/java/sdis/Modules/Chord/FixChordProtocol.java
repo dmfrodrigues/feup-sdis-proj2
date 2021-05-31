@@ -47,9 +47,9 @@ public class FixChordProtocol extends ProtocolTask<Boolean> {
     @Override
     public Boolean compute() {
         // Update successors
-        fixSuccessors(chord);
+        boolean ret = fixSuccessors(chord);
         // Update fingers
-        fixFingers(chord);
+        ret &= fixFingers(chord);
         // Update predecessor
         Chord.NodeConn s = chord.getSuccessor();
         PredecessorMessage predecessorMessage = new PredecessorMessage();
@@ -57,9 +57,9 @@ public class FixChordProtocol extends ProtocolTask<Boolean> {
             Chord.NodeInfo p = predecessorMessage.sendTo(chord, s.socket);
             chord.setPredecessor(p);
         } catch (IOException | InterruptedException e) {
-            throw new CompletionException(e);
+            ret = false;
         }
 
-        return true;
+        return ret;
     }
 }
