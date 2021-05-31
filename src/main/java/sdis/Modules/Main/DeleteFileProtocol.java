@@ -7,6 +7,12 @@ import sdis.Modules.SystemStorage.SystemStorage;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,12 +39,14 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
         Chord.NodeInfo s = chord.getSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord));
         try {
             DelistFileMessage m = new DelistFileMessage(file);
-            Socket socket = main.send(s.address, m);
+            SocketChannel socket = main.send(s.address, m);
             socket.shutdownOutput();
-            byte[] response = socket.getInputStream().readAllBytes();
+            main.read();
+            byte[] response = main.getPeerAppData().array();
+
             socket.close();
             return m.parseResponse(response);
-        } catch (IOException e) {
+        } catch (IOException | UnrecoverableKeyException | CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             throw new CompletionException(e);
         }
     }

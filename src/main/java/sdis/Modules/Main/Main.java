@@ -2,17 +2,24 @@ package sdis.Modules.Main;
 
 import sdis.Modules.Main.Messages.MainMessage;
 import sdis.Modules.SystemStorage.SystemStorage;
+import sdis.Sockets.ClientSocket;
 import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSession;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
-public class Main {
+public class Main extends ClientSocket {
     public static final int CHUNK_SIZE = 64000;
     public static final int USER_METADATA_REPDEG = 10;
 
@@ -24,14 +31,6 @@ public class Main {
 
     public SystemStorage getSystemStorage(){
         return systemStorage;
-    }
-
-    public Socket send(InetSocketAddress to, MainMessage m) throws IOException {
-        Socket socket = new Socket(to.getAddress(), to.getPort());
-        OutputStream os = socket.getOutputStream();
-        os.write(m.asByteArray());
-        os.flush();
-        return socket;
     }
 
     public Boolean backupFile(Main.File file, ChunkIterator chunkIterator) {

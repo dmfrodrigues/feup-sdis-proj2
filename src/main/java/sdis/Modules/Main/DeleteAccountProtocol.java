@@ -6,6 +6,12 @@ import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
 public class DeleteAccountProtocol extends MainProtocolTask<Boolean> {
 
@@ -27,10 +33,11 @@ public class DeleteAccountProtocol extends MainProtocolTask<Boolean> {
 
         DeleteAccountMessage deleteAccountMessage = new DeleteAccountMessage(username, password);
         try {
-            Socket socket = main.send(s.address, deleteAccountMessage);
+            SocketChannel socket = main.send(s.address, deleteAccountMessage);
+
             byte[] data = readAllBytesAndClose(socket);
             return deleteAccountMessage.parseResponse(data);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | UnrecoverableKeyException | CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             e.printStackTrace();
 
             return false;

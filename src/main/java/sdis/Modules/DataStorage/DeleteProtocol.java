@@ -7,6 +7,12 @@ import sdis.UUID;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.concurrent.CompletionException;
 
 public class DeleteProtocol extends ProtocolTask<Boolean> {
@@ -45,7 +51,7 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
         // If r has a pointer to its successor reporting that it might have stored
         try {
             DeleteMessage m = new DeleteMessage(id);
-            Socket socket = dataStorage.send(s.address, m);
+            SocketChannel socket = dataStorage.send(s.address, m);
             socket.shutdownOutput();
             byte[] responseByte = socket.getInputStream().readAllBytes();
             socket.close();
@@ -54,7 +60,7 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
                 dataStorage.unregisterSuccessorStored(id);
             }
             return response;
-        } catch (IOException e) {
+        } catch (IOException | UnrecoverableKeyException | CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             throw new CompletionException(e);
         }
     }

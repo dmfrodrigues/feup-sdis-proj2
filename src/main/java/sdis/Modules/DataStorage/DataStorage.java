@@ -2,6 +2,7 @@ package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.Messages.DataStorageMessage;
+import sdis.Sockets.ClientSocket;
 import sdis.UUID;
 
 import java.io.IOException;
@@ -81,14 +82,6 @@ public class DataStorage extends DataStorageAbstract {
 
     public boolean successorHasStored(UUID id) {
         return storedBySuccessor.contains(id);
-    }
-
-    public Socket send(InetSocketAddress to, DataStorageMessage m) throws IOException {
-        Socket socket = new Socket(to.getAddress(), to.getPort());
-        OutputStream os = socket.getOutputStream();
-        os.write(m.asByteArray());
-        os.flush();
-        return socket;
     }
 
     public Set<UUID> getRedirects() {
