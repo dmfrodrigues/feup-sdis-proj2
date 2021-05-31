@@ -6,15 +6,29 @@ import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
 import java.io.Serializable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static final int CHUNK_SIZE = 64000;
     public static final int USER_METADATA_REPDEG = 10;
+    public static final int FIXES_DELTA_MILLIS = 60000;
 
     private final SystemStorage systemStorage;
 
+    private final ScheduledExecutorService executorOfFixes = Executors.newSingleThreadScheduledExecutor();
+
     public Main(SystemStorage systemStorage){
         this.systemStorage = systemStorage;
+    }
+
+    public void scheduleFixes(){
+        executorOfFixes.scheduleAtFixedRate(this::fix, FIXES_DELTA_MILLIS, FIXES_DELTA_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
+    public void killFixes() {
+        executorOfFixes.shutdown();
     }
 
     public SystemStorage getSystemStorage(){
@@ -50,6 +64,10 @@ public class Main {
 
     public Boolean deleteFile(Main.File file, boolean delist) {
         return new DeleteFileProtocol(this, file, delist).invoke();
+    }
+
+    public boolean fix(){
+        return new FixMainProtocol(this).invoke();
     }
 
     public static class Path implements Serializable {

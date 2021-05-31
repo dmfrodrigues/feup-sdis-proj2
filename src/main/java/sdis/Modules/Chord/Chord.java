@@ -11,6 +11,9 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Chord {
     public static class Key {
@@ -123,6 +126,7 @@ public class Chord {
     }
 
     public static final int SUCCESSOR_LIST_SIZE = 5;
+    public static final int FIXES_DELTA_MILLIS = 10000;
 
     private final int keySize;
 
@@ -131,6 +135,8 @@ public class Chord {
     private final NodeInfo[] fingers;
     private final NodeInfo predecessor;
     private final TreeSet<NodeInfo> successors;
+
+    private final ScheduledExecutorService executorOfFixes = Executors.newSingleThreadScheduledExecutor();
 
     public Chord(InetSocketAddress socketAddress, int keySize, long key){
         this.socketAddress = socketAddress;
@@ -142,6 +148,14 @@ public class Chord {
             long diff = Chord.distance(this.key, a.key) - Chord.distance(this.key, b.key);
             return (diff < 0 ? -1 : (diff > 0 ? +1 : 0));
         });
+    }
+
+    public void scheduleFixes(){
+        executorOfFixes.scheduleAtFixedRate(this::fix, FIXES_DELTA_MILLIS/2, FIXES_DELTA_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
+    public void killFixes() {
+        executorOfFixes.shutdown();
     }
 
     public Chord.Key newKey(long k){
@@ -348,6 +362,10 @@ public class Chord {
 
     public boolean leave(ProtocolTask<Boolean> moveKeys) {
         return new LeaveProtocol(this, moveKeys).invoke();
+    }
+
+    public boolean fix(){
+        return new FixChordProtocol(this).invoke();
     }
 
     public static long distance(Chord.Key a, Chord.Key b) {

@@ -66,6 +66,9 @@ public class Peer implements PeerInterface {
 
         this.id = chord.newKey(id);
 
+        chord.scheduleFixes();
+        main.scheduleFixes();
+
         ServerSocketHandler serverSocketHandler = new ServerSocketHandler(this, serverSocket);
         serverSocketHandlerThread = new Thread(serverSocketHandler);
         serverSocketHandlerThread.start();
@@ -158,6 +161,9 @@ public class Peer implements PeerInterface {
     }
 
     public boolean kill(){
+        chord.killFixes();
+        main.killFixes();
+
         try {
             serverSocket.close();
             serverSocketHandlerThread.join();
