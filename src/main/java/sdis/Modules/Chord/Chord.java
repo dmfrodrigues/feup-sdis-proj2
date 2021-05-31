@@ -1,14 +1,13 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Messages.ChordMessage;
 import sdis.Modules.Chord.Messages.HelloMessage;
 import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletionException;
 
 public class Chord {
@@ -113,12 +112,15 @@ public class Chord {
         }
     }
 
+    public static final int SUCCESSOR_LIST_SIZE = 5;
+
     private final int keySize;
 
     private final InetSocketAddress socketAddress;
     private final Chord.Key key;
     private final NodeInfo[] fingers;
     private final NodeInfo predecessor;
+    private final TreeSet<NodeInfo> successors;
 
     public Chord(InetSocketAddress socketAddress, int keySize, long key){
         this.socketAddress = socketAddress;
@@ -126,6 +128,10 @@ public class Chord {
         this.key = newKey(key);
         fingers = new NodeInfo[this.keySize];
         predecessor = new NodeInfo();
+        successors = new TreeSet<>((NodeInfo a, NodeInfo b) -> {
+            long diff = Chord.distance(this.key, a.key) - Chord.distance(this.key, b.key);
+            return (diff < 0 ? -1 : (diff > 0 ? +1 : 0));
+        });
     }
 
     public Chord.Key newKey(long k){
@@ -143,26 +149,46 @@ public class Chord {
     }
 
     public NodeInfo getFingerInfo(int i) {
-        synchronized (fingers){
-            try {
+        try {
+            synchronized (fingers) {
                 Socket socket = fingers[i].createSocket();
                 HelloMessage helloMessage = new HelloMessage();
                 helloMessage.sendTo(this, socket);
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+                return fingers[i];
             }
-            return fingers[i];
+        } catch(ConnectException e) {
+            System.err.println("Node " + key + ": Failed to find finger " + i + ", recalculating");
+            NodeInfo finger = findSuccessor(key.add(1L << i));
+            if(finger == null) {
+                System.err.println("Node " + key + ": Failed to recalculate finger " + i);
+                throw new CompletionException(e);
+            }
+            setFinger(i, finger);
+            System.err.println("Node " + key + ": Recalculated finger " + i + " and found it is " + finger.key);
+            return finger;
+        } catch (IOException | InterruptedException e) {
+            throw new CompletionException(e);
         }
     }
 
     public NodeConn getFinger(int i){
-        synchronized (fingers){
-            try {
-                return new NodeConn(fingers[i], fingers[i].createSocket());
-            } catch (IOException e) {
-                e.printStackTrace();
+        try {
+            synchronized (fingers) {
+                Socket socket = fingers[i].createSocket();
+                return new NodeConn(fingers[i], socket);
+            }
+        } catch(ConnectException e) {
+            System.err.println("Node " + key + ": Failed to find finger " + i + ", recalculating");
+            NodeInfo finger = findSuccessor(key.add(1L << i));
+            if(finger == null) {
+                System.err.println("Node " + key + ": Failed to recalculate finger " + i);
                 throw new CompletionException(e);
             }
+            setFinger(i, finger);
+            System.err.println("Node " + key + ": Recalculated finger " + i + " and found it is " + finger.key);
+            return getFinger(i);
+        } catch (IOException e) {
+            throw new CompletionException(e);
         }
     }
 
@@ -208,12 +234,70 @@ public class Chord {
         return true;
     }
 
+    public void addSuccessor(NodeInfo s) {
+        synchronized (successors) {
+            successors.add(s);
+            Iterator<NodeInfo> it = successors.iterator();
+            while (it.hasNext()) {
+                NodeInfo t = it.next();
+                try {
+                    new HelloMessage().sendTo(this, t.createSocket());
+                } catch (ConnectException e) {
+                    System.err.println("Node " + key + ": While inserting a new successor " + s.key + ", noticed " + t.key + " does not exist; purging");
+                    it.remove();
+                } catch (IOException | InterruptedException e) {
+                    throw new CompletionException(e);
+                }
+            }
+            while(successors.size() > SUCCESSOR_LIST_SIZE){
+                successors.remove(successors.last());
+            }
+        }
+    }
+
     public NodeInfo getSuccessorInfo() {
-        return getFingerInfo(0);
+        synchronized(successors) {
+            while (true) {
+                if(successors.isEmpty()){
+                    return getNodeInfo();
+                }
+                NodeInfo s = successors.first();
+                try {
+                    Socket socket = s.createSocket();
+                    HelloMessage helloMessage = new HelloMessage();
+                    helloMessage.sendTo(this, socket);
+                    return s;
+                } catch (ConnectException e) {
+                    System.err.println("Node " + key + ": Failed to use successor " + s.key + ", using next successor");
+                    successors.remove(s);
+                } catch (IOException | InterruptedException e) {
+                    throw new CompletionException(e);
+                }
+            }
+        }
     }
 
     public NodeConn getSuccessor() {
-        return getFinger(0);
+        synchronized(successors) {
+            if(successors.isEmpty()) {
+                try {
+                    return new NodeConn(getNodeInfo(), getNodeInfo().createSocket());
+                } catch (IOException e) {
+                    throw new CompletionException(e);
+                }
+            }
+            while (true) {
+                NodeInfo s = successors.first();
+                try {
+                    return new NodeConn(s, s.createSocket());
+                } catch (ConnectException e) {
+                    System.err.println("Node " + key + ": Failed to use successor " + s.key + ", using next successor");
+                    successors.remove(s);
+                } catch (IOException e) {
+                    throw new CompletionException(e);
+                }
+            }
+        }
     }
 
     public NodeInfo findSuccessor(Chord.Key key){

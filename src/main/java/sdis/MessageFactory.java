@@ -42,6 +42,8 @@ public class MessageFactory {
             case "SETPREDECESSOR": return new SetPredecessorMessage        (chord, b);
             case "SUCCESSOR"     : return new SuccessorMessage             ();
             case "PREDECESSOR"   : return new PredecessorMessage           ();
+            case "NTFYSUCCESSOR" : return new NotifySuccessorMessage       (chord, b);
+            case "UNTFYSUCCESSOR": return new UnnotifySuccessorMessage     (chord, b);
 
             case "DELETE"      : return new DeleteMessage      (b);
             case "GET"         : return new GetMessage         (b);

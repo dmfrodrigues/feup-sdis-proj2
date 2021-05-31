@@ -48,7 +48,7 @@ public class DeleteAccountMessage extends AccountMessage<Boolean> {
 
         @Override
         public void compute() {
-            boolean success = true;
+            boolean success;
             try {
                 // Get user file
                 UserMetadata userMetadata = Objects.requireNonNull(getUserMetadata(getMain(), message.username));

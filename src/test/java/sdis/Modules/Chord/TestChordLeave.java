@@ -191,7 +191,55 @@ public class TestChordLeave {
         peer2.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=2000)
+    public void peer7() throws Exception {
+        int keySize = 6;
+        long MOD = (1L << keySize);
+
+        long[] ids = {
+                0, 1, 2, 3, 4, 5, 6
+        };
+        Set<Long> set = new HashSet<>();
+        for (Long l : ids) set.add(l);
+        assertEquals(ids.length, set.size());
+
+        List<Long> idsSorted = new ArrayList<>();
+        List<Peer> peers = new ArrayList<>();
+        for (int i = 0; i < ids.length; ++i) {
+            Peer peer = new Peer(keySize, ids[i], InetAddress.getByName("localhost"), Paths.get("bin"));
+            peers.add(peer);
+            idsSorted.add(ids[i]);
+            Collections.sort(idsSorted);
+            if (i == 0) {
+                assertTrue(peer.join());
+            } else {
+                InetSocketAddress gateway = peers.get(0).getSocketAddress();
+                peer.join(gateway);
+            }
+
+            for (Peer p : peers) {
+                Chord chord = p.getChord();
+                for (int j = 0; j < keySize; ++j)
+                    assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << j), MOD), chord.getFingerInfo(j).key.toLong());
+            }
+        }
+
+        for (int i = ids.length - 1; i >= 0; i--) {
+            Peer deletedPeer = peers.get(i);
+            idsSorted.remove(Collections.binarySearch(idsSorted, deletedPeer.getKey().toLong()));
+            deletedPeer.leave();
+            peers.remove(i);
+
+            for (Peer peer : peers) {
+                Chord chord = peer.getChord();
+                assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + 1, MOD), chord.getSuccessorInfo().key.toLong());
+                for (int j = 0; j < keySize; ++j)
+                    assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << j), MOD), chord.getFingerInfo(j).key.toLong());
+            }
+        }
+    }
+
+    @Test(timeout=3000)
     public void peer20_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
@@ -241,6 +289,7 @@ public class TestChordLeave {
 
             for (Peer peer : peers) {
                 Chord chord = peer.getChord();
+                assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + 1, MOD), chord.getSuccessorInfo().key.toLong());
                 for (int j = 0; j < keySize; ++j)
                     assertEquals(getExpectedSuccessor(idsSorted, chord.getKey().toLong() + (1L << j), MOD), chord.getFingerInfo(j).key.toLong());
             }
