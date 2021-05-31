@@ -200,22 +200,8 @@ public class Peer implements PeerInterface {
      * Restore file.
      */
     public boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput) {
-        UserMetadata userMetadata = authenticate(username, password);
-        if(userMetadata == null){
-            System.err.println("Failed to authenticate");
-            return false;
-        }
-
-        Main.File file = userMetadata.getFile(path);
-        if(file == null){
-            System.err.println("No such file with path " + path);
-            Set<Main.Path> files = userMetadata.getFiles();
-            System.err.println("Available files (" + files.size() + "):");
-            for(Main.Path f: files){
-                System.err.println("    " + f);
-            }
-            return false;
-        }
+        Main.File file = getFile(username, password, path);
+        if (file == null) return false;
 
         return main.restoreFile(file, chunkOutput);
     }
@@ -224,10 +210,17 @@ public class Peer implements PeerInterface {
      * Delete file.
      */
     public boolean delete(Username username, Password password, Main.Path path) {
+        Main.File file = getFile(username, password, path);
+        if (file == null) return false;
+
+        return main.deleteFile(file);
+    }
+
+    private Main.File getFile(Username username, Password password, Main.Path path) {
         UserMetadata userMetadata = authenticate(username, password);
         if(userMetadata == null){
             System.err.println("Failed to authenticate");
-            return false;
+            return null;
         }
 
         Main.File file = userMetadata.getFile(path);
@@ -238,10 +231,9 @@ public class Peer implements PeerInterface {
             for(Main.Path f: files){
                 System.err.println("    " + f);
             }
-            return false;
+            return null;
         }
-
-        return main.deleteFile(file);
+        return file;
     }
 
     @Override
