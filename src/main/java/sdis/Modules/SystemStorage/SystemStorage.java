@@ -46,6 +46,10 @@ public class SystemStorage {
         return new PutSystemProtocol(this, id, data).invoke();
     }
 
+    public boolean head(UUID id) {
+        return new HeadSystemProtocol(this, id).invoke();
+    }
+
     public byte[] get(UUID id) {
         return new GetSystemProtocol(this, id).invoke();
     }

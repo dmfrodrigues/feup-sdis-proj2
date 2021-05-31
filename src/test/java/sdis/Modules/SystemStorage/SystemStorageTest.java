@@ -28,6 +28,7 @@ public class SystemStorageTest {
         SystemStorage systemStorage1 = peer1.getSystemStorage();
 
         assertTrue(systemStorage1.put(id, data));
+        assertTrue(systemStorage1.head(id));
         assertArrayEquals(data, systemStorage1.get(id));
 
         peer1.leave();
@@ -46,8 +47,10 @@ public class SystemStorageTest {
         SystemStorage systemStorage1 = peer1.getSystemStorage();
 
         assertTrue(systemStorage1.put(id, data));
+        assertTrue(systemStorage1.head(id));
         assertArrayEquals(data, systemStorage1.get(id));
         assertTrue(systemStorage1.delete(id));
+        assertFalse(systemStorage1.head(id));
         assertNull(systemStorage1.get(id));
 
         peer1.leave();
@@ -71,8 +74,10 @@ public class SystemStorageTest {
         byte[] data = "my data".getBytes();
 
         assertTrue(peers[0].getSystemStorage().put(id, data));
-        for(int i = 0; i < peers.length; ++i)
-            assertArrayEquals(data, peers[0].getSystemStorage().get(id));
+        for (Peer peer : peers) {
+            assertTrue(peer.getSystemStorage().head(id));
+            assertArrayEquals(data, peer.getSystemStorage().get(id));
+        }
 
         DataStorage dataStorage = peers[2].getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
@@ -131,8 +136,10 @@ public class SystemStorageTest {
         byte[] data = "my data".getBytes();
 
         assertTrue(peers[0].getSystemStorage().put(id, data));
-        for(int i = 0; i < peers.length; ++i)
-            assertArrayEquals(data, peers[0].getSystemStorage().get(id));
+        for (Peer peer : peers) {
+            assertTrue(peer.getSystemStorage().head(id));
+            assertArrayEquals(data, peer.getSystemStorage().get(id));
+        }
 
         DataStorage dataStorage = peers[2].getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
@@ -207,10 +214,13 @@ public class SystemStorageTest {
         assertArrayEquals(data, peers[2].getDataStorage().get(id));
         assertTrue(peers[0].getSystemStorage().delete(id));
 
-        for(int i = 1; i < peers.length; ++i)
-            assertNull(peers[0].getSystemStorage().get(id));
+        for(int i = 1; i < peers.length; ++i) {
+            assertFalse(peers[i].getSystemStorage().head(id));
+            assertNull(peers[i].getSystemStorage().get(id));
+        }
 
         for(int i : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}) {
+            assertFalse(peers[i].getDataStorage().head(id));
             assertNull(peers[i].getDataStorage().get(id));
 
             DataStorage dataStorage = peers[i].getDataStorage();
@@ -257,8 +267,10 @@ public class SystemStorageTest {
 
         assertTrue(peers[2].reclaim(0));
 
-        for(int i = 0; i < peers.length; ++i)
-            assertArrayEquals(data, peers[0].getSystemStorage().get(id));
+        for (Peer peer : peers) {
+            assertTrue(peer.getSystemStorage().head(id));
+            assertArrayEquals(data, peer.getSystemStorage().get(id));
+        }
 
         DataStorage dataStorage = peers[2].getDataStorage();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();

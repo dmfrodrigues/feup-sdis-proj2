@@ -54,6 +54,11 @@ public class DataStorage extends DataStorageAbstract {
                 return success;
     }
 
+    public boolean head(UUID id) {
+        if(!has(id)) return false;
+        return new HeadProtocol(chord, this, id).invoke();
+    }
+
     @Override
     public byte[] get(UUID id) {
         if(!has(id)) return null;

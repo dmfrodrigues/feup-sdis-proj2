@@ -33,6 +33,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage1.getAll());
         assertFalse(dataStorage1.has(id));
+        assertFalse(dataStorage1.head(id));
         assertNull(dataStorage1.get(id));
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -47,6 +48,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(){{ add(id); }}, dataStorage1.getAll());
         assertTrue(dataStorage1.has(id));
+        assertTrue(dataStorage1.head(id));
         assertArrayEquals(dataStorage1.get(id), data);
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -77,6 +79,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage1.getAll());
         assertFalse(dataStorage1.has(id));
+        assertFalse(dataStorage1.head(id));
         assertNull(dataStorage1.get(id));
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -108,6 +111,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(){{ add(id); }}, dataStorage1.getAll());
         assertTrue(dataStorage1.has(id));
+        assertTrue(dataStorage1.head(id));
         assertArrayEquals(data, dataStorage1.get(id));
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -144,6 +148,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(){{ add(id); }}, dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(){{ add(id); }}, dataStorage1.getAll());
         assertTrue(dataStorage1.has(id));
+        assertTrue(dataStorage1.head(id));
         assertArrayEquals(data, dataStorage1.get(id));
         assertTrue(dataStorage1.successorHasStored(id));
 
@@ -156,6 +161,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage2.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage2.getAll());
         assertFalse(dataStorage2.has(id));
+        assertFalse(dataStorage2.head(id));
         assertNull(dataStorage2.get(id));
         assertFalse(dataStorage2.successorHasStored(id));
 
@@ -195,6 +201,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage1.getAll());
         assertFalse(dataStorage1.has(id));
+        assertFalse(dataStorage1.head(id));
         assertNull(dataStorage1.get(id));
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -207,6 +214,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage2.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage2.getAll());
         assertFalse(dataStorage2.has(id));
+        assertFalse(dataStorage2.head(id));
         assertNull(dataStorage2.get(id));
         assertFalse(dataStorage2.successorHasStored(id));
 
