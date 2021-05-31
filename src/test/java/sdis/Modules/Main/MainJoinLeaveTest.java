@@ -19,7 +19,7 @@ import static org.junit.Assert.*;
 
 public class MainJoinLeaveTest {
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void join_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -168,7 +168,36 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
+    public void die_3peers_simple() throws Exception {
+        int KEY_SIZE = 10;
+
+        Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        assertTrue(peer1.join());
+
+        assertEquals(0, peer1.getChord().getSuccessorInfo().key.toLong());
+
+        Peer peer2 = new Peer(KEY_SIZE, 100, InetAddress.getByName("localhost"), Paths.get("bin"));
+        peer2.join(peer1.getSocketAddress());
+
+        assertEquals(100, peer1.getChord().getSuccessorInfo().key.toLong());
+
+        Peer peer3 = new Peer(KEY_SIZE, 200, InetAddress.getByName("localhost"), Paths.get("bin"));
+        peer3.join(peer1.getSocketAddress());
+
+        assertEquals(100, peer1.getChord().getSuccessorInfo().key.toLong());
+
+        assertTrue(peer2.die());
+        assertEquals(200, peer1.getChord().getSuccessorInfo().key.toLong());
+
+        assertTrue(peer3.die());
+        assertEquals(0, peer1.getChord().getSuccessorInfo().key.toLong());
+
+        assertTrue(peer1.leave());
+    }
+
+    @Ignore
+    @Test(timeout=1000)
     public void die_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -177,12 +206,6 @@ public class MainJoinLeaveTest {
 
         Peer peer2 = new Peer(KEY_SIZE, 800, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress());
-
-        Username username = new Username("user1");
-        Password password = new Password("1234");
-        Main.Path path = new Main.Path("mydata");
-        byte[] data = "my data".getBytes();
-        ChunkIterator chunkIterator = new ByteArrayChunkIterator(data, Main.CHUNK_SIZE);
 
         assertEquals(  0, peer2.getChord().getFingerRaw(0).key.toLong());
         assertEquals(  0, peer2.getChord().getFingerRaw(1).key.toLong());
@@ -195,7 +218,6 @@ public class MainJoinLeaveTest {
         assertEquals(800, peer2.getChord().getFingerRaw(8).key.toLong());
         assertEquals(800, peer2.getChord().getFingerRaw(9).key.toLong());
 
-        assertTrue(peer1.backup(username, password, path, 1, chunkIterator));
         assertTrue(peer1.die());
 
         assertEquals(  0, peer2.getChord().getFingerRaw(0).key.toLong());
@@ -234,27 +256,17 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-
     @Ignore
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void die_2peers_2() throws Exception {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
-        DataStorage dataStorage1 = peer1.getDataStorage();
 
         Peer peer2 = new Peer(KEY_SIZE, 800, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress());
-        DataStorage dataStorage2 = peer2.getDataStorage();
 
-        Username username = new Username("user1");
-        Password password = new Password("1234");
-        Main.Path path = new Main.Path("mydata");
-        byte[] data = "my data".getBytes();
-        ChunkIterator chunkIterator = new ByteArrayChunkIterator(data, Main.CHUNK_SIZE);
-
-        assertTrue(peer1.backup(username, password, path, 1, chunkIterator));
         assertTrue(peer1.die());
 
         assertEquals(  0, peer2.getChord().getFingerRaw(0).key.toLong());
@@ -268,7 +280,7 @@ public class MainJoinLeaveTest {
         assertEquals(800, peer2.getChord().getFingerRaw(8).key.toLong());
         assertEquals(800, peer2.getChord().getFingerRaw(9).key.toLong());
 
-//        assertTrue(peer2.synchronize());
+        // assertTrue(peer2.fix());
 
         assertEquals(800, peer2.getChord().getFingerRaw(0).key.toLong());
         assertEquals(800, peer2.getChord().getFingerRaw(1).key.toLong());
@@ -282,5 +294,37 @@ public class MainJoinLeaveTest {
         assertEquals(800, peer2.getChord().getFingerRaw(9).key.toLong());
 
         assertTrue(peer2.leave());
+    }
+
+    @Ignore
+    @Test(timeout=1000)
+    public void die_2peers_withFiles() throws Exception {
+        int KEY_SIZE = 10;
+
+        Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        assertTrue(peer1.join());
+
+        Peer peer2 = new Peer(KEY_SIZE, 800, InetAddress.getByName("localhost"), Paths.get("bin"));
+        peer2.join(peer1.getSocketAddress());
+
+        Username username = new Username("user1");
+        Password password = new Password("1234");
+        Main.Path path = new Main.Path("mydata");
+        byte[] data = "my data".getBytes();
+        ChunkIterator chunkIterator = new ByteArrayChunkIterator(data, Main.CHUNK_SIZE);
+
+        assertTrue(peer1.backup(username, password, path, 2, chunkIterator));
+        assertArrayEquals(data, peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-0")));
+        assertArrayEquals(data, peer2.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-1")));
+
+        assertTrue(peer2.die());
+        assertArrayEquals(data, peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-0")));
+        assertNull(peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-1")));
+
+        // assertTrue(peer1.fix());
+        assertArrayEquals(data, peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-0")));
+        assertArrayEquals(data, peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-1")));
+
+        assertTrue(peer1.leave());
     }
 }

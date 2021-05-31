@@ -22,7 +22,7 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        System.out.println("Peer " + chord.getKey() + " starting to join");
+        System.out.println("Node " + chord.getKey() + ": Starting to join");
 
         Chord.NodeInfo r = chord.getNodeInfo();
 
@@ -64,7 +64,7 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
         // Move keys
         moveKeys.invoke();
 
-        System.out.println("Peer " + chord.getKey() + " done joining");
+        System.out.println("Node " + chord.getKey() + ": Done joining");
 
         return true;
     }
