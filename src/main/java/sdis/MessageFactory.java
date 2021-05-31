@@ -1,10 +1,13 @@
 package sdis;
 
-import sdis.Modules.Message;
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.Chord.Messages.*;
 import sdis.Modules.DataStorage.Messages.*;
-import sdis.Modules.Main.Messages.*;
+import sdis.Modules.Main.Messages.AuthenticateMessage;
+import sdis.Modules.Main.Messages.DeleteAccountMessage;
+import sdis.Modules.Main.Messages.DelistFileMessage;
+import sdis.Modules.Main.Messages.EnlistFileMessage;
+import sdis.Modules.Message;
 import sdis.Modules.SystemStorage.Messages.*;
 import sdis.Utils.Utils;
 

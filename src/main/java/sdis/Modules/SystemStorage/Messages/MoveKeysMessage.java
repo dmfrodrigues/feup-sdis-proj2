@@ -16,8 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.RecursiveTask;
 
 public class MoveKeysMessage extends SystemStorageMessage<Boolean> {
 

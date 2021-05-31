@@ -20,7 +20,7 @@ public class FingersRemoveProtocol extends ProtocolTask<Boolean> {
     public Boolean compute() {
         List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
         for(int i = 0; i < chord.getKeySize(); ++i){
-            Chord.Key k = chord.getKey().subtract(1L << i).add(1);
+            Chord.Key k = chord.getNodeInfo().key.subtract(1L << i).add(1);
             int finalI = i;
             ProtocolTask<Boolean> task = new ProtocolTask<>() {
                 @Override

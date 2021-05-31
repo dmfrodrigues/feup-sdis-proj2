@@ -4,7 +4,6 @@ import sdis.Modules.Chord.Messages.SetPredecessorMessage;
 import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
-import java.net.Socket;
 
 public class SetPredecessorProtocol extends ProtocolTask<Boolean> {
 

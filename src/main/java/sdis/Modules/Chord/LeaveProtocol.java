@@ -44,8 +44,6 @@ public class LeaveProtocol extends ProtocolTask<Boolean> {
         }
 
         // Move keys
-        if(!moveKeys.invoke()) return false;
-
-        return true;
+        return moveKeys.invoke();
     }
 }

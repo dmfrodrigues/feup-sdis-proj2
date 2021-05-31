@@ -7,11 +7,11 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 
 public abstract class AccountMessage<T> extends MainMessage<T> {
-    protected static UserMetadata getUserMetadata(Main main, Username owner) throws IOException, ClassNotFoundException {
+    public static UserMetadata getUserMetadata(Main main, Username owner) throws IOException, ClassNotFoundException {
         // Get user metadata
         DataBuilder builder = new DataBuilder();
         DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
-        RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(main, owner, chunkOutput, 10);
+        RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(main, owner, chunkOutput);
         if(!restoreUserFileProtocol.invoke()) return null;
 
         // Parse user metadata

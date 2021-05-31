@@ -6,7 +6,6 @@ import sdis.Modules.SystemStorage.Messages.GetSystemMessage;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class GetSystemProtocol extends ProtocolTask<byte[]> {

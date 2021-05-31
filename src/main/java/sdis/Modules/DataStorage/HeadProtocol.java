@@ -1,7 +1,6 @@
 package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.DataStorage.Messages.GetMessage;
 import sdis.Modules.DataStorage.Messages.HeadMessage;
 import sdis.Modules.ProtocolTask;
 import sdis.UUID;

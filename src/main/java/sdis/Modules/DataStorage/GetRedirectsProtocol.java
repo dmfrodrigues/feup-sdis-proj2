@@ -6,7 +6,6 @@ import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Set;
 import java.util.concurrent.CompletionException;

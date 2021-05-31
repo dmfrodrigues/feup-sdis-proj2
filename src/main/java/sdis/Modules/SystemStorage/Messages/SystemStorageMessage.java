@@ -1,6 +1,5 @@
 package sdis.Modules.SystemStorage.Messages;
 
-import sdis.Modules.Chord.Chord;
 import sdis.Modules.Message;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;

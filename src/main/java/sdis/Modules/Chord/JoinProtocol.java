@@ -7,7 +7,6 @@ import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class JoinProtocol extends ProtocolTask<Boolean> {
@@ -23,7 +22,7 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        System.out.println("Node " + chord.getKey() + ": Starting to join");
+        System.out.println("Node " + chord.getNodeInfo().key + ": Starting to join");
 
         Chord.NodeInfo r = chord.getNodeInfo();
 
@@ -91,7 +90,7 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
         // Move keys
         moveKeys.invoke();
 
-        System.out.println("Node " + chord.getKey() + ": Done joining");
+        System.out.println("Node " + chord.getNodeInfo().key + ": Done joining");
 
         return true;
     }

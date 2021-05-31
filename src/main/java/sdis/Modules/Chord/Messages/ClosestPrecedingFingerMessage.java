@@ -39,14 +39,15 @@ public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> 
 
         @Override
         public void compute() {
-            Chord.NodeInfo n = getChord().getNodeInfo();
+            Chord chord = getChord();
+            Chord.NodeInfo n = chord.getNodeInfo();
 
             try {
-                for (int i = getChord().getKeySize() - 1; i >= 0; --i) {
-                    Chord.NodeInfo f = getChord().getFingerRaw(i);
+                for (int i = chord.getKeySize() - 1; i >= 0; --i) {
+                    Chord.NodeInfo f = chord.getFingerRaw(i);
                     if (f.key.inRange(n.key.add(1), message.key.subtract(1))) {
                         try {
-                            new HelloMessage().sendTo(getChord(), f.createSocket());
+                            new HelloMessage().sendTo(chord, f.createSocket());
                         } catch (IOException | InterruptedException e) {
                             continue;
                         }
@@ -56,7 +57,7 @@ public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> 
                     }
                 }
 
-                Chord.NodeInfo s = getChord().getSuccessorInfo();
+                Chord.NodeInfo s = chord.getSuccessorInfo();
                 getSocket().getOutputStream().write(message.formatResponse(s));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {

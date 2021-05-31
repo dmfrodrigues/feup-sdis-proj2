@@ -2,7 +2,6 @@ package sdis.Modules.SystemStorage;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.ProtocolTask;
-import sdis.Modules.SystemStorage.Messages.GetSystemMessage;
 import sdis.Modules.SystemStorage.Messages.HeadSystemMessage;
 import sdis.UUID;
 

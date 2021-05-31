@@ -8,7 +8,6 @@ import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class PutProtocol extends ProtocolTask<Boolean> {
@@ -20,7 +19,7 @@ public class PutProtocol extends ProtocolTask<Boolean> {
     private final byte[] data;
 
     public PutProtocol(Chord chord, DataStorage dataStorage, UUID id, byte[] data){
-        this(chord, dataStorage, chord.getKey(), id, data);
+        this(chord, dataStorage, chord.getNodeInfo().key, id, data);
     }
     public PutProtocol(Chord chord, DataStorage dataStorage, Chord.Key originalNodeKey, UUID id, byte[] data){
         this.chord = chord;

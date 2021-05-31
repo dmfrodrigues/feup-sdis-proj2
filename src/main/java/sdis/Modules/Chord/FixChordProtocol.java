@@ -4,7 +4,6 @@ import sdis.Modules.Chord.Messages.PredecessorMessage;
 import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
-import java.util.concurrent.CompletionException;
 
 public class FixChordProtocol extends ProtocolTask<Boolean> {
 

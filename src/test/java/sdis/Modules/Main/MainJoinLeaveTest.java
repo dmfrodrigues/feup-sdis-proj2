@@ -1,16 +1,11 @@
 package sdis.Modules.Main;
 
-import org.junit.Ignore;
 import org.junit.Test;
-import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.ProtocolTask;
-import sdis.Modules.SystemStorage.RemoveKeysProtocol;
 import sdis.Peer;
 import sdis.Storage.ByteArrayChunkIterator;
 import sdis.Storage.ChunkIterator;
 import sdis.UUID;
-import sdis.Utils.Utils;
 
 import java.net.InetAddress;
 import java.nio.file.Paths;
@@ -230,7 +225,6 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    @Ignore
     @Test(timeout=1000)
     public void die_2peers_withFiles() throws Exception {
         int KEY_SIZE = 10;

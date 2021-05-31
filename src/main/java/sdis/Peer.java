@@ -55,11 +55,11 @@ public class Peer implements PeerInterface {
 
         System.out.println(
             "Starting peer " + id +
-            " with address " + getSocketAddress()
+            " with address " + socketAddress
         );
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
-        chord = new Chord(getSocketAddress(), keySize, id);
+        chord = new Chord(socketAddress, keySize, id);
         dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), getChord());
         systemStorage = new SystemStorage(chord, dataStorage);
         main = new Main(systemStorage);
@@ -128,7 +128,7 @@ public class Peer implements PeerInterface {
 
         ret &= die();
 
-        System.out.println("Peer " + chord.getKey() + " done leaving");
+        System.out.println("Peer " + chord.getNodeInfo().key + " done leaving");
 
         return ret;
     }
@@ -168,6 +168,10 @@ public class Peer implements PeerInterface {
         return main;
     }
 
+    public UserMetadata authenticate(Username username, Password password) {
+        return main.authenticate(username, password);
+    }
+
     /**
      * Backup file.
      */
@@ -196,48 +200,48 @@ public class Peer implements PeerInterface {
      * Restore file.
      */
     public boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput) {
-            UserMetadata userMetadata = authenticate(username, password);
-            if(userMetadata == null){
-                System.err.println("Failed to authenticate");
-                return false;
-            }
+        UserMetadata userMetadata = authenticate(username, password);
+        if(userMetadata == null){
+            System.err.println("Failed to authenticate");
+            return false;
+        }
 
-            Main.File file = userMetadata.getFile(path);
-            if(file == null){
-                System.err.println("No such file with path " + path);
-                Set<Main.Path> files = userMetadata.getFiles();
-                System.err.println("Available files (" + files.size() + "):");
-                for(Main.Path f: files){
-                    System.err.println("    " + f);
-                }
-                return false;
+        Main.File file = userMetadata.getFile(path);
+        if(file == null){
+            System.err.println("No such file with path " + path);
+            Set<Main.Path> files = userMetadata.getFiles();
+            System.err.println("Available files (" + files.size() + "):");
+            for(Main.Path f: files){
+                System.err.println("    " + f);
             }
+            return false;
+        }
 
-            return main.restoreFile(file, chunkOutput);
+        return main.restoreFile(file, chunkOutput);
     }
 
     /**
      * Delete file.
      */
     public boolean delete(Username username, Password password, Main.Path path) {
-            UserMetadata userMetadata = authenticate(username, password);
-            if(userMetadata == null){
-                System.err.println("Failed to authenticate");
-                return false;
-            }
+        UserMetadata userMetadata = authenticate(username, password);
+        if(userMetadata == null){
+            System.err.println("Failed to authenticate");
+            return false;
+        }
 
-            Main.File file = userMetadata.getFile(path);
-            if(file == null){
-                System.err.println("No such file with path " + path);
-                Set<Main.Path> files = userMetadata.getFiles();
-                System.err.println("Available files (" + files.size() + "):");
-                for(Main.Path f: files){
-                    System.err.println("    " + f);
-                }
-                return false;
+        Main.File file = userMetadata.getFile(path);
+        if(file == null){
+            System.err.println("No such file with path " + path);
+            Set<Main.Path> files = userMetadata.getFiles();
+            System.err.println("Available files (" + files.size() + "):");
+            for(Main.Path f: files){
+                System.err.println("    " + f);
             }
+            return false;
+        }
 
-            return main.deleteFile(file);
+        return main.deleteFile(file);
     }
 
     @Override
@@ -260,13 +264,10 @@ public class Peer implements PeerInterface {
             return true;
     }
 
-    public UserMetadata authenticate(Username username, Password password) {
-        AuthenticationProtocol authenticationProtocol = new AuthenticationProtocol(main, username, password);
-        return authenticationProtocol.invoke();
-    }
-
     public boolean fix() {
-        return new FixChordProtocol(chord).invoke();
+        boolean ret = new FixMainProtocol(main).invoke();
+        ret &= new FixChordProtocol(chord).invoke();
+        return ret;
     }
 
     public static class ServerSocketHandler implements Runnable {

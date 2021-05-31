@@ -1,6 +1,8 @@
 package sdis.Modules.Main.Messages;
 
-import sdis.Modules.Main.*;
+import sdis.Modules.Main.Main;
+import sdis.Modules.Main.UserMetadata;
+import sdis.Modules.Main.Username;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
 

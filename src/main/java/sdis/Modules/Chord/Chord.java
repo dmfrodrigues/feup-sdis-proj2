@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.TreeSet;
 import java.util.concurrent.CompletionException;
 
 public class Chord {
@@ -138,10 +140,6 @@ public class Chord {
         return new Chord.Key(this, k);
     }
 
-    public Chord.Key getKey() {
-        return key;
-    }
-
     public NodeInfo getFingerRaw(int i){
         synchronized(fingers) {
             return fingers[i];
@@ -171,6 +169,7 @@ public class Chord {
         }
     }
 
+    /*
     public NodeConn getFinger(int i){
         try {
             synchronized (fingers) {
@@ -191,6 +190,7 @@ public class Chord {
             throw new CompletionException(e);
         }
     }
+     */
 
     public boolean setFinger(int i, NodeInfo peer){
         synchronized(fingers) {
@@ -322,7 +322,7 @@ public class Chord {
     public boolean join(){
         NodeInfo nodeInfo = getNodeInfo();
         if(!setPredecessor(nodeInfo)) return false;
-        for(int i = 0; i < getKeySize(); ++i) {
+        for(int i = 0; i < keySize; ++i) {
             if(!setFinger(i, nodeInfo)) return false;
         }
         return true;

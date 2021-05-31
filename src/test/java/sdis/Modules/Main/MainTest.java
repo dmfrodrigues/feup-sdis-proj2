@@ -34,7 +34,7 @@ public class MainTest {
 
         DataBuilder dataBuilder = new DataBuilder();
         ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
-        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(main, file, chunkOutput, 10);
+        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(main, file, chunkOutput);
         assertTrue(restoreFileProtocol.invoke());
 
         assertArrayEquals(data, dataBuilder.get());
@@ -63,7 +63,7 @@ public class MainTest {
 
         DataBuilder dataBuilder = new DataBuilder();
         ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
-        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput, 10);
+        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput);
         assertTrue(restoreFileProtocol.invoke());
 
         assertArrayEquals(data, dataBuilder.get());
@@ -219,7 +219,7 @@ public class MainTest {
 
         DataBuilder dataBuilder = new DataBuilder();
         ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
-        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput, 10);
+        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput);
         assertTrue(restoreFileProtocol.invoke());
 
         assertArrayEquals(data, dataBuilder.get());

@@ -1,12 +1,16 @@
 package sdis.Modules.Main;
 
 import java.io.Serializable;
+import java.util.regex.Pattern;
 
 public class Username implements Serializable {
+    public static final String REGEX = "[a-zA-Z0-9@.+_]{4,28}";
+    private static final Pattern pattern = Pattern.compile(REGEX);
+
     private final String s;
 
     public Username(String s){
-        if(s.contains("/")) throw new IllegalArgumentException(s);
+        if(!pattern.matcher(s).matches()) throw new IllegalArgumentException(s);
         this.s = s;
     }
 

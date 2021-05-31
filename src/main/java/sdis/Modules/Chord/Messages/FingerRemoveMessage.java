@@ -63,10 +63,10 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
                 boolean updatedFingers = false;
                 while(
                     i >= 0 &&
-                    getChord().getFingerInfo(i).equals(sOld)
+                    chord.getFingerInfo(i).equals(sOld)
                 ){
                     updatedFingers = true;
-                    getChord().setFinger(i--, sNew);
+                    chord.setFinger(i--, sNew);
                 }
 
                 Chord.NodeConn p = chord.getPredecessor();

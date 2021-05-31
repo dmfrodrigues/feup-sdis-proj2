@@ -1,16 +1,11 @@
 package sdis.Modules.Main;
 
-import sdis.Modules.Main.Messages.MainMessage;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 
 public class Main {
     public static final int CHUNK_SIZE = 64000;
@@ -26,6 +21,7 @@ public class Main {
         return systemStorage;
     }
 
+    /*
     public Socket send(InetSocketAddress to, MainMessage<?> m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());
         OutputStream os = socket.getOutputStream();
@@ -33,13 +29,19 @@ public class Main {
         os.flush();
         return socket;
     }
+     */
+
+    public UserMetadata authenticate(Username username, Password password) {
+        AuthenticationProtocol authenticationProtocol = new AuthenticationProtocol(this, username, password);
+        return authenticationProtocol.invoke();
+    }
 
     public Boolean backupFile(Main.File file, ChunkIterator chunkIterator) {
         return new BackupFileProtocol(this, file, chunkIterator).invoke();
     }
 
     public Boolean restoreFile(Main.File file, ChunkOutput destination) {
-        return new RestoreFileProtocol(this, file, destination, 10).invoke();
+        return new RestoreFileProtocol(this, file, destination).invoke();
     }
 
     public Boolean deleteFile(Main.File file) {

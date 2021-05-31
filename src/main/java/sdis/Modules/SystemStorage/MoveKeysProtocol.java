@@ -5,7 +5,6 @@ import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.Messages.MoveKeysMessage;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class MoveKeysProtocol extends ProtocolTask<Boolean> {
