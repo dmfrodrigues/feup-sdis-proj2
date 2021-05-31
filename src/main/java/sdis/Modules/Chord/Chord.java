@@ -2,11 +2,12 @@ package sdis.Modules.Chord;
 
 import sdis.Modules.Chord.Messages.HelloMessage;
 import sdis.Modules.ProtocolTask;
+import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.TreeSet;
@@ -97,8 +98,8 @@ public class Chord {
             address = nodeInfo.address;
         }
 
-        public Socket createSocket() throws IOException {
-            return new Socket(address.getAddress(), address.getPort());
+        public SocketChannel createSocket() throws IOException {
+            return Utils.createSocket(address);
         }
 
         @Override
@@ -117,9 +118,9 @@ public class Chord {
 
     public static class NodeConn {
         public final NodeInfo nodeInfo;
-        public final Socket socket;
+        public final SocketChannel socket;
 
-        public NodeConn(NodeInfo nodeInfo, Socket socket){
+        public NodeConn(NodeInfo nodeInfo, SocketChannel socket){
             this.nodeInfo = nodeInfo;
             this.socket = socket;
         }
@@ -171,7 +172,7 @@ public class Chord {
     public NodeInfo getFingerInfo(int i) {
         try {
             synchronized (fingers) {
-                Socket socket = fingers[i].createSocket();
+                SocketChannel socket = fingers[i].createSocket();
                 HelloMessage helloMessage = new HelloMessage();
                 helloMessage.sendTo(this, socket);
                 return fingers[i];
@@ -224,7 +225,7 @@ public class Chord {
     public NodeInfo getPredecessorInfo(){
         synchronized(predecessor) {
             try {
-                Socket socket = predecessor.createSocket();
+                SocketChannel socket = predecessor.createSocket();
                 HelloMessage helloMessage = new HelloMessage();
                 helloMessage.sendTo(this, socket);
             } catch (IOException | InterruptedException e) {
@@ -285,7 +286,7 @@ public class Chord {
                 }
                 NodeInfo s = successors.first();
                 try {
-                    Socket socket = s.createSocket();
+                    SocketChannel socket = s.createSocket();
                     HelloMessage helloMessage = new HelloMessage();
                     helloMessage.sendTo(this, socket);
                     return s;

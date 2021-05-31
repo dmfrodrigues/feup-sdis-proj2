@@ -5,7 +5,8 @@ import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Utils.Pair;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class AuthenticationProtocol extends MainProtocolTask<UserMetadata> {
@@ -25,8 +26,8 @@ public class AuthenticationProtocol extends MainProtocolTask<UserMetadata> {
 
         try {
             AuthenticateMessage message = new AuthenticateMessage(username, password);
-            Socket socket = systemStorage.sendAny(message);
-            byte[] response = readAllBytesAndClose(socket);
+            SocketChannel socket = systemStorage.sendAny(message);
+            ByteBuffer response = readAllBytesAndClose(socket);
             Pair<AuthenticateMessage.Status, UserMetadata> reply = message.parseResponse(response);
             switch(reply.first){
                 case SUCCESS:

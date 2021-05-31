@@ -3,10 +3,11 @@ package sdis.Modules.Chord.Messages;
 import sdis.Modules.Chord.Chord;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
+import sdis.Utils.Utils;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class SuccessorMessage extends ChordMessage<Chord.NodeInfo> {
@@ -21,7 +22,7 @@ public class SuccessorMessage extends ChordMessage<Chord.NodeInfo> {
 
         private final SuccessorMessage message;
 
-        public SuccessorProcessor(Chord chord, Socket socket, SuccessorMessage message){
+        public SuccessorProcessor(Chord chord, SocketChannel socket, SuccessorMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -30,8 +31,8 @@ public class SuccessorMessage extends ChordMessage<Chord.NodeInfo> {
         public void compute() {
             try {
                 Chord.NodeInfo successor = getChord().getSuccessorInfo();
-                byte[] response = message.formatResponse(successor);
-                getSocket().getOutputStream().write(response);
+                ByteBuffer response = message.formatResponse(successor);
+                getSocket().write(response);
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -40,17 +41,17 @@ public class SuccessorMessage extends ChordMessage<Chord.NodeInfo> {
     }
 
     @Override
-    public SuccessorProcessor getProcessor(Peer peer, Socket socket) {
+    public SuccessorProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new SuccessorProcessor(peer.getChord(), socket, this);
     }
 
     @Override
-    public byte[] formatResponse(Chord.NodeInfo nodeInfo){
-        return nodeInfo.toString().getBytes();
+    public ByteBuffer formatResponse(Chord.NodeInfo nodeInfo){
+        return ByteBuffer.wrap(nodeInfo.toString().getBytes());
     }
 
     @Override
-    public Chord.NodeInfo parseResponse(Chord chord, byte[] response) {
-        return Chord.NodeInfo.fromString(chord, new String(response));
+    public Chord.NodeInfo parseResponse(Chord chord, ByteBuffer response) {
+        return Chord.NodeInfo.fromString(chord, Utils.fromByteBufferToString(response));
     }
 }

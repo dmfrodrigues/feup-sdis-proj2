@@ -9,7 +9,8 @@ import sdis.Utils.DataBuilder;
 import sdis.Utils.Utils;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class PutMessage extends DataStorageMessage<Boolean> {
@@ -48,7 +49,7 @@ public class PutMessage extends DataStorageMessage<Boolean> {
 
         private final PutMessage message;
 
-        public PutProcessor(Chord chord, DataStorage dataStorage, Socket socket, PutMessage message){
+        public PutProcessor(Chord chord, DataStorage dataStorage, SocketChannel socket, PutMessage message){
             super(chord, dataStorage, socket);
             this.message = message;
         }
@@ -58,7 +59,7 @@ public class PutMessage extends DataStorageMessage<Boolean> {
             PutProtocol putProtocol = new PutProtocol(getChord(), getDataStorage(), message.nodeKey, message.id, message.data);
             Boolean b = putProtocol.invoke();
             try {
-                getSocket().getOutputStream().write(message.formatResponse(b));
+                getSocket().write(message.formatResponse(b));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -67,19 +68,17 @@ public class PutMessage extends DataStorageMessage<Boolean> {
     }
 
     @Override
-    public PutProcessor getProcessor(Peer peer, Socket socket) {
+    public PutProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new PutProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 
     @Override
-    protected byte[] formatResponse(Boolean b) {
-        byte[] ret = new byte[1];
-        ret[0] = (byte) (b ? 1 : 0);
-        return ret;
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
     @Override
-    public Boolean parseResponse(byte[] response) {
-        return (response[0] != 0);
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

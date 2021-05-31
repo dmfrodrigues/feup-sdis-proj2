@@ -7,7 +7,8 @@ import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class EnlistFileMessage extends AccountMessage<Boolean> {
@@ -37,13 +38,13 @@ public class EnlistFileMessage extends AccountMessage<Boolean> {
 
         private final EnlistFileMessage message;
 
-        public EnlistFileProcessor(Main main, Socket socket, EnlistFileMessage message){
+        public EnlistFileProcessor(Main main, SocketChannel socket, EnlistFileMessage message){
             super(main, socket);
             this.message = message;
         }
 
         private void end(boolean b) throws IOException, InterruptedException {
-            getSocket().getOutputStream().write(message.formatResponse(b));
+            getSocket().write(message.formatResponse(b));
             readAllBytesAndClose(getSocket());
         }
 
@@ -78,17 +79,17 @@ public class EnlistFileMessage extends AccountMessage<Boolean> {
     }
 
     @Override
-    public EnlistFileProcessor getProcessor(Peer peer, Socket socket) {
+    public EnlistFileProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new EnlistFileProcessor(peer.getMain(), socket, this);
     }
 
     @Override
-    protected byte[] formatResponse(Boolean b) {
-        return new byte[]{(byte)(b ? 1 : 0)};
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
     @Override
-    public Boolean parseResponse(byte[] response) {
-        return (response != null && response.length >= 1 && response[0] == 1);
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

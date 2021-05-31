@@ -3,17 +3,19 @@ package sdis.Modules.SystemStorage.Messages;
 import sdis.Modules.Message;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;
+import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 public abstract class SystemStorageMessage<T> extends Message {
     public static abstract class Processor extends Message.Processor {
         private final SystemStorage systemStorage;
-        private final Socket socket;
+        private final SocketChannel socket;
 
-        public Processor(SystemStorage systemStorage, Socket socket){
+        public Processor(SystemStorage systemStorage, SocketChannel socket){
             this.systemStorage = systemStorage;
             this.socket = socket;
         }
@@ -22,23 +24,23 @@ public abstract class SystemStorageMessage<T> extends Message {
             return systemStorage;
         }
 
-        public Socket getSocket(){
+        public SocketChannel getSocket(){
             return socket;
         }
     }
 
-    public abstract SystemStorageMessage.Processor getProcessor(Peer peer, Socket socket);
+    public abstract SystemStorageMessage.Processor getProcessor(Peer peer, SocketChannel socket);
 
-    protected abstract byte[] formatResponse(T t);
+    protected abstract ByteBuffer formatResponse(T t);
 
-    protected abstract T parseResponse(byte[] data);
+    protected abstract T parseResponse(ByteBuffer data);
 
     public T sendTo(InetSocketAddress address) throws IOException, InterruptedException {
-        return sendTo(new Socket(address.getAddress(), address.getPort()));
+        return sendTo(Utils.createSocket(address));
     }
 
-    public T sendTo(Socket socket) throws IOException, InterruptedException {
-        socket.getOutputStream().write(this.asByteArray());
+    public T sendTo(SocketChannel socket) throws IOException, InterruptedException {
+        socket.write(this.asByteBuffer());
         return parseResponse(readAllBytesAndClose(socket));
     }
 }

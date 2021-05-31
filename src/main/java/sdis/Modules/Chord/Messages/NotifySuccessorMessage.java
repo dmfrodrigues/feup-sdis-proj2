@@ -6,7 +6,8 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class NotifySuccessorMessage extends ChordMessage<Boolean> {
@@ -39,7 +40,7 @@ public class NotifySuccessorMessage extends ChordMessage<Boolean> {
 
         private final NotifySuccessorMessage message;
 
-        public NotifySuccessorProcessor(Chord chord, Socket socket, NotifySuccessorMessage message){
+        public NotifySuccessorProcessor(Chord chord, SocketChannel socket, NotifySuccessorMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -48,7 +49,7 @@ public class NotifySuccessorMessage extends ChordMessage<Boolean> {
         public void compute() {
             getChord().addSuccessor(message.nodeInfo);
             try {
-                getSocket().getOutputStream().write(message.formatResponse(true));
+                getSocket().write(message.formatResponse(true));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -57,17 +58,17 @@ public class NotifySuccessorMessage extends ChordMessage<Boolean> {
     }
 
     @Override
-    public NotifySuccessorProcessor getProcessor(Peer peer, Socket socket) {
+    public NotifySuccessorProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new NotifySuccessorProcessor(peer.getChord(), socket, this);
     }
 
     @Override
-    public byte[] formatResponse(Boolean b){
-        return new byte[]{(byte) (b ? 1 : 0)};
+    public ByteBuffer formatResponse(Boolean b){
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
     @Override
-    public Boolean parseResponse(Chord chord, byte[] response) {
-        return (response.length == 1 && response[0] == 1);
+    public Boolean parseResponse(Chord chord, ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

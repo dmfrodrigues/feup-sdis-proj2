@@ -6,19 +6,19 @@ import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 
 public class GetRedirectsProtocol extends ProtocolTask<Set<UUID>> {
 
-    private final Socket socket;
+    private final SocketChannel socket;
 
     public GetRedirectsProtocol(Chord chord){
         this(chord.getPredecessor().socket);
     }
 
-    public GetRedirectsProtocol(Socket socket){
+    public GetRedirectsProtocol(SocketChannel socket){
         this.socket = socket;
     }
 
