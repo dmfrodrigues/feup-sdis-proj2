@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main extends ClientSocket {
     public static final int CHUNK_SIZE = 64000;
+    public static final int MAX_HEADER_SIZE = 100;
     public static final int USER_METADATA_REPDEG = 10;
     public static final int FIXES_DELTA_MILLIS = 60000;
 

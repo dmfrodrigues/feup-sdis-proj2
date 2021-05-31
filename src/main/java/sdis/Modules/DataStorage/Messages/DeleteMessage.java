@@ -46,7 +46,6 @@ public class DeleteMessage extends DataStorageMessage<Boolean> {
             Boolean b = deleteProtocol.invoke();
             try {
                 getSocket().write(message.formatResponse(b));
-                getSocket().write(message.formatResponse(b));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);

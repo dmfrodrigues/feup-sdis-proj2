@@ -189,7 +189,7 @@ public class DataStorageTest {
         localDataStorage1.setCapacity(0);
 
         assertTrue(dataStorage1.put(id, data));
-
+        assertTrue(dataStorage1.has(id));
         assertTrue(dataStorage1.delete(id));
 
         assertEquals(0, localDataStorage1.getMemoryUsed());

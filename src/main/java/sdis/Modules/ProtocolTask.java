@@ -55,8 +55,6 @@ public abstract class ProtocolTask<T> extends RecursiveTask<T> {
     }
 
     private static class ReadAllBytesFromSocketTask extends BlockingTask<ByteBuffer> {
-        private static final int MAX_HEADER_SIZE = 100;
-
         private final SocketChannel socket;
 
         public ReadAllBytesFromSocketTask(SocketChannel socket){
@@ -66,7 +64,7 @@ public abstract class ProtocolTask<T> extends RecursiveTask<T> {
         @Override
         protected void run() throws ExecutionException {
             try {
-                ByteBuffer byteBuffer = ByteBuffer.allocate(Main.CHUNK_SIZE + MAX_HEADER_SIZE);
+                ByteBuffer byteBuffer = ByteBuffer.allocate(Main.CHUNK_SIZE + Main.MAX_HEADER_SIZE);
                 socket.read(byteBuffer);
                 set(byteBuffer);
             } catch (IOException e) {
