@@ -1,7 +1,10 @@
 package sdis.Modules;
 
+import sdis.Modules.Main.Main;
+
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,25 +54,26 @@ public abstract class ProtocolTask<T> extends RecursiveTask<T> {
         return reduceTasks(tasks);
     }
 
-    private static class ReadAllBytesFromSocketTask extends BlockingTask<byte[]> {
-        private final Socket socket;
+    private static class ReadAllBytesFromSocketTask extends BlockingTask<ByteBuffer> {
+        private final SocketChannel socket;
 
-        public ReadAllBytesFromSocketTask(Socket socket){
+        public ReadAllBytesFromSocketTask(SocketChannel socket){
             this.socket = socket;
         }
 
         @Override
         protected void run() throws ExecutionException {
             try {
-                byte[] data = socket.getInputStream().readAllBytes();
-                set(data);
+                ByteBuffer byteBuffer = ByteBuffer.allocate(Main.CHUNK_SIZE + Main.MAX_HEADER_SIZE);
+                socket.read(byteBuffer);
+                set(byteBuffer);
             } catch (IOException e) {
                 throw new ExecutionException(e);
             }
         }
     }
 
-    protected static byte[] readAllBytes(Socket socket) throws InterruptedException {
+    protected static ByteBuffer readAllBytes(SocketChannel socket) throws InterruptedException {
         ReadAllBytesFromSocketTask task = new ReadAllBytesFromSocketTask(socket);
         ForkJoinPool.managedBlock(task);
         try {
@@ -79,10 +83,10 @@ public abstract class ProtocolTask<T> extends RecursiveTask<T> {
         }
     }
 
-    protected static byte[] readAllBytesAndClose(Socket socket) throws InterruptedException {
+    protected static ByteBuffer readAllBytesAndClose(SocketChannel socket) throws InterruptedException {
         try {
             socket.shutdownOutput();
-            byte[] response = readAllBytes(socket);
+            ByteBuffer response = readAllBytes(socket);
             socket.close();
             return response;
         } catch (IOException e) {

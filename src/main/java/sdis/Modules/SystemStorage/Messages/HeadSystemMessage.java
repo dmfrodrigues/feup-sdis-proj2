@@ -6,7 +6,8 @@ import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class HeadSystemMessage extends SystemStorageMessage<Boolean> {
@@ -32,7 +33,7 @@ public class HeadSystemMessage extends SystemStorageMessage<Boolean> {
 
         private final HeadSystemMessage message;
 
-        public GetSystemProcessor(SystemStorage systemStorage, Socket socket, HeadSystemMessage message){
+        public GetSystemProcessor(SystemStorage systemStorage, SocketChannel socket, HeadSystemMessage message){
             super(systemStorage, socket);
             this.message = message;
         }
@@ -42,7 +43,7 @@ public class HeadSystemMessage extends SystemStorageMessage<Boolean> {
             boolean success = getSystemStorage().getDataStorage().head(message.id);
 
             try {
-                getSocket().getOutputStream().write(message.formatResponse(success));
+                getSocket().write(message.formatResponse(success));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -51,17 +52,17 @@ public class HeadSystemMessage extends SystemStorageMessage<Boolean> {
     }
 
     @Override
-    public GetSystemProcessor getProcessor(Peer peer, Socket socket) {
+    public GetSystemProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new GetSystemProcessor(peer.getSystemStorage(), socket, this);
     }
 
     @Override
-    protected byte[] formatResponse(Boolean b) {
-        return new byte[]{(byte) (b ? 1 : 0)};
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
     @Override
-    public Boolean parseResponse(byte[] response) {
-        return (response.length == 1 && response[0] == 1);
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

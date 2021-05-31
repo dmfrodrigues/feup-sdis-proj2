@@ -6,7 +6,7 @@ import sdis.Modules.Message;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.channels.SocketChannel;
 
 public class SystemStorage {
     private final Chord chord;
@@ -39,10 +39,9 @@ public class SystemStorage {
     }
      */
 
-    public Socket sendAny(Message m) throws IOException {
+    public SocketChannel sendAny(Message m) throws IOException {
         Chord.NodeConn to = chord.getSuccessor();
-        to.socket.getOutputStream().write(m.asByteArray());
-        to.socket.getOutputStream().flush();
+        to.socket.write(m.asByteBuffer());
         return to.socket;
     }
 

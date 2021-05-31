@@ -1,6 +1,10 @@
 package sdis.Utils;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 public class Utils {
 
@@ -76,5 +80,15 @@ public class Utils {
         }
         ret &= directoryToBeDeleted.delete();
         return ret;
+    }
+
+    public static SocketChannel createSocket(InetSocketAddress address) throws IOException {
+        SocketChannel socket = SocketChannel.open();
+        socket.connect(address);
+        return socket;
+    }
+
+    public static String fromByteBufferToString(ByteBuffer byteBuffer) {
+        return new String(byteBuffer.array(), 0, byteBuffer.position());
     }
 }

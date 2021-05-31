@@ -6,7 +6,8 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class FingerAddMessage extends ChordMessage<Boolean> {
@@ -41,7 +42,7 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
     private static class FingerAddProcessor extends ChordMessage.Processor {
         final FingerAddMessage message;
 
-        public FingerAddProcessor(Chord chord, Socket socket, FingerAddMessage message){
+        public FingerAddProcessor(Chord chord, SocketChannel socket, FingerAddMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -90,17 +91,17 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
     }
 
     @Override
-    public FingerAddProcessor getProcessor(Peer peer, Socket socket) {
+    public FingerAddProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new FingerAddProcessor(peer.getChord(), socket, this);
     }
 
     @Override
-    protected byte[] formatResponse(Boolean b) {
-        return new byte[]{(byte) (b ? 1 : 0)};
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
     @Override
-    protected Boolean parseResponse(Chord chord, byte[] data) {
-        return (data.length == 1 && data[0] == 1);
+    protected Boolean parseResponse(Chord chord, ByteBuffer data) {
+        return (data.position() == 1 && data.array()[0] == 1);
     }
 }

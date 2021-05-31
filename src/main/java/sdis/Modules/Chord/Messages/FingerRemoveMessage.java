@@ -6,7 +6,8 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class FingerRemoveMessage extends ChordMessage<Void> {
@@ -39,7 +40,7 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
     private static class FingerRemoveProcessor extends Processor {
         final FingerRemoveMessage message;
 
-        public FingerRemoveProcessor(Chord chord, Socket socket, FingerRemoveMessage message){
+        public FingerRemoveProcessor(Chord chord, SocketChannel socket, FingerRemoveMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -89,17 +90,17 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
     }
 
     @Override
-    public FingerRemoveProcessor getProcessor(Peer peer, Socket socket) {
+    public FingerRemoveProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new FingerRemoveProcessor(peer.getChord(), socket, this);
     }
 
     @Override
-    protected byte[] formatResponse(Void unused) {
-        return null;
+    protected ByteBuffer formatResponse(Void unused) {
+        return ByteBuffer.allocate(0);
     }
 
     @Override
-    protected Void parseResponse(Chord chord, byte[] data) {
+    protected Void parseResponse(Chord chord, ByteBuffer data) {
         return null;
     }
 }

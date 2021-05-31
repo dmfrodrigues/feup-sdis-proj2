@@ -4,18 +4,20 @@ import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.Message;
 import sdis.Peer;
+import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 public abstract class DataStorageMessage<T> extends Message {
     public static abstract class Processor extends Message.Processor {
         private final Chord chord;
         private final DataStorage dataStorage;
-        private final Socket socket;
+        private final SocketChannel socket;
 
-        public Processor(Chord chord, DataStorage dataStorage, Socket socket){
+        public Processor(Chord chord, DataStorage dataStorage, SocketChannel socket){
             this.chord = chord;
             this.dataStorage = dataStorage;
             this.socket = socket;
@@ -29,23 +31,23 @@ public abstract class DataStorageMessage<T> extends Message {
             return dataStorage;
         }
 
-        public Socket getSocket(){
+        public SocketChannel getSocket(){
             return socket;
         }
     }
 
-    public abstract DataStorageMessage.Processor getProcessor(Peer peer, Socket socket);
+    public abstract DataStorageMessage.Processor getProcessor(Peer peer, SocketChannel socket);
 
-    protected abstract byte[] formatResponse(T t);
+    protected abstract ByteBuffer formatResponse(T t);
 
-    protected abstract T parseResponse(byte[] data);
+    protected abstract T parseResponse(ByteBuffer data);
 
     public T sendTo(InetSocketAddress address) throws IOException, InterruptedException {
-        return sendTo(new Socket(address.getAddress(), address.getPort()));
+        return sendTo(Utils.createSocket(address));
     }
 
-    public T sendTo(Socket socket) throws IOException, InterruptedException {
-        socket.getOutputStream().write(this.asByteArray());
+    public T sendTo(SocketChannel socket) throws IOException, InterruptedException {
+        socket.write(this.asByteBuffer());
         return parseResponse(readAllBytesAndClose(socket));
     }
 }

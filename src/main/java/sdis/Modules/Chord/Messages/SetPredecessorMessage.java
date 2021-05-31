@@ -5,7 +5,8 @@ import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class SetPredecessorMessage extends ChordMessage<Boolean> {
@@ -38,7 +39,7 @@ public class SetPredecessorMessage extends ChordMessage<Boolean> {
 
         private final SetPredecessorMessage message;
 
-        public SetPredecessorProcessor(Chord chord, Socket socket, SetPredecessorMessage message){
+        public SetPredecessorProcessor(Chord chord, SocketChannel socket, SetPredecessorMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -55,17 +56,17 @@ public class SetPredecessorMessage extends ChordMessage<Boolean> {
     }
 
     @Override
-    public SetPredecessorProcessor getProcessor(Peer peer, Socket socket) {
+    public SetPredecessorProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new SetPredecessorProcessor(peer.getChord(), socket, this);
     }
 
     @Override
-    protected byte[] formatResponse(Boolean b) {
-        return new byte[]{(byte) (b ? 1 : 0)};
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
     @Override
-    protected Boolean parseResponse(Chord chord, byte[] data) {
-        return (data.length == 1 && data[0] == 1);
+    protected Boolean parseResponse(Chord chord, ByteBuffer data) {
+        return (data.position() == 1 && data.array()[0] == 1);
     }
 }

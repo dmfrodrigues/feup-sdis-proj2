@@ -8,7 +8,8 @@ import sdis.UUID;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class HeadMessage extends DataStorageMessage<Boolean> {
@@ -34,7 +35,7 @@ public class HeadMessage extends DataStorageMessage<Boolean> {
 
         private final HeadMessage message;
 
-        public HeadProcessor(Chord chord, DataStorage dataStorage, Socket socket, HeadMessage message){
+        public HeadProcessor(Chord chord, DataStorage dataStorage, SocketChannel socket, HeadMessage message){
             super(chord, dataStorage, socket);
             this.message = message;
         }
@@ -44,7 +45,7 @@ public class HeadMessage extends DataStorageMessage<Boolean> {
             HeadProtocol getProtocol = new HeadProtocol(getChord(), getDataStorage(), message.id);
             boolean success = getProtocol.invoke();
             try {
-                getSocket().getOutputStream().write(message.formatResponse(success));
+                getSocket().write(message.formatResponse(success));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -53,17 +54,17 @@ public class HeadMessage extends DataStorageMessage<Boolean> {
     }
 
     @Override
-    public HeadProcessor getProcessor(Peer peer, Socket socket) {
+    public HeadProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new HeadProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 
     @Override
-    protected byte[] formatResponse(Boolean b) {
-        return new byte[]{(byte) (b ? 1 : 0)};
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
     @Override
-    public Boolean parseResponse(byte[] response) {
-        return (response.length == 1 && response[0] == 1);
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

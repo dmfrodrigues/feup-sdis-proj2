@@ -19,6 +19,10 @@ import sdis.Utils.Utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
@@ -31,9 +35,12 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static sdis.Modules.Main.Main.CHUNK_SIZE;
+import static sdis.Modules.Main.Main.MAX_HEADER_SIZE;
+
 public class Peer implements PeerInterface {
 
-    private final ServerSocket serverSocket;
+    private final ServerSocketChannel serverSocket;
     private final Chord.Key id;
     private final Path baseStoragePath;
     private final InetSocketAddress socketAddress;
@@ -48,10 +55,10 @@ public class Peer implements PeerInterface {
     }
 
     public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException {
-        serverSocket = new ServerSocket();
-        serverSocket.setReuseAddress(true);
-        serverSocket.bind(null);
-        socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
+        serverSocket = ServerSocketChannel.open();
+        serverSocket.configureBlocking(true);
+        serverSocket.socket().bind(null);
+        socketAddress = new InetSocketAddress(ipAddress, serverSocket.socket().getLocalPort());
 
         System.out.println(
             "Starting peer " + id +
@@ -272,11 +279,11 @@ public class Peer implements PeerInterface {
     public static class ServerSocketHandler implements Runnable {
         private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(20);
         private final Peer peer;
-        private final ServerSocket serverSocket;
+        private final ServerSocketChannel serverSocket;
 
         private final MessageFactory messageFactory;
 
-        public ServerSocketHandler(Peer peer, ServerSocket serverSocket) {
+        public ServerSocketHandler(Peer peer, ServerSocketChannel serverSocket) {
             this.peer = peer;
             this.serverSocket = serverSocket;
 
@@ -287,14 +294,16 @@ public class Peer implements PeerInterface {
         public void run() {
             while (true) {
                 try {
-                    Socket socket = serverSocket.accept();
-                    InputStream is = socket.getInputStream();
-                    byte[] data = is.readAllBytes();
+                    SocketChannel socket = serverSocket.accept();
+                    ByteBuffer buffer = ByteBuffer.allocate(CHUNK_SIZE + MAX_HEADER_SIZE);
+                    int size = socket.read(buffer);
+                    byte[] data = new byte[size];
+                    System.arraycopy(buffer.array(), 0, data, 0, size);
                     Message message = messageFactory.factoryMethod(data);
                     Message.Processor processor = message.getProcessor(peer, socket);
                     executor.execute(processor::invoke);
-                } catch(SocketException e) {
-                    System.out.println("Peer " + peer.id + ": Socket exception, exiting server socket handler");
+                } catch(AsynchronousCloseException e) {
+                    System.out.println("Peer " + peer.id + ": Asynchronous close exception, exiting server socket handler");
                     return;
                 } catch (Exception e) {
                     System.err.println("Peer " + peer.id + ": Exception in ServerSocketHandler cycle");
