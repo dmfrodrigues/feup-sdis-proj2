@@ -102,10 +102,8 @@ public class Peer implements PeerInterface {
 
         System.out.println(
             "Starting peer " + id +
-            " with address " + socketAddress
+            " with address " + socketAddress + ":" + sslEngine.getPeerPort()
         );
-
-        System.out.println(sslEngine.getPeerPort());
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
         chord = new Chord(socketAddress, keySize, id);
