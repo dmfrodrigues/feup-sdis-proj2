@@ -33,6 +33,8 @@ We also implemented periodic consistency checking procedures, which are schedule
 
 #### Chord consistency
 
+We run the chord consistency checks every $\SI{10}{\second}$.
+
 ##### Assuring successor correctness
 
 No mather what, each node must aggressively maintain an ordered list of $N$ successors, in case a few of those successors fail without notice. The ClosestPrecedingFinger algorithm tries to return the largest finger that precedes key $k$, but if it fails to find that finger it must go on to lower-index fingers until it reaches finger 0; if even so the finger corresponds to a node that does not exist, the algorithm must go on to explore the ordered list of $N$ successors and pick the first valid successor, so it can keep making progress. Thus, if we assure the successors list is somewhat correct we can also assume that FindPredecessor and FindSuccessor are working correctly.
@@ -46,3 +48,7 @@ Since we already assured FindSuccessor to be working, we can also recalculate ou
 ##### Assuring predecessor correctness
 
 Predecessor correctness can be trivially assured by calling the FindPredecessor protocol for the current node.
+
+#### Data consistency
+
+We run the data consistency checks every $\SI{1}{\minute}$.
