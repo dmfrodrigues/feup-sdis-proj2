@@ -1,13 +1,8 @@
 package sdis.Modules.DataStorage;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.DataStorage.Messages.DataStorageMessage;
 import sdis.UUID;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
@@ -54,6 +49,11 @@ public class DataStorage extends DataStorageAbstract {
                 return success;
     }
 
+    public boolean head(UUID id) {
+        if(!has(id)) return false;
+        return new HeadProtocol(chord, this, id).invoke();
+    }
+
     @Override
     public byte[] get(UUID id) {
         if(!has(id)) return null;
@@ -83,17 +83,21 @@ public class DataStorage extends DataStorageAbstract {
         return storedBySuccessor.contains(id);
     }
 
-    public Socket send(Socket socket, DataStorageMessage m) throws IOException {
+    /*
+    public Socket send(Socket socket, DataStorageMessage<?> m) throws IOException {
         OutputStream os = socket.getOutputStream();
         os.write(m.asByteArray());
         os.flush();
         return socket;
     }
+     */
 
-    public Socket send(InetSocketAddress to, DataStorageMessage m) throws IOException {
+    /*
+    public Socket send(InetSocketAddress to, DataStorageMessage<?> m) throws IOException {
         Socket socket = new Socket(to.getAddress(), to.getPort());
         return send(socket, m);
     }
+     */
 
     public Set<UUID> getRedirects() {
         return storedBySuccessor;

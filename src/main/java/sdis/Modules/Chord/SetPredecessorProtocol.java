@@ -4,7 +4,6 @@ import sdis.Modules.Chord.Messages.SetPredecessorMessage;
 import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
-import java.net.Socket;
 
 public class SetPredecessorProtocol extends ProtocolTask<Boolean> {
 
@@ -18,12 +17,13 @@ public class SetPredecessorProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeInfo s = chord.getSuccessor();
+        Chord.NodeConn s = chord.getSuccessor();
         try {
             SetPredecessorMessage setPredecessorMessage = new SetPredecessorMessage(nodeInfo);
-            setPredecessorMessage.sendTo(chord, s.address);
+            setPredecessorMessage.sendTo(chord, s.socket);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
             return false;
         }
         return true;

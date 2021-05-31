@@ -3,8 +3,8 @@ package sdis.Modules.Main;
 import sdis.Storage.ChunkOutput;
 
 public class RestoreUserFileProtocol extends RestoreFileProtocol {
-    public RestoreUserFileProtocol(Main main, Username username, ChunkOutput destination, int maxNumberFutures){
-        super(main, username.asFile(), destination, maxNumberFutures);
+    public RestoreUserFileProtocol(Main main, Username username, ChunkOutput destination){
+        super(main, username.asFile(), destination);
     }
 
     @Override

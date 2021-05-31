@@ -2,19 +2,13 @@ package sdis;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.Chord.Messages.*;
-import sdis.Modules.DataStorage.Messages.DeleteMessage;
-import sdis.Modules.DataStorage.Messages.GetMessage;
-import sdis.Modules.DataStorage.Messages.GetRedirectsMessage;
-import sdis.Modules.DataStorage.Messages.PutMessage;
+import sdis.Modules.DataStorage.Messages.*;
 import sdis.Modules.Main.Messages.AuthenticateMessage;
 import sdis.Modules.Main.Messages.DeleteAccountMessage;
 import sdis.Modules.Main.Messages.DelistFileMessage;
 import sdis.Modules.Main.Messages.EnlistFileMessage;
 import sdis.Modules.Message;
-import sdis.Modules.SystemStorage.Messages.DeleteSystemMessage;
-import sdis.Modules.SystemStorage.Messages.GetSystemMessage;
-import sdis.Modules.SystemStorage.Messages.MoveKeysMessage;
-import sdis.Modules.SystemStorage.Messages.PutSystemMessage;
+import sdis.Modules.SystemStorage.Messages.*;
 import sdis.Utils.Utils;
 
 public class MessageFactory {
@@ -42,16 +36,20 @@ public class MessageFactory {
             case "SETPREDECESSOR": return new SetPredecessorMessage        (chord, b);
             case "SUCCESSOR"     : return new SuccessorMessage             ();
             case "PREDECESSOR"   : return new PredecessorMessage           ();
+            case "NTFYSUCCESSOR" : return new NotifySuccessorMessage       (chord, b);
+            case "UNTFYSUCCESSOR": return new UnnotifySuccessorMessage     (chord, b);
 
-            case "DELETE"      : return new DeleteMessage      (b);
-            case "GET"         : return new GetMessage         (b);
             case "PUT"         : return new PutMessage         (chord, b);
+            case "HEAD"        : return new HeadMessage        (b);
+            case "GET"         : return new GetMessage         (b);
+            case "DELETE"      : return new DeleteMessage      (b);
             case "GETREDIRECTS": return new GetRedirectsMessage();
 
-            case "MOVEKEYS"    : return new MoveKeysMessage    (chord, b);
             case "PUTSYSTEM"   : return new PutSystemMessage   (b);
+            case "HEADSYSTEM"  : return new HeadSystemMessage  (b);
             case "GETSYSTEM"   : return new GetSystemMessage   (b);
             case "DELETESYSTEM": return new DeleteSystemMessage(b);
+            case "MOVEKEYS"    : return new MoveKeysMessage    (chord, b);
 
             case "AUTHENTICATE" : return new AuthenticateMessage (b);
             case "ENLISTFILE"   : return new EnlistFileMessage   (b);

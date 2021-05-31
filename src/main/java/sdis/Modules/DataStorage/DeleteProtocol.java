@@ -6,7 +6,6 @@ import sdis.Modules.ProtocolTask;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class DeleteProtocol extends ProtocolTask<Boolean> {
@@ -23,7 +22,6 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStored = localDataStorage.has(id);
@@ -42,15 +40,18 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
         }
         // We may now assume the datapiece is not locally stored
 
+        Chord.NodeConn s = chord.getSuccessor();
+
         // If r has a pointer to its successor reporting that it might have stored
         try {
             DeleteMessage m = new DeleteMessage(id);
-            boolean response = m.sendTo(s.address);
+            boolean response = m.sendTo(s.socket);
             if(response){
                 dataStorage.unregisterSuccessorStored(id);
             }
             return response;
         } catch (IOException | InterruptedException e) {
+            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
             throw new CompletionException(e);
         }
     }

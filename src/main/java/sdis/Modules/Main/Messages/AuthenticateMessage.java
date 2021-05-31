@@ -82,7 +82,7 @@ public class AuthenticateMessage extends MainMessage<Pair<AuthenticateMessage.St
             DataBuilder builder = new DataBuilder();
 
             ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 1);
-            RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), message.username, chunkOutput, 10);
+            RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), message.username, chunkOutput);
             boolean b = restoreUserFileProtocol.invoke();
 
             if(!b) {

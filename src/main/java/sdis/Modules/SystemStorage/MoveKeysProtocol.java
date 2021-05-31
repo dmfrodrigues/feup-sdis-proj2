@@ -5,7 +5,6 @@ import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.Messages.MoveKeysMessage;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class MoveKeysProtocol extends ProtocolTask<Boolean> {
@@ -19,13 +18,14 @@ public class MoveKeysProtocol extends ProtocolTask<Boolean> {
     @Override
     public Boolean compute() {
         Chord chord = systemStorage.getChord();
-        Chord.NodeInfo r = chord.getNodeInfo();
+        Chord.NodeInfo n = chord.getNodeInfo();
 
-        Chord.NodeInfo s = chord.getSuccessor();
+        Chord.NodeConn s = chord.getSuccessor();
         try{
-            MoveKeysMessage moveKeysMessage = new MoveKeysMessage(r);
-            return moveKeysMessage.sendTo(s.address);
+            MoveKeysMessage moveKeysMessage = new MoveKeysMessage(n);
+            return moveKeysMessage.sendTo(s.socket);
         } catch (IOException | InterruptedException e) {
+            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
             throw new CompletionException(e);
         }
     }

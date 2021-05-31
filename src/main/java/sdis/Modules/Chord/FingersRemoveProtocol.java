@@ -20,14 +20,14 @@ public class FingersRemoveProtocol extends ProtocolTask<Boolean> {
     public Boolean compute() {
         List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
         for(int i = 0; i < chord.getKeySize(); ++i){
-            Chord.Key k = chord.getKey().subtract(1L << i).add(1);
+            Chord.Key k = chord.getNodeInfo().key.subtract(1L << i).add(1);
             int finalI = i;
             ProtocolTask<Boolean> task = new ProtocolTask<>() {
                 @Override
                 protected Boolean compute() {
                     Chord.NodeInfo predecessor = chord.findPredecessor(k);
                     try {
-                        FingerRemoveMessage m = new FingerRemoveMessage(chord.getNodeInfo(), chord.getSuccessor(), finalI);
+                        FingerRemoveMessage m = new FingerRemoveMessage(chord.getNodeInfo(), chord.getSuccessorInfo(), finalI);
                         m.sendTo(chord, predecessor.address);
                         return true;
                     } catch (IOException | InterruptedException e) {

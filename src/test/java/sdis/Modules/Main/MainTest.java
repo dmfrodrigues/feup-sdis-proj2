@@ -34,7 +34,7 @@ public class MainTest {
 
         DataBuilder dataBuilder = new DataBuilder();
         ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
-        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(main, file, chunkOutput, 10);
+        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(main, file, chunkOutput);
         assertTrue(restoreFileProtocol.invoke());
 
         assertArrayEquals(data, dataBuilder.get());
@@ -63,7 +63,7 @@ public class MainTest {
 
         DataBuilder dataBuilder = new DataBuilder();
         ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
-        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput, 10);
+        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput);
         assertTrue(restoreFileProtocol.invoke());
 
         assertArrayEquals(data, dataBuilder.get());
@@ -106,7 +106,7 @@ public class MainTest {
         peer.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=2000)
     public void authenticate_10peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -219,7 +219,7 @@ public class MainTest {
 
         DataBuilder dataBuilder = new DataBuilder();
         ChunkOutput chunkOutput = new DataBuilderChunkOutput(dataBuilder, 10);
-        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput, 10);
+        RestoreFileProtocol restoreFileProtocol = new RestoreFileProtocol(peers[0].getMain(), file, chunkOutput);
         assertTrue(restoreFileProtocol.invoke());
 
         assertArrayEquals(data, dataBuilder.get());
@@ -335,7 +335,7 @@ public class MainTest {
         peer2.leave();
     }
 
-    @Test(timeout=2000)
+    @Test(timeout=3000)
     public void backup_manyFiles_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -377,7 +377,7 @@ public class MainTest {
         for(Peer p: peers) p.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=3000)
     public void delete_manyFiles_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -402,8 +402,6 @@ public class MainTest {
 
         int[] toDelete = {8, 3, 0, 9, 6, 1, 5, 7, 2, 4};
         for(int i = 0; i < ids.length; ++i){
-            System.out.println("i=" + i);
-
             int j = toDelete[i];
 
             Username username = new Username("user" + j);
@@ -434,7 +432,7 @@ public class MainTest {
         assertNotNull(peer.authenticate(username, password));
         assertTrue(peer.deleteAccount(username, password));
 
-        peer.leave();
+        assertTrue(peer.leave());
     }
 
     @Test(timeout=1000)

@@ -5,7 +5,6 @@ import sdis.Modules.Main.Messages.DeleteAccountMessage;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
 
 public class DeleteAccountProtocol extends MainProtocolTask<Boolean> {
 

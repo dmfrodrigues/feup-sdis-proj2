@@ -72,7 +72,7 @@ public class LocalDataStorage extends DataStorageAbstract {
     }
 
     public boolean canPut(int length){
-        return (getMemoryUsed() + length <= getCapacity());
+        return (getMemoryUsed() + length <= capacity);
     }
 
     @Override
@@ -156,9 +156,5 @@ public class LocalDataStorage extends DataStorageAbstract {
     public long getSize(UUID id) {
         File file = new File(storagePath + "/" + id);
         return file.length();
-    }
-
-    public Path getStoragePath() {
-        return storagePath;
     }
 }

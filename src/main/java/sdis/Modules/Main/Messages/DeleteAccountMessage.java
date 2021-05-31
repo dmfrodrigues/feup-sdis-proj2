@@ -7,13 +7,11 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.RecursiveTask;
+import java.util.stream.Collectors;
 
 public class DeleteAccountMessage extends AccountMessage<Boolean> {
     private final Username username;
@@ -47,31 +45,22 @@ public class DeleteAccountMessage extends AccountMessage<Boolean> {
 
         @Override
         public void compute() {
-            boolean success = true;
+            boolean success;
             try {
                 // Get user file
                 UserMetadata userMetadata = Objects.requireNonNull(getUserMetadata(getMain(), message.username));
 
                 // Delete all files
                 Set<Main.Path> paths = userMetadata.getFiles();
-                List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
-                for (Main.Path p : paths) {
+                List<ProtocolTask<Boolean>> tasks = paths.stream().map((Main.Path p) -> {
                     Main.File f = userMetadata.getFile(p);
-                    tasks.add(new DeleteFileProtocol(getMain(), f));
-                }
+                    return new DeleteFileProtocol(getMain(), f);
+                }).collect(Collectors.toList());
 
-                invokeAll(tasks);
-                for (RecursiveTask<Boolean> task : tasks) {
-                    try {
-                        success &= task.get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                        success = false;
-                    }
-                }
+                success = ProtocolTask.invokeAndReduceTasks(tasks);
 
                 // Delete user metadata
-                getMain().deleteFile(userMetadata.asFile());
+                success &= getMain().deleteFile(userMetadata.asFile(), false);
 
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();

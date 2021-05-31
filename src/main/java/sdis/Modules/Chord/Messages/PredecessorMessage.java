@@ -28,7 +28,7 @@ public class PredecessorMessage extends ChordMessage<Chord.NodeInfo> {
         @Override
         public void compute() {
             try {
-                byte[] response = message.formatResponse(getChord().getPredecessor());
+                byte[] response = message.formatResponse(getChord().getPredecessorInfo());
                 getSocket().getOutputStream().write(response);
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
@@ -49,11 +49,6 @@ public class PredecessorMessage extends ChordMessage<Chord.NodeInfo> {
 
     @Override
     public Chord.NodeInfo parseResponse(Chord chord, byte[] response) {
-        String dataString = new String(response);
-        String[] splitString = dataString.split(" ");
-        Chord.Key key = chord.newKey(Long.parseLong(splitString[0]));
-        String[] splitAddress = splitString[1].split(":");
-        InetSocketAddress address = new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1]));
-        return new Chord.NodeInfo(key, address);
+        return Chord.NodeInfo.fromString(chord, new String(response));
     }
 }

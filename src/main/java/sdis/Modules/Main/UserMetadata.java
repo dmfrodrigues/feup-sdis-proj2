@@ -25,9 +25,8 @@ public class UserMetadata implements Serializable {
         return password;
     }
 
-    public Main.File addFile(Main.File file){
+    public void addFile(Main.File file){
         files.put(file.getPath(), file);
-        return file;
     }
 
     public Set<Main.Path> getFiles(){
