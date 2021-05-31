@@ -9,6 +9,7 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class DeleteMessage extends DataStorageMessage {
@@ -38,7 +39,7 @@ public class DeleteMessage extends DataStorageMessage {
 
         private final DeleteMessage message;
 
-        public DeleteProcessor(Chord chord, DataStorage dataStorage, Socket socket, DeleteMessage message){
+        public DeleteProcessor(Chord chord, DataStorage dataStorage, SocketChannel socket, DeleteMessage message){
             super(chord, dataStorage, socket);
             this.message = message;
         }
@@ -48,6 +49,7 @@ public class DeleteMessage extends DataStorageMessage {
             DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.getId());
             Boolean b = deleteProtocol.invoke();
             try {
+                getSocket().write(message.formatResponse(b));
                 getSocket().getOutputStream().write(message.formatResponse(b));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
@@ -57,7 +59,7 @@ public class DeleteMessage extends DataStorageMessage {
     }
 
     @Override
-    public DeleteProcessor getProcessor(Peer peer, Socket socket) {
+    public DeleteProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new DeleteProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 

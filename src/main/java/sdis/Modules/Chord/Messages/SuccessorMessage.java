@@ -7,6 +7,7 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class SuccessorMessage extends ChordMessage<Chord.NodeInfo> {
@@ -39,7 +40,7 @@ public class SuccessorMessage extends ChordMessage<Chord.NodeInfo> {
     }
 
     @Override
-    public SuccessorProcessor getProcessor(Peer peer, Socket socket) {
+    public SuccessorProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new SuccessorProcessor(peer.getChord(), socket, this);
     }
 

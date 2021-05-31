@@ -7,6 +7,7 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class GetSystemMessage extends SystemStorageMessage {
@@ -55,7 +56,7 @@ public class GetSystemMessage extends SystemStorageMessage {
     }
 
     @Override
-    public GetSystemProcessor getProcessor(Peer peer, Socket socket) {
+    public GetSystemProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new GetSystemProcessor(peer.getSystemStorage(), socket, this);
     }
 

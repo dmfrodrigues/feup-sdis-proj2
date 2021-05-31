@@ -10,6 +10,7 @@ import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class PutMessage extends DataStorageMessage {
@@ -79,7 +80,7 @@ public class PutMessage extends DataStorageMessage {
     }
 
     @Override
-    public PutProcessor getProcessor(Peer peer, Socket socket) {
+    public PutProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new PutProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 

@@ -6,6 +6,7 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class DelistFileMessage extends AccountMessage {
@@ -71,7 +72,7 @@ public class DelistFileMessage extends AccountMessage {
     }
 
     @Override
-    public DelistFileProcessor getProcessor(Peer peer, Socket socket) {
+    public DelistFileProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new DelistFileProcessor(peer.getMain(), socket, this);
     }
 

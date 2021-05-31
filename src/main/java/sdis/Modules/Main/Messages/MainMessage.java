@@ -5,6 +5,7 @@ import sdis.Modules.Message;
 import sdis.Peer;
 
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 
 public abstract class MainMessage extends Message {
     public static abstract class Processor extends Message.Processor {
@@ -25,5 +26,5 @@ public abstract class MainMessage extends Message {
         }
     }
 
-    public abstract MainMessage.Processor getProcessor(Peer peer, Socket socket);
+    public abstract MainMessage.Processor getProcessor(Peer peer, SocketChannel socket);
 }

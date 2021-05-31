@@ -12,6 +12,7 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -97,7 +98,7 @@ public class MoveKeysMessage extends SystemStorageMessage {
     }
 
     @Override
-    public MoveKeysProcessor getProcessor(Peer peer, Socket socket) {
+    public MoveKeysProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new MoveKeysProcessor(peer.getSystemStorage(), socket, this);
     }
 

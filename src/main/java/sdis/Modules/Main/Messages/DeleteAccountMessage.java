@@ -3,12 +3,11 @@ package sdis.Modules.Main.Messages;
 import sdis.Modules.Main.*;
 import sdis.Modules.ProtocolTask;
 import sdis.Peer;
-import sdis.Storage.ChunkOutput;
-import sdis.Storage.DataBuilderChunkOutput;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -90,7 +89,7 @@ public class DeleteAccountMessage extends AccountMessage {
     }
 
     @Override
-    public DeleteAccountProcessor getProcessor(Peer peer, Socket socket) {
+    public DeleteAccountProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new DeleteAccountProcessor(peer.getMain(), socket, this);
     }
 

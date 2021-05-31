@@ -9,6 +9,7 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
@@ -46,7 +47,7 @@ public class GetRedirectsMessage extends DataStorageMessage {
     }
 
     @Override
-    public GetRedirectsProcessor getProcessor(Peer peer, Socket socket) {
+    public GetRedirectsProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new GetRedirectsProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 

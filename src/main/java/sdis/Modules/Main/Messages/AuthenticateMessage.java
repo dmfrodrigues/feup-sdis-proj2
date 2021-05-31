@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class AuthenticateMessage extends MainMessage {
@@ -114,7 +115,7 @@ public class AuthenticateMessage extends MainMessage {
     }
 
     @Override
-    public AuthenticateProcessor getProcessor(Peer peer, Socket socket) {
+    public AuthenticateProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new AuthenticateProcessor(peer.getMain(), socket, this);
     }
 

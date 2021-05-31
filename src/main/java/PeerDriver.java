@@ -5,6 +5,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.rmi.AlreadyBoundException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
 public class PeerDriver {
     public static void main(String[] args) throws IOException, AlreadyBoundException {
@@ -16,7 +21,13 @@ public class PeerDriver {
 
         long key = Long.parseLong(args[0]);
         InetAddress ipAddress = InetAddress.getByName(args[2]);
-        Peer peer = new Peer(62, key, ipAddress);
+        Peer peer = null;
+        try {
+            peer = new Peer(62, key, ipAddress);
+        } catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
+            e.printStackTrace();
+            return;
+        }
 
         String serviceAccessPoint = args[1];
         peer.bindAsRemoteObject(serviceAccessPoint);

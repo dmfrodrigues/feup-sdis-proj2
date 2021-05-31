@@ -6,6 +6,7 @@ import sdis.Utils.DataBuilder;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class SetPredecessorMessage extends ChordMessage<Boolean> {
@@ -59,7 +60,7 @@ public class SetPredecessorMessage extends ChordMessage<Boolean> {
     }
 
     @Override
-    public UpdatePredecessorProcessor getProcessor(Peer peer, Socket socket) {
+    public UpdatePredecessorProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new UpdatePredecessorProcessor(peer.getChord(), socket, this);
     }
 

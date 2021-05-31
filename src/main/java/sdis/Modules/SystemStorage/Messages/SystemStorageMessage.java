@@ -5,6 +5,7 @@ import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Peer;
 
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 
 public abstract class SystemStorageMessage extends Message {
     public static abstract class Processor extends Message.Processor {
@@ -25,5 +26,5 @@ public abstract class SystemStorageMessage extends Message {
         }
     }
 
-    public abstract SystemStorageMessage.Processor getProcessor(Peer peer, Socket socket);
+    public abstract SystemStorageMessage.Processor getProcessor(Peer peer, SocketChannel socket);
 }

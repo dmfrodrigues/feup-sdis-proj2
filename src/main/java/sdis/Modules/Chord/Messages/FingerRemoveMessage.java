@@ -7,6 +7,7 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class FingerRemoveMessage extends ChordMessage<Void> {
@@ -88,7 +89,7 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
     }
 
     @Override
-    public FingerRemoveProcessor getProcessor(Peer peer, Socket socket) {
+    public FingerRemoveProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new FingerRemoveProcessor(peer.getChord(), socket, this);
     }
 

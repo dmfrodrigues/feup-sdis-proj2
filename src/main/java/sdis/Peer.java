@@ -15,9 +15,15 @@ import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.Utils.Utils;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.nio.channels.spi.SelectorProvider;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
@@ -26,13 +32,20 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.cert.CertificateException;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import javax.net.ssl.*;
+import java.security.*;
+
 public class Peer implements PeerInterface {
 
-    private final ServerSocket serverSocket;
+    private final SSLEngine sslEngine;
+    private final ServerSocketChannel serverSocket;
+
     private final Chord.Key id;
     private final Path baseStoragePath;
     private final InetSocketAddress socketAddress;
@@ -42,19 +55,54 @@ public class Peer implements PeerInterface {
     private final Main main;
     private final Thread serverSocketHandlerThread;
 
-    public Peer(int keySize, long id, InetAddress ipAddress) throws IOException {
+    public Peer(int keySize, long id, InetAddress ipAddress) throws IOException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         this(keySize, id, ipAddress, Paths.get("."));
     }
 
-    public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException {
-        serverSocket = new ServerSocket();
-        serverSocket.bind(null);
-        socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
+    public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+        SSLContext sslContext;
+
+        // Create and initialize the SSLContext with key material
+        char[] passphrase = "123456".toCharArray();
+
+        // First initialize the key and trust material
+        KeyStore ksKeys = KeyStore.getInstance("JKS");
+        ksKeys.load(new FileInputStream("keys/server"), passphrase);
+        KeyStore ksTrust = KeyStore.getInstance("JKS");
+        ksTrust.load(new FileInputStream("keys/truststore"), passphrase);
+
+        // KeyManagers decide which key material to use
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+        kmf.init(ksKeys, passphrase);
+
+        // TrustManagers decide whether to allow connections
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+        tmf.init(ksTrust);
+
+        sslContext = SSLContext.getInstance("TLSv1.2");
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+
+        sslEngine = sslContext.createSSLEngine(ipAddress.getHostName(), 8080);
+        sslEngine.setUseClientMode(false);
+        socketAddress = new InetSocketAddress(ipAddress, sslEngine.getPeerPort());
+
+        // Create Session
+
+        // Moves the SSLEngine into the initial handshaking state
+        sslEngine.beginHandshake();
+
+        serverSocket = ServerSocketChannel.open();
+        serverSocket.configureBlocking(false);
+        serverSocket.socket().bind(socketAddress);
+
 
         System.out.println(
             "Starting peer " + id +
             " with address " + getSocketAddress()
         );
+
+        System.out.println(sslEngine.getPeerPort());
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
         chord = new Chord(getSocketAddress(), keySize, id);
@@ -261,27 +309,261 @@ public class Peer implements PeerInterface {
     public static class ServerSocketHandler implements Runnable {
         private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(20);
         private final Peer peer;
-        private final ServerSocket serverSocket;
+        private final SSLEngine engine;
+        private final ServerSocketChannel serverSocket;
+        private SSLContext context;
+
+        /* Plaintext data */
+        private ByteBuffer appData;
+        /* Encrypted data */
+        private ByteBuffer netData;
+
+        private ByteBuffer peerAppData;
+
+        private ByteBuffer peerNetData;
+
+
+        // Manages multiple channels
+        private Selector selector;
 
         private final MessageFactory messageFactory;
 
-        public ServerSocketHandler(Peer peer, ServerSocket serverSocket) {
+        public ServerSocketHandler(Peer peer, ServerSocketChannel serverSocket) throws IOException {
             this.peer = peer;
+            this.engine = peer.sslEngine;
             this.serverSocket = serverSocket;
 
+            selector = SelectorProvider.provider().openSelector();
+
+            // Registers this channel with the given selector. Listens to a accept event
+            serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+
+
+            appData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
+            netData = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
+            peerAppData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
+            peerNetData = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
+
             messageFactory = new MessageFactory(peer);
+        }
+
+        private boolean handshake(SocketChannel socketChannel, SSLEngine engine) throws IOException {
+            // Create byte buffers to use for holding application data
+            int appBufferSize = engine.getSession().getApplicationBufferSize();
+            ByteBuffer myAppData = ByteBuffer.allocate(appBufferSize);
+            ByteBuffer peerAppData = ByteBuffer.allocate(appBufferSize);
+            netData.clear();
+            peerNetData.clear();
+
+            // Begin handshake
+            engine.beginHandshake();
+            SSLEngineResult.HandshakeStatus hs = engine.getHandshakeStatus();
+
+            // Process handshaking message
+            while (hs != SSLEngineResult.HandshakeStatus.FINISHED &&
+                    hs != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
+                switch (hs) {
+                    case NEED_UNWRAP:
+                        // Receive handshaking data from peer
+                        if (socketChannel.read(peerNetData) < 0) {
+                            // The channel has reached end-of-stream
+                            if(engine.isOutboundDone() && engine.isInboundDone())
+                                return false;
+                            engine.closeInbound();
+                            engine.closeOutbound();
+                            break;
+                        }
+                        // Process incoming handshaking data
+                        peerNetData.flip(); // will set the buffer limit to the current position and reset the position to zero
+                        SSLEngineResult res = engine.unwrap(peerNetData, peerAppData);
+                        peerNetData.compact();
+                        hs = res.getHandshakeStatus();
+
+                        // Check status
+                        switch (res.getStatus()) {
+                            case OK :
+                                break;
+                            case BUFFER_OVERFLOW:
+                                // Maybe need to enlarge the peer application data buffer if
+                                // it is too small, and be sure you've compacted/cleared the
+                                // buffer from any previous operations.
+                                if (engine.getSession().getApplicationBufferSize() > peerAppData.capacity()) {
+                                    // enlarge the peer application data buffer
+                                    peerAppData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
+                                } else {
+                                    // compact or clear the buffer
+                                    peerAppData = ByteBuffer.allocate(peerAppData.capacity() * 2);
+                                }
+                                // retry the operation ?
+                                break;
+
+                            case BUFFER_UNDERFLOW:
+                                // Not enough inbound data to process. Obtain more network data
+                                // and retry the operation. You may need to enlarge the peer
+                                // network packet buffer, and be sure you've compacted/cleared
+                                // the buffer from any previous operations.
+                                if (engine.getSession().getPacketBufferSize() > peerNetData.capacity()) {
+                                    // enlarge the peer network packet buffer
+                                    peerNetData = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
+                                } else {
+                                    // compact or clear the buffer
+                                    peerNetData.compact();
+                                }
+                                // obtain more inbound network data and then retry the operation
+                                break;
+                            case CLOSED:
+                                // Close connection
+                                if (engine.isOutboundDone()) {
+                                    return false;
+                                }
+                                engine.closeOutbound();
+                                socketChannel.close();
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case NEED_WRAP:
+                        // Ensure that any previous net data in myNetData has been sent
+
+                        // Empty/clear the local network packet buffer.
+                        netData.clear();
+
+                        // Generate more data to send if possible.
+                        res = engine.wrap(myAppData, netData);
+                        hs = res.getHandshakeStatus();
+                        // Check status
+                        switch (res.getStatus()) {
+                            case OK :
+                                netData.flip();
+                                // Send the handshaking data to peer
+                                while (netData.hasRemaining()) {
+                                    socketChannel.write(netData);
+                                }
+                                break;
+                            case BUFFER_OVERFLOW:
+                                if (engine.getSession().getApplicationBufferSize() > peerAppData.capacity()) {
+                                    // enlarge the peer application data buffer
+                                    peerAppData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
+                                } else {
+                                    // compact or clear the buffer
+                                    peerAppData = ByteBuffer.allocate(peerAppData.capacity() * 2);
+                                }
+                                break;
+                            case BUFFER_UNDERFLOW:
+                                return false;
+                            case CLOSED:
+                                // Close connection
+                                netData.flip();
+                                while (netData.hasRemaining()) {
+                                    socketChannel.write(netData);
+                                }
+                                peerNetData.clear();
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case NEED_TASK :
+                        // Handle blocking tasks
+                        Runnable task;
+                        while ((task=engine.getDelegatedTask()) != null) {
+                            new Thread(task).start();
+                        }
+                        break;
+                    default: // FINISHED or NOT_HANDSHAKING
+                        break;
+                }
+            }
+            return true;
+        }
+
+        private void read(SocketChannel socketChannel) throws IOException {
+            int bytes = socketChannel.read(peerNetData);
+            if(bytes > 0) {
+                while (peerNetData.hasRemaining()) {
+                    SSLEngineResult res = engine.unwrap(peerNetData, peerAppData);
+                    // Process status of call
+                    switch (res.getStatus()) {
+                        case OK:
+                            peerAppData.flip();
+                            break;
+                        case BUFFER_OVERFLOW:
+                            if (engine.getSession().getApplicationBufferSize() > peerAppData.capacity()) {
+                                peerAppData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
+                            } else {
+                                peerAppData = ByteBuffer.allocate(peerAppData.capacity() * 2);
+                            }
+                            break;
+
+                        case BUFFER_UNDERFLOW:
+                            if (engine.getSession().getPacketBufferSize() > peerNetData.capacity()) {
+                                peerNetData = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
+                            } else {
+                                peerNetData.compact();
+                            }
+                            break;
+                        case CLOSED:
+                            // Close connection
+                            engine.closeOutbound();
+                            handshake(socketChannel, engine);
+                            socketChannel.close();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }else if(bytes < 0){
+                engine.closeInbound();
+            }
+        }
+
+        /*
+        * Starts the handshake and register the channel if successful
+        * */
+        private void registerChannel(Selector selector, ServerSocketChannel serverSocket) throws IOException {
+            SocketChannel socket = serverSocket.accept();
+            socket.configureBlocking(false);
+            SSLEngine engine = context.createSSLEngine();
+            engine.setUseClientMode(false);
+
+            // Moves the SSLEngine into the initial handshaking state
+            engine.beginHandshake();
+
+            if(handshake(socket, engine))
+                socket.register(selector, SelectionKey.OP_READ);
+            else {
+                socket.close();
+                System.err.println("Unable to complete handshake");
+            }
+
         }
 
         @Override
         public void run() {
             while (!Thread.interrupted()) {
                 try {
-                    Socket socket = serverSocket.accept();
-                    InputStream is = socket.getInputStream();
-                    byte[] data = is.readAllBytes();
-                    Message message = messageFactory.factoryMethod(data);
-                    Message.Processor processor = message.getProcessor(peer, socket);
-                    executor.execute(processor::invoke);
+                    selector.select();
+                    Set<SelectionKey> selectedKeys = selector.selectedKeys();
+                    Iterator<SelectionKey> it = selectedKeys.iterator();
+                    while(it.hasNext()){
+                        SelectionKey key = it.next();
+
+                        if(key.isAcceptable()){
+                            registerChannel(selector, serverSocket);
+                        }
+                        if(key.isReadable()){
+                            // read buffer
+                            SocketChannel socketChannel = (SocketChannel) key.channel();
+                            read(socketChannel);
+                            byte[] data = peerAppData.array();
+                            Message message = messageFactory.factoryMethod(data);
+                            Message.Processor processor = message.getProcessor(peer, socketChannel);
+                            executor.execute(processor::invoke);
+                        }
+
+                        it.remove();
+                    }
                 } catch(SocketException e) {
                     System.err.println("SocketException in ServerSocketHandler cycle");
                 } catch (Exception e) {

@@ -9,6 +9,7 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class GetMessage extends DataStorageMessage {
@@ -38,7 +39,7 @@ public class GetMessage extends DataStorageMessage {
 
         private final GetMessage message;
 
-        public GetProcessor(Chord chord, DataStorage dataStorage, Socket socket, GetMessage message){
+        public GetProcessor(Chord chord, DataStorage dataStorage, SocketChannel socket, GetMessage message){
             super(chord, dataStorage, socket);
             this.message = message;
         }
@@ -57,7 +58,7 @@ public class GetMessage extends DataStorageMessage {
     }
 
     @Override
-    public GetProcessor getProcessor(Peer peer, Socket socket) {
+    public GetProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new GetProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 

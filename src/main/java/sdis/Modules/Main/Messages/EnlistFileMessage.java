@@ -6,6 +6,7 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class EnlistFileMessage extends AccountMessage {
@@ -76,7 +77,7 @@ public class EnlistFileMessage extends AccountMessage {
     }
 
     @Override
-    public EnlistFileProcessor getProcessor(Peer peer, Socket socket) {
+    public EnlistFileProcessor getProcessor(Peer peer, SocketChannel socket) {
         return new EnlistFileProcessor(peer.getMain(), socket, this);
     }
 

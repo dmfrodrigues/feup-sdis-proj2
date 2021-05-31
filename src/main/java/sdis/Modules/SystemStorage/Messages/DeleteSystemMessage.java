@@ -7,6 +7,7 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
 public class DeleteSystemMessage extends SystemStorageMessage {
@@ -54,7 +55,7 @@ public class DeleteSystemMessage extends SystemStorageMessage {
     }
 
     @Override
-    public DeleteSystem getProcessor(Peer peer, Socket socket) {
+    public DeleteSystem getProcessor(Peer peer, SocketChannel socket) {
         return new DeleteSystem(peer.getSystemStorage(), socket, this);
     }
 

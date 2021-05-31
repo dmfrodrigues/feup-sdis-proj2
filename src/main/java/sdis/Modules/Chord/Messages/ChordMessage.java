@@ -7,6 +7,7 @@ import sdis.Peer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 
 public abstract class ChordMessage<T> extends Message {
     public static abstract class Processor extends Message.Processor {
@@ -27,7 +28,7 @@ public abstract class ChordMessage<T> extends Message {
         }
     }
 
-    public abstract ChordMessage.Processor getProcessor(Peer peer, Socket socket);
+    public abstract ChordMessage.Processor getProcessor(Peer peer, SocketChannel socket);
 
     protected abstract byte[] formatResponse(T t);
 
