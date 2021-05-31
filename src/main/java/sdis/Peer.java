@@ -1,7 +1,6 @@
 package sdis;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.Chord.FixChordProtocol;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
@@ -17,8 +16,8 @@ import sdis.Storage.ChunkOutput;
 import sdis.Utils.Utils;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ServerSocketChannel;
