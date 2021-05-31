@@ -7,6 +7,7 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
@@ -42,7 +43,7 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
     private static class FingerAddProcessor extends ChordMessage.Processor {
         final FingerAddMessage message;
 
-        public FingerAddProcessor(Chord chord, Socket socket, FingerAddMessage message){
+        public FingerAddProcessor(Chord chord, SocketChannel socket, FingerAddMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -53,7 +54,6 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
                 Chord chord = getChord();
                 Chord.NodeInfo n = chord.getNodeInfo();
                 Chord.NodeInfo s = message.nodeInfo;
-                Chord.NodeInfo p = chord.getPredecessor();
 
                 // If the new node to update the fingers table is itself, ignore
                 if(n.equals(s)){
@@ -66,18 +66,22 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
                 boolean updatedFingers = false;
                 while(
                     i >= 0 &&
-                    Chord.distance(n.key.add(1L << i), s.key) < Chord.distance(n.key.add(1L << i), chord.getFinger(i).key)
+                    Chord.distance(n.key.add(1L << i), s.key) < Chord.distance(n.key.add(1L << i), chord.getFingerInfo(i).key)
                 ){
                     updatedFingers = true;
                     chord.setFinger(i--, s);
                 }
 
+                Chord.NodeConn p = chord.getPredecessor();
+
                 // If at least one finger was updated, and the predecessor was
                 // not the one that sent the message, redirect to predecessor.
                 // (this is already prevented by the `r.equals(f)` check on
                 // arrival, but we can also check that on departure)
-                if(updatedFingers && !p.equals(s)){
-                    message.sendTo(chord, p.address);
+                if(updatedFingers && !p.nodeInfo.equals(s)){
+                    message.sendTo(chord, p.socket);
+                } else {
+                    try { new HelloMessage().sendTo(chord, p.socket); } catch (IOException | InterruptedException e) { e.printStackTrace(); }
                 }
 
                 readAllBytesAndClose(getSocket());
@@ -93,12 +97,12 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
     }
 
     @Override
-    protected byte[] formatResponse(Boolean b) {
-        return new byte[]{(byte) (b ? 1 : 0)};
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
     @Override
-    protected Boolean parseResponse(Chord chord, byte[] data) {
-        return (data.length == 1 && data[0] == 1);
+    protected Boolean parseResponse(Chord chord, ByteBuffer data) {
+        return (data.position() == 1 && data.array()[0] == 1);
     }
 }

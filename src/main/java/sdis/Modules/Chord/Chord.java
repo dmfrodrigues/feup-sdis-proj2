@@ -1,13 +1,21 @@
 package sdis.Modules.Chord;
 
-import sdis.Modules.Chord.Messages.ChordMessage;
+import sdis.Modules.Chord.Messages.HelloMessage;
 import sdis.Modules.ProtocolTask;
+import sdis.Utils.Utils;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 import java.util.Objects;
+import java.util.TreeSet;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Chord {
     public static class Key {
@@ -78,15 +86,29 @@ public class Chord {
             this(nodeInfo.key, nodeInfo.address);
         }
 
+        public static NodeInfo fromString(Chord chord, String s) {
+            String[] splitString = s.split(" ");
+            Chord.Key key = chord.newKey(Long.parseLong(splitString[0]));
+            String[] splitAddress = splitString[1].split(":");
+            InetSocketAddress address = new InetSocketAddress(splitAddress[0], Integer.parseInt(splitAddress[1]));
+            return new Chord.NodeInfo(key, address);
+        }
+
         public void copy(NodeInfo nodeInfo){
             key     = nodeInfo.key;
             address = nodeInfo.address;
         }
 
+        public SocketChannel createSocket() throws IOException {
+            return Utils.createSocket(address);
+        }
+
+        @Override
         public String toString() {
             return key + " " + address.getAddress().getHostAddress() + ":" + address.getPort();
         }
 
+        @Override
         public boolean equals(Object o){
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
@@ -95,12 +117,28 @@ public class Chord {
         }
     }
 
+    public static class NodeConn {
+        public final NodeInfo nodeInfo;
+        public final SocketChannel socket;
+
+        public NodeConn(NodeInfo nodeInfo, SocketChannel socket){
+            this.nodeInfo = nodeInfo;
+            this.socket = socket;
+        }
+    }
+
+    public static final int SUCCESSOR_LIST_SIZE = 5;
+    public static final int FIXES_DELTA_MILLIS = 10000;
+
     private final int keySize;
 
     private final InetSocketAddress socketAddress;
     private final Chord.Key key;
     private final NodeInfo[] fingers;
     private final NodeInfo predecessor;
+    private final TreeSet<NodeInfo> successors;
+
+    private final ScheduledExecutorService executorOfFixes = Executors.newSingleThreadScheduledExecutor();
 
     public Chord(InetSocketAddress socketAddress, int keySize, long key){
         this.socketAddress = socketAddress;
@@ -108,21 +146,75 @@ public class Chord {
         this.key = newKey(key);
         fingers = new NodeInfo[this.keySize];
         predecessor = new NodeInfo();
+        successors = new TreeSet<>((NodeInfo a, NodeInfo b) -> {
+            long diff = Chord.distance(this.key, a.key) - Chord.distance(this.key, b.key);
+            return (diff < 0 ? -1 : (diff > 0 ? +1 : 0));
+        });
+    }
+
+    public void scheduleFixes(){
+        executorOfFixes.scheduleAtFixedRate(this::fix, FIXES_DELTA_MILLIS/2, FIXES_DELTA_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
+    public void killFixes() {
+        executorOfFixes.shutdown();
     }
 
     public Chord.Key newKey(long k){
         return new Chord.Key(this, k);
     }
 
-    public Chord.Key getKey() {
-        return key;
-    }
-
-    public NodeInfo getFinger(int i){
+    public NodeInfo getFingerRaw(int i){
         synchronized(fingers) {
             return fingers[i];
         }
     }
+
+    public NodeInfo getFingerInfo(int i) {
+        try {
+            synchronized (fingers) {
+                SocketChannel socket = fingers[i].createSocket();
+                HelloMessage helloMessage = new HelloMessage();
+                helloMessage.sendTo(this, socket);
+                return fingers[i];
+            }
+        } catch(ConnectException e) {
+            System.err.println("Node " + key + ": Failed to find finger " + i + ", recalculating");
+            NodeInfo finger = findSuccessor(key.add(1L << i));
+            if(finger == null) {
+                System.err.println("Node " + key + ": Failed to recalculate finger " + i);
+                throw new CompletionException(e);
+            }
+            setFinger(i, finger);
+            System.err.println("Node " + key + ": Recalculated finger " + i + " and found it is " + finger.key);
+            return finger;
+        } catch (IOException | InterruptedException e) {
+            throw new CompletionException(e);
+        }
+    }
+
+    /*
+    public NodeConn getFinger(int i){
+        try {
+            synchronized (fingers) {
+                Socket socket = fingers[i].createSocket();
+                return new NodeConn(fingers[i], socket);
+            }
+        } catch(ConnectException e) {
+            System.err.println("Node " + key + ": Failed to find finger " + i + ", recalculating");
+            NodeInfo finger = findSuccessor(key.add(1L << i));
+            if(finger == null) {
+                System.err.println("Node " + key + ": Failed to recalculate finger " + i);
+                throw new CompletionException(e);
+            }
+            setFinger(i, finger);
+            System.err.println("Node " + key + ": Recalculated finger " + i + " and found it is " + finger.key);
+            return getFinger(i);
+        } catch (IOException e) {
+            throw new CompletionException(e);
+        }
+    }
+     */
 
     public boolean setFinger(int i, NodeInfo peer){
         synchronized(fingers) {
@@ -131,14 +223,32 @@ public class Chord {
         return true;
     }
 
-    public NodeInfo getPredecessor(Chord.Key key){
-        return new GetPredecessorProtocol(this, key).invoke();
-    }
-
-    public NodeInfo getPredecessor(){
+    public NodeInfo getPredecessorInfo(){
         synchronized(predecessor) {
+            try {
+                SocketChannel socket = predecessor.createSocket();
+                HelloMessage helloMessage = new HelloMessage();
+                helloMessage.sendTo(this, socket);
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
             return new NodeInfo(predecessor);
         }
+    }
+
+    public NodeConn getPredecessor(){
+        synchronized(predecessor) {
+            try {
+                return new NodeConn(new NodeInfo(predecessor), predecessor.createSocket());
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        }
+    }
+
+    public NodeInfo findPredecessor(Chord.Key key){
+        return new FindPredecessorProtocol(this, key).invoke();
     }
 
     public boolean setPredecessor(NodeInfo peer){
@@ -148,12 +258,74 @@ public class Chord {
         return true;
     }
 
-    public NodeInfo getSuccessor() {
-        return getFinger(0);
+    public void addSuccessor(NodeInfo s) {
+        synchronized (successors) {
+            successors.add(s);
+            Iterator<NodeInfo> it = successors.iterator();
+            while (it.hasNext()) {
+                NodeInfo t = it.next();
+                try {
+                    new HelloMessage().sendTo(this, t.createSocket());
+                } catch (ConnectException e) {
+                    System.err.println("Node " + key + ": While inserting a new successor " + s.key + ", noticed " + t.key + " does not exist; purging");
+                    it.remove();
+                } catch (IOException | InterruptedException e) {
+                    throw new CompletionException(e);
+                }
+            }
+            while(successors.size() > SUCCESSOR_LIST_SIZE){
+                successors.remove(successors.last());
+            }
+        }
     }
 
-    public NodeInfo getSuccessor(Chord.Key key){
-        return new GetSuccessorProtocol(this, key).invoke();
+    public NodeInfo getSuccessorInfo() {
+        synchronized(successors) {
+            while (true) {
+                if(successors.isEmpty()){
+                    return getNodeInfo();
+                }
+                NodeInfo s = successors.first();
+                try {
+                    SocketChannel socket = s.createSocket();
+                    HelloMessage helloMessage = new HelloMessage();
+                    helloMessage.sendTo(this, socket);
+                    return s;
+                } catch (ConnectException e) {
+                    System.err.println("Node " + key + ": Failed to use successor " + s.key + ", using next successor");
+                    successors.remove(s);
+                } catch (IOException | InterruptedException e) {
+                    throw new CompletionException(e);
+                }
+            }
+        }
+    }
+
+    public NodeConn getSuccessor() {
+        synchronized(successors) {
+            if(successors.isEmpty()) {
+                try {
+                    return new NodeConn(getNodeInfo(), getNodeInfo().createSocket());
+                } catch (IOException e) {
+                    throw new CompletionException(e);
+                }
+            }
+            while (true) {
+                NodeInfo s = successors.first();
+                try {
+                    return new NodeConn(s, s.createSocket());
+                } catch (ConnectException e) {
+                    System.err.println("Node " + key + ": Failed to use successor " + s.key + ", using next successor");
+                    successors.remove(s);
+                } catch (IOException e) {
+                    throw new CompletionException(e);
+                }
+            }
+        }
+    }
+
+    public NodeInfo findSuccessor(Chord.Key key){
+        return new FindSuccessorProtocol(this, key).invoke();
     }
 
     public int getKeySize() {
@@ -164,12 +336,8 @@ public class Chord {
         return (1L << getKeySize());
     }
 
-    public InetSocketAddress getSocketAddress(){
-        return socketAddress;
-    }
-
     public NodeInfo getNodeInfo() {
-        return new NodeInfo(key, getSocketAddress());
+        return new NodeInfo(key, socketAddress);
     }
 
     /**
@@ -178,7 +346,7 @@ public class Chord {
     public boolean join(){
         NodeInfo nodeInfo = getNodeInfo();
         if(!setPredecessor(nodeInfo)) return false;
-        for(int i = 0; i < getKeySize(); ++i) {
+        for(int i = 0; i < keySize; ++i) {
             if(!setFinger(i, nodeInfo)) return false;
         }
         return true;
@@ -198,16 +366,8 @@ public class Chord {
         return new LeaveProtocol(this, moveKeys).invoke();
     }
 
-    public Socket send(InetSocketAddress to, ChordMessage m) throws IOException {
-        Socket socket = new Socket(to.getAddress(), to.getPort());
-        OutputStream os = socket.getOutputStream();
-        os.write(m.asByteArray());
-        os.flush();
-        return socket;
-    }
-
-    public Socket send(Chord.NodeInfo to, ChordMessage m) throws IOException {
-        return send(to.address, m);
+    public boolean fix(){
+        return new FixChordProtocol(this).invoke();
     }
 
     public static long distance(Chord.Key a, Chord.Key b) {

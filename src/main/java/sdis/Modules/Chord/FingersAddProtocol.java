@@ -4,10 +4,11 @@ import sdis.Modules.Chord.Messages.FingerAddMessage;
 import sdis.Modules.ProtocolTask;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.RecursiveTask;
 
-public class FingersAddProtocol extends ProtocolTask<Void> {
+public class FingersAddProtocol extends ProtocolTask<Boolean> {
 
     private final Chord chord;
 
@@ -16,28 +17,26 @@ public class FingersAddProtocol extends ProtocolTask<Void> {
     }
 
     @Override
-    public Void compute() {
-        Chord.NodeInfo r = chord.getNodeInfo();
-        RecursiveTask<?>[] tasks = new RecursiveTask[chord.getKeySize()];
+    public Boolean compute() {
+        List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
         for(int i = 0; i < chord.getKeySize(); ++i){
-            Chord.Key k = chord.getKey().subtract(1L << i);
+            Chord.Key k = chord.getNodeInfo().key.subtract(1L << i).add(1);
             int finalI = i;
-            RecursiveTask<Void> task = new ProtocolTask<>() {
+            ProtocolTask<Boolean> task = new ProtocolTask<>() {
                 @Override
-                protected Void compute() {
-                    Chord.NodeInfo predecessor = chord.getPredecessor(k);
+                protected Boolean compute() {
+                    Chord.NodeInfo predecessor = chord.findPredecessor(k);
                     try {
                         FingerAddMessage m = new FingerAddMessage(chord.getNodeInfo(), finalI);
                         m.sendTo(chord, predecessor.address);
-                        return null;
+                        return true;
                     } catch (IOException | InterruptedException e) {
                         throw new CompletionException(e);
                     }
                 }
             };
-            tasks[i] = task;
+            tasks.add(task);
         }
-        invokeAll(tasks);
-        return null;
+        return invokeAndReduceTasks(tasks);
     }
 }

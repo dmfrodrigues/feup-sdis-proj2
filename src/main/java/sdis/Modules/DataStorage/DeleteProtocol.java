@@ -29,7 +29,6 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeInfo s = chord.getSuccessor();
         LocalDataStorage localDataStorage = dataStorage.getLocalDataStorage();
 
         boolean hasStored = localDataStorage.has(id);
@@ -48,19 +47,18 @@ public class DeleteProtocol extends ProtocolTask<Boolean> {
         }
         // We may now assume the datapiece is not locally stored
 
+        Chord.NodeConn s = chord.getSuccessor();
+
         // If r has a pointer to its successor reporting that it might have stored
         try {
             DeleteMessage m = new DeleteMessage(id);
-            SocketChannel socket = dataStorage.send(s.address, m);
-            socket.shutdownOutput();
-            byte[] responseByte = socket.getInputStream().readAllBytes();
-            socket.close();
-            boolean response = m.parseResponse(responseByte);
+            boolean response = m.sendTo(s.socket);
             if(response){
                 dataStorage.unregisterSuccessorStored(id);
             }
             return response;
-        } catch (IOException | UnrecoverableKeyException | CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+        } catch (IOException | InterruptedException e) {
+            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
             throw new CompletionException(e);
         }
     }

@@ -7,6 +7,7 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
@@ -40,7 +41,7 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
     private static class FingerRemoveProcessor extends Processor {
         final FingerRemoveMessage message;
 
-        public FingerRemoveProcessor(Chord chord, Socket socket, FingerRemoveMessage message){
+        public FingerRemoveProcessor(Chord chord, SocketChannel socket, FingerRemoveMessage message){
             super(chord, socket);
             this.message = message;
         }
@@ -52,13 +53,10 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
                 Chord.NodeInfo n = chord.getNodeInfo();
                 Chord.NodeInfo sOld = message.oldPeer;
                 Chord.NodeInfo sNew = message.newPeer;
-                Chord.NodeInfo p = chord.getPredecessor();
 
                 // If the new node to update the fingers table is itself, ignore
                 if(n.equals(sOld)){
-                    getSocket().shutdownOutput();
-                    getSocket().getInputStream().readAllBytes();
-                    getSocket().close();
+                    readAllBytesAndClose(getSocket());
                     return;
                 }
 
@@ -67,18 +65,22 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
                 boolean updatedFingers = false;
                 while(
                     i >= 0 &&
-                    getChord().getFinger(i).equals(sOld)
+                    chord.getFingerInfo(i).equals(sOld)
                 ){
                     updatedFingers = true;
-                    getChord().setFinger(i--, sNew);
+                    chord.setFinger(i--, sNew);
                 }
+
+                Chord.NodeConn p = chord.getPredecessor();
 
                 // If at least one finger was updated, and the predecessor was
                 // not the one that sent the message, redirect to predecessor.
-                // (this is already prevented by the `r.equals(fOld)` check on
+                // (this is already prevented by the `r.equals(sOld)` check on
                 // arrival, but we can also check that on departure)
-                if(updatedFingers && !p.equals(sOld)){
-                    message.sendTo(chord, p.address);
+                if(updatedFingers && !p.nodeInfo.equals(sOld)){
+                    message.sendTo(chord, p.socket);
+                } else {
+                    try { new HelloMessage().sendTo(chord, p.socket); } catch (IOException | InterruptedException e) { e.printStackTrace(); }
                 }
 
                 readAllBytesAndClose(getSocket());
@@ -94,12 +96,12 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
     }
 
     @Override
-    protected byte[] formatResponse(Void unused) {
-        return null;
+    protected ByteBuffer formatResponse(Void unused) {
+        return ByteBuffer.allocate(0);
     }
 
     @Override
-    protected Void parseResponse(Chord chord, byte[] data) {
+    protected Void parseResponse(Chord chord, ByteBuffer data) {
         return null;
     }
 }

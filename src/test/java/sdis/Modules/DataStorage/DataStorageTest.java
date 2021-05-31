@@ -16,7 +16,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void put_get_1peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
@@ -33,6 +33,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage1.getAll());
         assertFalse(dataStorage1.has(id));
+        assertFalse(dataStorage1.head(id));
         assertNull(dataStorage1.get(id));
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -47,6 +48,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(){{ add(id); }}, dataStorage1.getAll());
         assertTrue(dataStorage1.has(id));
+        assertTrue(dataStorage1.head(id));
         assertArrayEquals(dataStorage1.get(id), data);
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -56,7 +58,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void delete_1peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
@@ -77,6 +79,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage1.getAll());
         assertFalse(dataStorage1.has(id));
+        assertFalse(dataStorage1.head(id));
         assertNull(dataStorage1.get(id));
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -86,7 +89,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void put_retry_1peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         UUID id = new UUID("1234567890-0-1");
         byte[] data = "my data".getBytes();
@@ -108,6 +111,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(){{ add(id); }}, dataStorage1.getAll());
         assertTrue(dataStorage1.has(id));
+        assertTrue(dataStorage1.head(id));
         assertArrayEquals(data, dataStorage1.get(id));
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -117,7 +121,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void put_get_2peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress());
@@ -144,6 +148,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(){{ add(id); }}, dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(){{ add(id); }}, dataStorage1.getAll());
         assertTrue(dataStorage1.has(id));
+        assertTrue(dataStorage1.head(id));
         assertArrayEquals(data, dataStorage1.get(id));
         assertTrue(dataStorage1.successorHasStored(id));
 
@@ -156,6 +161,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage2.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage2.getAll());
         assertFalse(dataStorage2.has(id));
+        assertFalse(dataStorage2.head(id));
         assertNull(dataStorage2.get(id));
         assertFalse(dataStorage2.successorHasStored(id));
 
@@ -166,7 +172,7 @@ public class DataStorageTest {
     @Test(timeout=1000)
     public void delete_2peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress());
@@ -195,6 +201,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage1.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage1.getAll());
         assertFalse(dataStorage1.has(id));
+        assertFalse(dataStorage1.head(id));
         assertNull(dataStorage1.get(id));
         assertFalse(dataStorage1.successorHasStored(id));
 
@@ -207,6 +214,7 @@ public class DataStorageTest {
         assertEquals(new HashSet<>(), dataStorage2.getRedirects());
         assertEquals(new HashSet<UUID>(), dataStorage2.getAll());
         assertFalse(dataStorage2.has(id));
+        assertFalse(dataStorage2.head(id));
         assertNull(dataStorage2.get(id));
         assertFalse(dataStorage2.successorHasStored(id));
 
@@ -217,7 +225,7 @@ public class DataStorageTest {
     @Test(timeout=2000)
     public void redirects_2peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        peer1.join();
+        assertTrue(peer1.join());
 
         Peer peer2 = new Peer(8, 10, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress());
@@ -239,13 +247,13 @@ public class DataStorageTest {
         assertTrue(dataStorage1.put(id1, data1));
         assertTrue(dataStorage1.put(id2, data2));
 
-        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(dataStorage1, chord1).invoke());
-        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(dataStorage1, chord1.getSocketAddress()).invoke());
-        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(dataStorage1, chord2.getSocketAddress()).invoke());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord1).invoke());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord1.getNodeInfo().createSocket()).invoke());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord2.getNodeInfo().createSocket()).invoke());
 
-        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(dataStorage2, chord2).invoke());
-        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(dataStorage2, chord1.getSocketAddress()).invoke());
-        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(dataStorage2, chord2.getSocketAddress()).invoke());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord2).invoke());
+        assertEquals(dataStorage1.getRedirects(), new GetRedirectsProtocol(chord1.getNodeInfo().createSocket()).invoke());
+        assertEquals(dataStorage2.getRedirects(), new GetRedirectsProtocol(chord2.getNodeInfo().createSocket()).invoke());
 
         peer1.leave();
         peer2.leave();

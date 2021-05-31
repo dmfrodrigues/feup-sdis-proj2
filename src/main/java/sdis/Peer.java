@@ -1,6 +1,7 @@
 package sdis;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.Chord.FixChordProtocol;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
@@ -100,18 +101,21 @@ public class Peer implements PeerInterface {
 
         System.out.println(
             "Starting peer " + id +
-            " with address " + getSocketAddress()
+            " with address " + socketAddress
         );
 
         System.out.println(sslEngine.getPeerPort());
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
-        chord = new Chord(getSocketAddress(), keySize, id);
+        chord = new Chord(socketAddress, keySize, id);
         dataStorage = new DataStorage(Paths.get(this.baseStoragePath.toString(), "storage/data"), getChord());
         systemStorage = new SystemStorage(chord, dataStorage);
         main = new Main(systemStorage);
 
         this.id = chord.newKey(id);
+
+        chord.scheduleFixes();
+        main.scheduleFixes();
 
         ServerSocketHandler serverSocketHandler = new ServerSocketHandler(this, serverSocket);
         serverSocketHandlerThread = new Thread(serverSocketHandler);
@@ -131,59 +135,6 @@ public class Peer implements PeerInterface {
                 e.printStackTrace();
             }
         }));
-    }
-
-    public boolean join(){
-        System.out.println("Peer " + getKey() + " creating a new chord");
-
-        return chord.join();
-    }
-
-    public boolean join(InetSocketAddress gateway){
-        System.out.println("Peer " + getKey() + " joining a chord");
-
-        return chord.join(gateway, new ProtocolTask<>() {
-            @Override
-            public Boolean compute() {
-                // Get redirects
-                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(dataStorage, chord);
-                Set<UUID> redirects = getRedirectsProtocol.invoke();
-                for(UUID id : redirects)
-                    dataStorage.registerSuccessorStored(id);
-
-                // Move keys
-                MoveKeysProtocol moveKeysProtocol = new MoveKeysProtocol(systemStorage);
-                return moveKeysProtocol.invoke();
-            }
-        });
-    }
-
-    public boolean leave(){
-        System.out.println("Peer " + getKey() + " leaving its chord");
-
-        return chord.leave(new ProtocolTask<>() {
-            @Override
-            public Boolean compute() {
-                // Remove keys
-                RemoveKeysProtocol removeKeysProtocol = new RemoveKeysProtocol(systemStorage);
-                if(!removeKeysProtocol.invoke()) return false;
-
-                // Delete local storage
-                return Utils.deleteRecursive(baseStoragePath.toFile());
-            }
-        });
-    }
-
-    public boolean die(){
-        try {
-            serverSocketHandlerThread.interrupt();
-            serverSocket.close();
-            serverSocketHandlerThread.join();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
     }
 
     public Chord.Key getKey() {
@@ -208,6 +159,72 @@ public class Peer implements PeerInterface {
 
     public Main getMain() {
         return main;
+    }
+
+    public boolean join(){
+        System.out.println("Peer " + id + " creating a new chord");
+
+        return chord.join();
+    }
+
+    public boolean join(InetSocketAddress gateway){
+        System.out.println("Peer " + id + " joining a chord");
+
+        return chord.join(gateway, new ProtocolTask<>() {
+            @Override
+            public Boolean compute() {
+                // Get redirects
+                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(chord);
+                Set<UUID> redirects = getRedirectsProtocol.invoke();
+                for(UUID id : redirects)
+                    dataStorage.registerSuccessorStored(id);
+
+                // Move keys
+                MoveKeysProtocol moveKeysProtocol = new MoveKeysProtocol(systemStorage);
+                return moveKeysProtocol.invoke();
+            }
+        });
+    }
+
+    public boolean leave(){
+        System.out.println("Peer " + id + " leaving its chord");
+
+        boolean ret = chord.leave(new ProtocolTask<>() {
+            @Override
+            public Boolean compute() {
+                // Remove keys
+                RemoveKeysProtocol removeKeysProtocol = new RemoveKeysProtocol(systemStorage);
+                if (!removeKeysProtocol.invoke()) return false;
+
+                // Delete local storage
+                return Utils.deleteRecursive(baseStoragePath.toFile());
+            }
+        });
+
+        ret &= kill();
+
+        System.out.println("Peer " + chord.getNodeInfo().key + " done leaving");
+
+        return ret;
+    }
+
+    public boolean kill(){
+        chord.killFixes();
+        main.killFixes();
+
+        try {
+            serverSocket.close();
+            serverSocketHandlerThread.join();
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    public UserMetadata authenticate(Username username, Password password) {
+        return main.authenticate(username, password);
     }
 
     /**
@@ -238,48 +255,40 @@ public class Peer implements PeerInterface {
      * Restore file.
      */
     public boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput) {
-            UserMetadata userMetadata = authenticate(username, password);
-            if(userMetadata == null){
-                System.err.println("Failed to authenticate");
-                return false;
-            }
+        Main.File file = getFile(username, password, path);
+        if (file == null) return false;
 
-            Main.File file = userMetadata.getFile(path);
-            if(file == null){
-                System.err.println("No such file with path " + path);
-                Set<Main.Path> files = userMetadata.getFiles();
-                System.err.println("Available files (" + files.size() + "):");
-                for(Main.Path f: files){
-                    System.err.println("    " + f);
-                }
-                return false;
-            }
-
-            return main.restoreFile(file, chunkOutput);
+        return main.restoreFile(file, chunkOutput);
     }
 
     /**
      * Delete file.
      */
     public boolean delete(Username username, Password password, Main.Path path) {
-            UserMetadata userMetadata = authenticate(username, password);
-            if(userMetadata == null){
-                System.err.println("Failed to authenticate");
-                return false;
-            }
+        Main.File file = getFile(username, password, path);
+        if (file == null) return false;
 
-            Main.File file = userMetadata.getFile(path);
-            if(file == null){
-                System.err.println("No such file with path " + path);
-                Set<Main.Path> files = userMetadata.getFiles();
-                System.err.println("Available files (" + files.size() + "):");
-                for(Main.Path f: files){
-                    System.err.println("    " + f);
-                }
-                return false;
-            }
+        return main.deleteFile(file);
+    }
 
-            return main.deleteFile(file);
+    private Main.File getFile(Username username, Password password, Main.Path path) {
+        UserMetadata userMetadata = authenticate(username, password);
+        if(userMetadata == null){
+            System.err.println("Failed to authenticate");
+            return null;
+        }
+
+        Main.File file = userMetadata.getFile(path);
+        if(file == null){
+            System.err.println("No such file with path " + path);
+            Set<Main.Path> files = userMetadata.getFiles();
+            System.err.println("Available files (" + files.size() + "):");
+            for(Main.Path f: files){
+                System.err.println("    " + f);
+            }
+            return null;
+        }
+        return file;
     }
 
     @Override
@@ -302,9 +311,10 @@ public class Peer implements PeerInterface {
             return true;
     }
 
-    public UserMetadata authenticate(Username username, Password password) {
-        AuthenticationProtocol authenticationProtocol = new AuthenticationProtocol(main, username, password);
-        return authenticationProtocol.invoke();
+    public boolean fix() {
+        boolean ret = chord.fix();
+        ret &= main.fix();
+        return ret;
     }
 
     public static class ServerSocketHandler extends SSLsocket implements Runnable {
@@ -403,7 +413,7 @@ public class Peer implements PeerInterface {
 
         @Override
         public void run() {
-            while (!Thread.interrupted()) {
+            while (true) {
                 try {
                     selector.select();
                     Set<SelectionKey> selectedKeys = selector.selectedKeys();
@@ -427,13 +437,13 @@ public class Peer implements PeerInterface {
                         it.remove();
                     }
                 } catch(SocketException e) {
-                    System.err.println("SocketException in ServerSocketHandler cycle");
+                    System.out.println("Peer " + peer.id + ": Socket exception, exiting server socket handler");
+                    return;
                 } catch (Exception e) {
-                    System.err.println("Exception in ServerSocketHandler cycle");
+                    System.err.println("Peer " + peer.id + ": Exception in ServerSocketHandler cycle");
                     e.printStackTrace();
                 }
             }
-            System.err.println("ServerSocketHandler was interrupted");
         }
     }
 }

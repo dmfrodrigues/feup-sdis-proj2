@@ -2,7 +2,7 @@ package sdis.Modules.DataStorage.Messages;
 
 import sdis.Modules.Chord.Chord;
 import sdis.Modules.DataStorage.DataStorage;
-import sdis.Modules.DataStorage.DeleteProtocol;
+import sdis.Modules.DataStorage.HeadProtocol;
 import sdis.Peer;
 import sdis.UUID;
 import sdis.Utils.DataBuilder;
@@ -12,15 +12,15 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
-public class DeleteMessage extends DataStorageMessage<Boolean> {
+public class HeadMessage extends DataStorageMessage<Boolean> {
 
     private final UUID id;
 
-    public DeleteMessage(UUID id){
+    public HeadMessage(UUID id){
         this.id = id;
     }
 
-    public DeleteMessage(byte[] data){
+    public HeadMessage(byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         id = new UUID(splitString[1]);
@@ -28,25 +28,24 @@ public class DeleteMessage extends DataStorageMessage<Boolean> {
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("DELETE " + id).getBytes());
+        return new DataBuilder(("HEAD " + id).getBytes());
     }
 
-    private static class DeleteProcessor extends DataStorageMessage.Processor {
+    private static class HeadProcessor extends Processor {
 
-        private final DeleteMessage message;
+        private final HeadMessage message;
 
-        public DeleteProcessor(Chord chord, DataStorage dataStorage, SocketChannel socket, DeleteMessage message){
+        public HeadProcessor(Chord chord, DataStorage dataStorage, SocketChannel socket, HeadMessage message){
             super(chord, dataStorage, socket);
             this.message = message;
         }
 
         @Override
         public void compute() {
-            DeleteProtocol deleteProtocol = new DeleteProtocol(getChord(), getDataStorage(), message.id);
-            Boolean b = deleteProtocol.invoke();
+            HeadProtocol getProtocol = new HeadProtocol(getChord(), getDataStorage(), message.id);
+            boolean success = getProtocol.invoke();
             try {
-                getSocket().write(message.formatResponse(b));
-                getSocket().write(message.formatResponse(b));
+                getSocket().write(message.formatResponse(success));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -55,8 +54,8 @@ public class DeleteMessage extends DataStorageMessage<Boolean> {
     }
 
     @Override
-    public DeleteProcessor getProcessor(Peer peer, SocketChannel socket) {
-        return new DeleteProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
+    public HeadProcessor getProcessor(Peer peer, SocketChannel socket) {
+        return new HeadProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 
     @Override

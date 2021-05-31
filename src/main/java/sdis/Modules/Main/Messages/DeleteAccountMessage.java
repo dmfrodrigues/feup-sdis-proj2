@@ -7,16 +7,16 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.RecursiveTask;
+import java.util.stream.Collectors;
 
-public class DeleteAccountMessage extends AccountMessage {
+public class DeleteAccountMessage extends AccountMessage<Boolean> {
     private final Username username;
     private final Password password;
 
@@ -41,38 +41,29 @@ public class DeleteAccountMessage extends AccountMessage {
 
         private final DeleteAccountMessage message;
 
-        public DeleteAccountProcessor(Main main, Socket socket, DeleteAccountMessage message){
+        public DeleteAccountProcessor(Main main, SocketChannel socket, DeleteAccountMessage message){
             super(main, socket);
             this.message = message;
         }
 
         @Override
         public void compute() {
-            boolean success = true;
+            boolean success;
             try {
                 // Get user file
                 UserMetadata userMetadata = Objects.requireNonNull(getUserMetadata(getMain(), message.username));
 
                 // Delete all files
                 Set<Main.Path> paths = userMetadata.getFiles();
-                List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
-                for (Main.Path p : paths) {
+                List<ProtocolTask<Boolean>> tasks = paths.stream().map((Main.Path p) -> {
                     Main.File f = userMetadata.getFile(p);
-                    tasks.add(new DeleteFileProtocol(getMain(), f));
-                }
+                    return new DeleteFileProtocol(getMain(), f);
+                }).collect(Collectors.toList());
 
-                invokeAll(tasks);
-                for (RecursiveTask<Boolean> task : tasks) {
-                    try {
-                        success &= task.get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                        success = false;
-                    }
-                }
+                success = ProtocolTask.invokeAndReduceTasks(tasks);
 
                 // Delete user metadata
-                getMain().deleteFile(userMetadata.asFile());
+                success &= getMain().deleteFile(userMetadata.asFile(), false);
 
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -80,7 +71,7 @@ public class DeleteAccountMessage extends AccountMessage {
             }
 
             try {
-                getSocket().getOutputStream().write(message.formatResponse(success));
+                getSocket().write(message.formatResponse(success));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -93,11 +84,13 @@ public class DeleteAccountMessage extends AccountMessage {
         return new DeleteAccountProcessor(peer.getMain(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
-        return new byte[]{(byte) (b ? 1 : 0)};
+    @Override
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
-    public boolean parseResponse(byte[] response) {
-        return (response[0] == 1);
+    @Override
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

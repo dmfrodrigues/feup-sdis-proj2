@@ -1,17 +1,12 @@
 package sdis.Sockets;
 
-import sdis.Modules.Main.Messages.MainMessage;
 import sdis.Modules.Message;
 
 import javax.net.ssl.*;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -55,7 +50,7 @@ public class ClientSocket extends SSLsocket{
 
     private void write(Message m) throws IOException {
         appData.clear();
-        appData.put(m.asByteArray());
+        appData.put(m.asByteBuffer());
         appData.flip();
         while(appData.hasRemaining()){
             netData.clear();

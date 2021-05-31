@@ -6,7 +6,6 @@ import sdis.Modules.SystemStorage.Messages.PutSystemMessage;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class PutSystemProtocol extends ProtocolTask<Boolean> {
@@ -25,11 +24,9 @@ public class PutSystemProtocol extends ProtocolTask<Boolean> {
     public Boolean compute() {
         Chord chord = systemStorage.getChord();
         try{
-            Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord));
+            Chord.NodeInfo s = chord.findSuccessor(id.getKey(chord));
             PutSystemMessage putSystemMessage = new PutSystemMessage(id, data);
-            Socket socket = systemStorage.send(s.address, putSystemMessage);
-            byte[] response = readAllBytesAndClose(socket);
-            return putSystemMessage.parseResponse(response);
+            return putSystemMessage.sendTo(s.address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         } catch (CompletionException e) {

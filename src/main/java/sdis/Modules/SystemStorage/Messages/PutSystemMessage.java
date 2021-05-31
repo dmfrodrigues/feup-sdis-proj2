@@ -8,10 +8,11 @@ import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
-public class PutSystemMessage extends SystemStorageMessage {
+public class PutSystemMessage extends SystemStorageMessage<Boolean> {
 
     private final UUID id;
     private final byte[] data;
@@ -32,19 +33,11 @@ public class PutSystemMessage extends SystemStorageMessage {
         System.arraycopy(data, dataOffset, this.data, 0, this.data.length);
     }
 
-    private UUID getId() {
-        return id;
-    }
-
-    private byte[] getData(){
-        return data;
-    }
-
     @Override
     protected DataBuilder build() {
         return
-            new DataBuilder(("PUTSYSTEM " + getId() + "\n").getBytes())
-            .append(getData())
+            new DataBuilder(("PUTSYSTEM " + id + "\n").getBytes())
+            .append(data)
         ;
     }
 
@@ -52,17 +45,17 @@ public class PutSystemMessage extends SystemStorageMessage {
 
         private final PutSystemMessage message;
 
-        public PutSystemProcessor(SystemStorage systemStorage, Socket socket, PutSystemMessage message){
+        public PutSystemProcessor(SystemStorage systemStorage, SocketChannel socket, PutSystemMessage message){
             super(systemStorage, socket);
             this.message = message;
         }
 
         @Override
         public void compute() {
-            boolean b = getSystemStorage().getDataStorage().put(message.getId(), message.getData());
+            boolean b = getSystemStorage().getDataStorage().put(message.id, message.data);
 
                 try {
-                    getSocket().getOutputStream().write(message.formatResponse(b));
+                    getSocket().write(message.formatResponse(b));
                     readAllBytesAndClose(getSocket());
                 } catch (IOException | InterruptedException e) {
                     throw new CompletionException(e);
@@ -75,13 +68,13 @@ public class PutSystemMessage extends SystemStorageMessage {
         return new PutSystemProcessor(peer.getSystemStorage(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
-        byte[] ret = new byte[1];
-        ret[0] = (byte) (b ? 1 : 0);
-        return ret;
+    @Override
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
-    public boolean parseResponse(byte[] response) {
-        return (response[0] != 0);
+    @Override
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

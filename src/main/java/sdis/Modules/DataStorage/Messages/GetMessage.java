@@ -9,10 +9,11 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
-public class GetMessage extends DataStorageMessage {
+public class GetMessage extends DataStorageMessage<byte[]> {
 
     private final UUID id;
 
@@ -26,13 +27,9 @@ public class GetMessage extends DataStorageMessage {
         id = new UUID(splitString[1]);
     }
 
-    private UUID getId() {
-        return id;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("GET " + getId()).getBytes());
+        return new DataBuilder(("GET " + id).getBytes());
     }
 
     private static class GetProcessor extends Processor {
@@ -46,10 +43,10 @@ public class GetMessage extends DataStorageMessage {
 
         @Override
         public void compute() {
-            GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.getId());
+            GetProtocol getProtocol = new GetProtocol(getChord(), getDataStorage(), message.id);
             byte[] data = getProtocol.invoke();
             try {
-                getSocket().getOutputStream().write(message.formatResponse(data));
+                getSocket().write(message.formatResponse(data));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -62,19 +59,21 @@ public class GetMessage extends DataStorageMessage {
         return new GetProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 
-    private byte[] formatResponse(byte[] data) {
-        if(data == null) return new byte[]{0};
+    @Override
+    protected ByteBuffer formatResponse(byte[] data) {
+        if(data == null) return ByteBuffer.wrap(new byte[]{0});
         byte[] ret = new byte[data.length+1];
         ret[0] = 1;
         System.arraycopy(data, 0, ret, 1, data.length);
-        return ret;
+        return ByteBuffer.wrap(ret);
     }
 
-    public byte[] parseResponse(byte[] response) {
-        if(response[0] == 0) return null;
+    @Override
+    public byte[] parseResponse(ByteBuffer response) {
+        if(response.array()[0] == 0) return null;
         else {
-            byte[] ret = new byte[response.length-1];
-            System.arraycopy(response, 1, ret, 0, ret.length);
+            byte[] ret = new byte[response.position()-1];
+            System.arraycopy(response.array(), 1, ret, 0, ret.length);
             return ret;
         }
     }

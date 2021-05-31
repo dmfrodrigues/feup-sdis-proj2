@@ -13,11 +13,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
-public class AuthenticateMessage extends MainMessage {
+public class AuthenticateMessage extends MainMessage<Pair<AuthenticateMessage.Status, UserMetadata>> {
     public enum Status {
         SUCCESS,
         BROKEN,
@@ -48,7 +48,7 @@ public class AuthenticateMessage extends MainMessage {
 
         private final AuthenticateMessage message;
 
-        public AuthenticateProcessor(Main main, Socket socket, AuthenticateMessage message){
+        public AuthenticateProcessor(Main main, SocketChannel socket, AuthenticateMessage message){
             super(main, socket);
             this.message = message;
         }
@@ -83,7 +83,7 @@ public class AuthenticateMessage extends MainMessage {
             DataBuilder builder = new DataBuilder();
 
             ChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 1);
-            RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), message.username, chunkOutput, 10);
+            RestoreUserFileProtocol restoreUserFileProtocol = new RestoreUserFileProtocol(getMain(), message.username, chunkOutput);
             boolean b = restoreUserFileProtocol.invoke();
 
             if(!b) {
@@ -106,7 +106,7 @@ public class AuthenticateMessage extends MainMessage {
             }
 
             try {
-                getSocket().getOutputStream().write(message.formatResponse(status, userMetadata));
+                getSocket().write(message.formatResponse(new Pair<>(status, userMetadata)));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -119,25 +119,30 @@ public class AuthenticateMessage extends MainMessage {
         return new AuthenticateProcessor(peer.getMain(), socket, this);
     }
 
-    private byte[] formatResponse(Status status, UserMetadata userMetadata) {
+    @Override
+    protected ByteBuffer formatResponse(Pair<Status, UserMetadata> p) {
         try {
-            switch(status){
+            switch(p.first){
                 case SUCCESS:
                     DataBuilder builder = new DataBuilder(new byte[]{0});
-                    builder.append(userMetadata.serialize());
-                    return builder.get();
+                    builder.append(p.second.serialize());
+                    return ByteBuffer.wrap(builder.get());
                 case BROKEN:
-                    return new byte[]{1};
+                    return ByteBuffer.wrap(new byte[]{1});
                 case UNAUTHORIZED:
                 default:
-                    return new byte[]{2};
+                    return ByteBuffer.wrap(new byte[]{2});
             }
         } catch (IOException e) {
-            return new byte[]{2};
+            return ByteBuffer.wrap(new byte[]{2});
         }
     }
 
-    public Pair<Status, UserMetadata> parseResponse(byte[] response) {
+    @Override
+    public Pair<Status, UserMetadata> parseResponse(ByteBuffer byteBuffer) {
+        byte[] response = new byte[byteBuffer.position()];
+        System.arraycopy(byteBuffer.array(), 0, response, 0, response.length);
+
         try {
             switch(response[0]){
                 case 0:

@@ -36,17 +36,11 @@ public class DeleteFileProtocol extends MainProtocolTask<Boolean> {
     private boolean delistFile() {
         SystemStorage systemStorage = main.getSystemStorage();
         Chord chord = systemStorage.getChord();
-        Chord.NodeInfo s = chord.getSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord));
+        Chord.NodeInfo s = chord.findSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord));
         try {
             DelistFileMessage m = new DelistFileMessage(file);
-            SocketChannel socket = main.send(s.address, m);
-            socket.shutdownOutput();
-            main.read();
-            byte[] response = main.getPeerAppData().array();
-
-            socket.close();
-            return m.parseResponse(response);
-        } catch (IOException | UnrecoverableKeyException | CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+            return m.sendTo(s.address);
+        } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
     }

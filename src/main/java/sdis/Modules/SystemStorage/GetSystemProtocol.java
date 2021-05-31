@@ -6,7 +6,6 @@ import sdis.Modules.SystemStorage.Messages.GetSystemMessage;
 import sdis.UUID;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
 public class GetSystemProtocol extends ProtocolTask<byte[]> {
@@ -23,11 +22,9 @@ public class GetSystemProtocol extends ProtocolTask<byte[]> {
     public byte[] compute() {
         Chord chord = systemStorage.getChord();
         try{
-            Chord.NodeInfo s = chord.getSuccessor(id.getKey(chord));
+            Chord.NodeInfo s = chord.findSuccessor(id.getKey(chord));
             GetSystemMessage getSystemMessage = new GetSystemMessage(id);
-            Socket socket = systemStorage.send(s.address, getSystemMessage);
-            byte[] response = readAllBytesAndClose(socket);
-            return getSystemMessage.parseResponse(response);
+            return getSystemMessage.sendTo(s.address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         } catch (CompletionException e) {

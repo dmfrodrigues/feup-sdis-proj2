@@ -1,6 +1,5 @@
 package sdis.Modules.Main;
 
-import sdis.Modules.Main.Messages.MainMessage;
 import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Sockets.ClientSocket;
 import sdis.Storage.ChunkIterator;
@@ -18,19 +17,49 @@ import java.net.Socket;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.io.Serializable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Main extends ClientSocket {
     public static final int CHUNK_SIZE = 64000;
     public static final int USER_METADATA_REPDEG = 10;
+    public static final int FIXES_DELTA_MILLIS = 60000;
 
     private final SystemStorage systemStorage;
+
+    private final ScheduledExecutorService executorOfFixes = Executors.newSingleThreadScheduledExecutor();
 
     public Main(SystemStorage systemStorage){
         this.systemStorage = systemStorage;
     }
 
+    public void scheduleFixes(){
+        executorOfFixes.scheduleAtFixedRate(this::fix, FIXES_DELTA_MILLIS, FIXES_DELTA_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
+    public void killFixes() {
+        executorOfFixes.shutdown();
+    }
+
     public SystemStorage getSystemStorage(){
         return systemStorage;
+    }
+
+    /*
+    public Socket send(InetSocketAddress to, MainMessage<?> m) throws IOException {
+        Socket socket = new Socket(to.getAddress(), to.getPort());
+        OutputStream os = socket.getOutputStream();
+        os.write(m.asByteArray());
+        os.flush();
+        return socket;
+    }
+     */
+
+    public UserMetadata authenticate(Username username, Password password) {
+        AuthenticationProtocol authenticationProtocol = new AuthenticationProtocol(this, username, password);
+        return authenticationProtocol.invoke();
     }
 
     public Boolean backupFile(Main.File file, ChunkIterator chunkIterator) {
@@ -38,11 +67,19 @@ public class Main extends ClientSocket {
     }
 
     public Boolean restoreFile(Main.File file, ChunkOutput destination) {
-        return new RestoreFileProtocol(this, file, destination, 10).invoke();
+        return new RestoreFileProtocol(this, file, destination).invoke();
     }
 
     public Boolean deleteFile(Main.File file) {
         return new DeleteFileProtocol(this, file).invoke();
+    }
+
+    public Boolean deleteFile(Main.File file, boolean delist) {
+        return new DeleteFileProtocol(this, file, delist).invoke();
+    }
+
+    public boolean fix(){
+        return new FixMainProtocol(this).invoke();
     }
 
     public static class Path implements Serializable {
@@ -156,10 +193,6 @@ public class Main extends ClientSocket {
         @Override
         public String toString() {
             return file.toString() + "-" + chunkIndex;
-        }
-
-        public Main.File getFile() {
-            return file;
         }
     }
 

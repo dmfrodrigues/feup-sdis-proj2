@@ -11,15 +11,15 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
-public class GetSystemMessage extends SystemStorageMessage<byte[]> {
+public class HeadSystemMessage extends SystemStorageMessage<Boolean> {
 
     private final UUID id;
 
-    public GetSystemMessage(UUID id){
+    public HeadSystemMessage(UUID id){
         this.id = id;
     }
 
-    public GetSystemMessage(byte[] data){
+    public HeadSystemMessage(byte[] data){
         String dataString = new String(data);
         String[] splitString = dataString.split(" ");
         id = new UUID(splitString[1]);
@@ -27,24 +27,24 @@ public class GetSystemMessage extends SystemStorageMessage<byte[]> {
 
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("GETSYSTEM " + id).getBytes());
+        return new DataBuilder(("HEADSYSTEM " + id).getBytes());
     }
 
     private static class GetSystemProcessor extends Processor {
 
-        private final GetSystemMessage message;
+        private final HeadSystemMessage message;
 
-        public GetSystemProcessor(SystemStorage systemStorage, SocketChannel socket, GetSystemMessage message){
+        public GetSystemProcessor(SystemStorage systemStorage, SocketChannel socket, HeadSystemMessage message){
             super(systemStorage, socket);
             this.message = message;
         }
 
         @Override
         public void compute() {
-            byte[] data = getSystemStorage().getDataStorage().get(message.id);
+            boolean success = getSystemStorage().getDataStorage().head(message.id);
 
             try {
-                getSocket().write(message.formatResponse(data));
+                getSocket().write(message.formatResponse(success));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -58,21 +58,12 @@ public class GetSystemMessage extends SystemStorageMessage<byte[]> {
     }
 
     @Override
-    protected ByteBuffer formatResponse(byte[] data) {
-        if(data == null) return ByteBuffer.wrap(new byte[]{0});
-        byte[] ret = new byte[data.length+1];
-        ret[0] = 1;
-        System.arraycopy(data, 0, ret, 1, data.length);
-        return ByteBuffer.wrap(ret);
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
     @Override
-    public byte[] parseResponse(ByteBuffer response) {
-        if(response.array()[0] == 0) return null;
-        else {
-            byte[] ret = new byte[response.position()-1];
-            System.arraycopy(response.array(), 1, ret, 0, ret.length);
-            return ret;
-        }
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

@@ -10,10 +10,11 @@ import sdis.Utils.Utils;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
-public class PutMessage extends DataStorageMessage {
+public class PutMessage extends DataStorageMessage<Boolean> {
 
     private final Chord.Key nodeKey;
     private final UUID id;
@@ -37,23 +38,11 @@ public class PutMessage extends DataStorageMessage {
         System.arraycopy(data, dataOffset, this.data, 0, this.data.length);
     }
 
-    private Chord.Key getNodeKey() {
-        return nodeKey;
-    }
-
-    private UUID getId() {
-        return id;
-    }
-
-    private byte[] getData(){
-        return data;
-    }
-
     @Override
     protected DataBuilder build() {
         return
-            new DataBuilder(("PUT " + getNodeKey() + " " + getId() + "\n").getBytes())
-            .append(getData())
+            new DataBuilder(("PUT " + nodeKey + " " + id + "\n").getBytes())
+            .append(data)
         ;
     }
 
@@ -61,17 +50,17 @@ public class PutMessage extends DataStorageMessage {
 
         private final PutMessage message;
 
-        public PutProcessor(Chord chord, DataStorage dataStorage, Socket socket, PutMessage message){
+        public PutProcessor(Chord chord, DataStorage dataStorage, SocketChannel socket, PutMessage message){
             super(chord, dataStorage, socket);
             this.message = message;
         }
 
         @Override
         public void compute() {
-            PutProtocol putProtocol = new PutProtocol(getChord(), getDataStorage(), message.getNodeKey(), message.getId(), message.getData());
+            PutProtocol putProtocol = new PutProtocol(getChord(), getDataStorage(), message.nodeKey, message.id, message.data);
             Boolean b = putProtocol.invoke();
             try {
-                getSocket().getOutputStream().write(message.formatResponse(b));
+                getSocket().write(message.formatResponse(b));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -84,13 +73,13 @@ public class PutMessage extends DataStorageMessage {
         return new PutProcessor(peer.getChord(), peer.getDataStorage(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
-        byte[] ret = new byte[1];
-        ret[0] = (byte) (b ? 1 : 0);
-        return ret;
+    @Override
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
-    public boolean parseResponse(byte[] response) {
-        return (response[0] != 0);
+    @Override
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

@@ -29,15 +29,12 @@ public class DeleteAccountProtocol extends MainProtocolTask<Boolean> {
     public Boolean compute() {
         Chord chord = main.getSystemStorage().getChord();
         UUID userMetadataFileUUID = username.asFile().getChunk(0).getReplica(0).getUUID();
-        Chord.NodeInfo s = chord.getSuccessor(userMetadataFileUUID.getKey(chord));
+        Chord.NodeInfo s = chord.findSuccessor(userMetadataFileUUID.getKey(chord));
 
         DeleteAccountMessage deleteAccountMessage = new DeleteAccountMessage(username, password);
         try {
-            SocketChannel socket = main.send(s.address, deleteAccountMessage);
-
-            byte[] data = readAllBytesAndClose(socket);
-            return deleteAccountMessage.parseResponse(data);
-        } catch (IOException | InterruptedException | UnrecoverableKeyException | CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+            return deleteAccountMessage.sendTo(s.address);
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
 
             return false;

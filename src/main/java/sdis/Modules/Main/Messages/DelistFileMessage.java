@@ -1,15 +1,18 @@
 package sdis.Modules.Main.Messages;
 
-import sdis.Modules.Main.*;
+import sdis.Modules.Main.Main;
+import sdis.Modules.Main.UserMetadata;
+import sdis.Modules.Main.Username;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
-public class DelistFileMessage extends AccountMessage {
+public class DelistFileMessage extends AccountMessage<Boolean> {
 
     private final Main.File file;
 
@@ -32,13 +35,13 @@ public class DelistFileMessage extends AccountMessage {
 
         private final DelistFileMessage message;
 
-        public DelistFileProcessor(Main main, Socket socket, DelistFileMessage message){
+        public DelistFileProcessor(Main main, SocketChannel socket, DelistFileMessage message){
             super(main, socket);
             this.message = message;
         }
 
         private void end(boolean b) throws IOException, InterruptedException {
-            getSocket().getOutputStream().write(message.formatResponse(b));
+            getSocket().write(message.formatResponse(b));
             readAllBytesAndClose(getSocket());
         }
 
@@ -76,11 +79,13 @@ public class DelistFileMessage extends AccountMessage {
         return new DelistFileProcessor(peer.getMain(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
-        return new byte[]{(byte)(b ? 1 : 0)};
+    @Override
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
-    public boolean parseResponse(byte[] response) {
-        return (response != null && response.length >= 1 && response[0] == 1);
+    @Override
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

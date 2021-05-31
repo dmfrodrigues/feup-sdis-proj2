@@ -12,15 +12,14 @@ import sdis.Utils.DataBuilder;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.RecursiveTask;
 
-public class MoveKeysMessage extends SystemStorageMessage {
+public class MoveKeysMessage extends SystemStorageMessage<Boolean> {
 
     private final Chord.NodeInfo nodeInfo;
 
@@ -46,7 +45,7 @@ public class MoveKeysMessage extends SystemStorageMessage {
 
         private final MoveKeysMessage message;
 
-        public MoveKeysProcessor(SystemStorage systemStorage, Socket socket, MoveKeysMessage message){
+        public MoveKeysProcessor(SystemStorage systemStorage, SocketChannel socket, MoveKeysMessage message){
             super(systemStorage, socket);
             this.message = message;
         }
@@ -60,11 +59,11 @@ public class MoveKeysMessage extends SystemStorageMessage {
             Chord.NodeInfo n = message.nodeInfo;
 
             Set<UUID> ids = dataStorage.getAll();
-            List<RecursiveTask<Boolean>> tasks = new LinkedList<>();
+            List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
             for(UUID id: ids){
                 Chord.Key k = id.getKey(chord);
                 if(Chord.distance(k, n.key) < Chord.distance(k, r.key)){
-                    RecursiveTask<Boolean> task = new ProtocolTask<>() {
+                    ProtocolTask<Boolean> task = new ProtocolTask<>() {
                         @Override
                         protected Boolean compute() {
                             byte[] data = dataStorage.get(id);
@@ -73,23 +72,14 @@ public class MoveKeysMessage extends SystemStorageMessage {
                             return putSystemProtocol.invoke();
                         }
                     };
-                    task.fork();
                     tasks.add(task);
                 }
             }
 
-            boolean ret = true;
-            for(RecursiveTask<Boolean> task: tasks) {
-                try {
-                    ret &= task.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                    ret = false;
-                }
-            }
+            boolean ret = ProtocolTask.invokeAndReduceTasks(tasks);
 
             try {
-                getSocket().getOutputStream().write(message.formatResponse(ret));
+                getSocket().write(message.formatResponse(ret));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -102,11 +92,13 @@ public class MoveKeysMessage extends SystemStorageMessage {
         return new MoveKeysProcessor(peer.getSystemStorage(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
-        return new byte[]{(byte) (b ? 1 : 0)};
+    @Override
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
-    public boolean parseResponse(byte[] response) {
-        return (response[0] == 1);
+    @Override
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }

@@ -2,68 +2,64 @@ package sdis.Modules.Main;
 
 import sdis.Modules.ProtocolTask;
 import sdis.Modules.SystemStorage.SystemStorage;
-import sdis.Storage.ChunkOutput;
 import sdis.UUID;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
+public class FixFileProtocol extends MainProtocolTask<Boolean> {
     private final Main main;
     private final Main.File file;
-    private final ChunkOutput destination;
 
-    public RestoreFileProtocol(Main main, Main.File file, ChunkOutput destination){
+    public FixFileProtocol(Main main, Main.File file){
         this.main = main;
         this.file = file;
-        this.destination = destination;
     }
 
-    protected ChunkOutput getDestination(){
-        return destination;
-    }
-
-    protected byte[] getChunk(long chunkIndex) {
+    protected boolean fixChunk(long chunkIndex) {
         SystemStorage systemStorage = main.getSystemStorage();
         int replicationDegree = file.getReplicationDegree();
 
-        List<ProtocolTask<byte[]>> tasks = new ArrayList<>();
+        List<ProtocolTask<Boolean>> tasks = new ArrayList<>();
         for(int i = 0; i < replicationDegree; ++i){
             UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
             tasks.add(new ProtocolTask<>() {
                 @Override
-                protected byte[] compute() {
-                    return systemStorage.get(id);
+                protected Boolean compute() {
+                    return systemStorage.head(id);
                 }
             });
         }
 
-        ProtocolTask.invokeTasks(tasks.stream().map((ProtocolTask<byte[]> task) -> (ProtocolTask<?>) task).collect(Collectors.toList()));
+        ProtocolTask.invokeTasks(tasks.stream().map((ProtocolTask<Boolean> task) -> (ProtocolTask<?>) task).collect(Collectors.toList()));
+
         try {
-            byte[] ret = null;
-            for (ProtocolTask<byte[]> task : tasks) {
-                if (task.get() != null) {
-                    ret = task.get();
+            byte[] chunk = null;
+            for (int i = 0; i < replicationDegree; ++i) {
+                UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
+                ProtocolTask<Boolean> task = tasks.get(i);
+                if (task.get()) {
+                    chunk = systemStorage.get(id);
                     break;
                 }
             }
-            if(ret == null) return null;
+            if(chunk == null) return false;
+
+            boolean ret = true;
             for (int i = 0; i < replicationDegree; ++i) {
-                byte[] tmp = tasks.get(i).get();
-                if (tmp == null) {
+                boolean b = tasks.get(i).get();
+                if (!b) {
                     UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
-                    systemStorage.put(id, ret);
+                    ret &= systemStorage.put(id, chunk);
                 }
             }
             return ret;
-        } catch (InterruptedException e) {
-            throw new CompletionException(e);
-        } catch (ExecutionException e) {
-            throw new CompletionException(e.getCause());
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -75,9 +71,7 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
             ProtocolTask<Boolean> task = new ProtocolTask<>() {
                 @Override
                 protected Boolean compute() {
-                    byte[] data = getChunk(finalI);
-                    if (data == null) return false;
-                    return destination.set(finalI, data);
+                    return fixChunk(finalI);
                 }
             };
             tasks.add(task);

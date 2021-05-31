@@ -1,4 +1,3 @@
-import sdis.Modules.ProtocolTask;
 import sdis.Peer;
 
 import java.io.IOException;

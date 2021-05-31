@@ -7,10 +7,11 @@ import sdis.Utils.DataBuilder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletionException;
 
-public class DeleteSystemMessage extends SystemStorageMessage {
+public class DeleteSystemMessage extends SystemStorageMessage<Boolean> {
 
     private final UUID id;
 
@@ -24,29 +25,25 @@ public class DeleteSystemMessage extends SystemStorageMessage {
         id = new UUID(splitString[1]);
     }
 
-    private UUID getId() {
-        return id;
-    }
-
     @Override
     protected DataBuilder build() {
-        return new DataBuilder(("DELETESYSTEM " + getId()).getBytes());
+        return new DataBuilder(("DELETESYSTEM " + id).getBytes());
     }
 
     private static class DeleteSystem extends Processor {
 
         private final DeleteSystemMessage message;
 
-        public DeleteSystem(SystemStorage systemStorage, Socket socket, DeleteSystemMessage message){
+        public DeleteSystem(SystemStorage systemStorage, SocketChannel socket, DeleteSystemMessage message){
             super(systemStorage, socket);
             this.message = message;
         }
 
         @Override
         public void compute() {
-            boolean b = getSystemStorage().getDataStorage().delete(message.getId());
+            boolean b = getSystemStorage().getDataStorage().delete(message.id);
             try {
-                getSocket().getOutputStream().write(message.formatResponse(b));
+                getSocket().write(message.formatResponse(b));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -59,13 +56,13 @@ public class DeleteSystemMessage extends SystemStorageMessage {
         return new DeleteSystem(peer.getSystemStorage(), socket, this);
     }
 
-    private byte[] formatResponse(boolean b) {
-        byte[] ret = new byte[1];
-        ret[0] = (byte) (b ? 1 : 0);
-        return ret;
+    @Override
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
-    public boolean parseResponse(byte[] response) {
-        return (response[0] != 0);
+    @Override
+    public Boolean parseResponse(ByteBuffer response) {
+        return (response.position() == 1 && response.array()[0] == 1);
     }
 }
