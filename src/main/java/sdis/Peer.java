@@ -127,12 +127,13 @@ public class Peer implements PeerInterface {
 
         ret &= die();
 
+        System.out.println("Peer " + chord.getKey() + " done leaving");
+
         return ret;
     }
 
     public boolean die(){
         try {
-            serverSocketHandlerThread.interrupt();
             serverSocket.close();
             serverSocketHandlerThread.join();
         } catch (InterruptedException | IOException e) {
@@ -279,7 +280,7 @@ public class Peer implements PeerInterface {
 
         @Override
         public void run() {
-            while (!Thread.interrupted()) {
+            while (true) {
                 try {
                     Socket socket = serverSocket.accept();
                     InputStream is = socket.getInputStream();
@@ -288,13 +289,13 @@ public class Peer implements PeerInterface {
                     Message.Processor processor = message.getProcessor(peer, socket);
                     executor.execute(processor::invoke);
                 } catch(SocketException e) {
-                    System.err.println("Peer " + peer.getKey() + ": SocketException in ServerSocketHandler cycle");
+                    System.out.println("Peer " + peer.getKey() + ": Socket exception, exiting server socket handler");
+                    return;
                 } catch (Exception e) {
                     System.err.println("Peer " + peer.getKey() + ": Exception in ServerSocketHandler cycle");
                     e.printStackTrace();
                 }
             }
-            System.err.println("Peer " + peer.getKey() + ": ServerSocketHandler was interrupted");
         }
     }
 }
