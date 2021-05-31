@@ -96,9 +96,9 @@ public class Peer implements PeerInterface {
         sslEngine.beginHandshake();
 
         serverSocket = ServerSocketChannel.open();
-        serverSocket.configureBlocking(false);
-        serverSocket.socket().bind(socketAddress);
-
+        serverSocket.configureBlocking(true);
+        serverSocket.socket().bind(null);
+        socketAddress = new InetSocketAddress(ipAddress, serverSocket.socket().getLocalPort());
 
         System.out.println(
             "Starting peer " + id +
