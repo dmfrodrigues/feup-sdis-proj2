@@ -33,7 +33,8 @@ public class LeaveProtocol extends ProtocolTask<Boolean> {
             for(int i = 0; i < Chord.SUCCESSOR_LIST_SIZE && !p.equals(r); ++i){
                 UnnotifySuccessorMessage unnotifySuccessorMessage = new UnnotifySuccessorMessage(r);
                 try {
-                    if(!unnotifySuccessorMessage.sendTo(chord, p.address)) return false;
+                    if(!unnotifySuccessorMessage.sendTo(chord, p.address))
+                        System.err.println("Node " + r.key + ": Failed to unnotify " + p.key + "; proceeding as usual");
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                     return false;

@@ -1,6 +1,7 @@
 package sdis;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.Chord.FixChordProtocol;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
@@ -262,6 +263,10 @@ public class Peer implements PeerInterface {
     public UserMetadata authenticate(Username username, Password password) {
         AuthenticationProtocol authenticationProtocol = new AuthenticationProtocol(main, username, password);
         return authenticationProtocol.invoke();
+    }
+
+    public boolean fix() {
+        return new FixChordProtocol(chord).invoke();
     }
 
     public static class ServerSocketHandler implements Runnable {

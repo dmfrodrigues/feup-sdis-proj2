@@ -132,7 +132,6 @@ public class MainJoinLeaveTest {
         assertTrue(peer1.leave());
     }
 
-    @Ignore
     @Test(timeout=1000)
     public void die_2peers() throws Exception {
         int KEY_SIZE = 10;
@@ -192,7 +191,6 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    @Ignore
     @Test(timeout=1000)
     public void die_2peers_2() throws Exception {
         int KEY_SIZE = 10;
@@ -216,7 +214,7 @@ public class MainJoinLeaveTest {
         assertEquals(800, peer2.getChord().getFingerRaw(8).key.toLong());
         assertEquals(800, peer2.getChord().getFingerRaw(9).key.toLong());
 
-        // assertTrue(peer2.fix());
+        assertTrue(peer2.fix());
 
         assertEquals(800, peer2.getChord().getFingerRaw(0).key.toLong());
         assertEquals(800, peer2.getChord().getFingerRaw(1).key.toLong());
@@ -257,7 +255,7 @@ public class MainJoinLeaveTest {
         assertArrayEquals(data, peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-0")));
         assertNull(peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-1")));
 
-        // assertTrue(peer1.fix());
+        assertTrue(peer1.fix());
         assertArrayEquals(data, peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-0")));
         assertArrayEquals(data, peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-1")));
 

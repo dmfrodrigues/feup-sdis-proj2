@@ -1,6 +1,7 @@
 package sdis.Modules.Chord.Messages;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.Chord.FixChordProtocol;
 import sdis.Peer;
 import sdis.Utils.DataBuilder;
 
@@ -46,23 +47,11 @@ public class UnnotifySuccessorMessage extends ChordMessage<Boolean> {
 
         @Override
         public void compute() {
-            Chord.NodeInfo n = getChord().getNodeInfo();
-
             // Update successors
-            Chord.Key k = n.key;
-            for(int i = 0; i < Chord.SUCCESSOR_LIST_SIZE; ++i) {
-                Chord.NodeInfo s = getChord().findSuccessor(k.add(1));
-                if(s == null){
-                    System.err.println("Node " + n.key + ": Failed to find successor of " + k.add(1) + " to find one of its successors");
-                    continue;
-                }
-                if(s.equals(n)) break;
-                getChord().addSuccessor(s);
-                k = s.key;
-            }
+            boolean ret = FixChordProtocol.fixSuccessors(getChord());
 
             try {
-                getSocket().getOutputStream().write(message.formatResponse(true));
+                getSocket().getOutputStream().write(message.formatResponse(ret));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
