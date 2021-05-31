@@ -24,13 +24,13 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
     public Boolean compute() {
         System.out.println("Node " + chord.getNodeInfo().key + ": Starting to join");
 
-        Chord.NodeInfo r = chord.getNodeInfo();
+        Chord.NodeInfo n = chord.getNodeInfo();
 
         // Initialize fingers table and predecessor
         // Get predecessor
         try {
             // Get successors
-            Chord.Key k = r.key;
+            Chord.Key k = n.key;
             FindSuccessorMessage findSuccessorMessage = new FindSuccessorMessage(k.add(1));
             Chord.NodeInfo s = findSuccessorMessage.sendTo(chord, g);
             chord.addSuccessor(s);
@@ -54,11 +54,11 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
         }
         // Build fingers table
         for(int i = 0; i < chord.getKeySize(); ++i){
-            Chord.Key k = r.key.add(1L << i);
+            Chord.Key k = n.key.add(1L << i);
             try {
                 FindSuccessorMessage m = new FindSuccessorMessage(k);
                 Chord.NodeInfo s = m.sendTo(chord, g);
-                if(Chord.distance(k, r.key) < Chord.distance(k, s.key)) s = r;
+                if(Chord.distance(k, n.key) < Chord.distance(k, s.key)) s = n;
                 chord.setFinger(i, s);
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -73,11 +73,11 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
         FingersAddProtocol fingersAddProtocol = new FingersAddProtocol(chord);
         fingersAddProtocol.invoke();
         // Update other nodes' successor lists
-        Chord.Key k = r.key;
-        NotifySuccessorMessage notifySuccessorMessage = new NotifySuccessorMessage(r);
+        Chord.Key k = n.key;
+        NotifySuccessorMessage notifySuccessorMessage = new NotifySuccessorMessage(n);
         for(int i = 0; i < Chord.SUCCESSOR_LIST_SIZE; ++i) {
             Chord.NodeInfo p = chord.findPredecessor(k);
-            if(p.equals(r)) break;
+            if(p.equals(n)) break;
             try {
                 if(!notifySuccessorMessage.sendTo(chord, p.address)) return false;
             } catch (IOException | InterruptedException e) {

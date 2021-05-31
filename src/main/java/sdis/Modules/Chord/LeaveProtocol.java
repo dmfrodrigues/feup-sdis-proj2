@@ -16,11 +16,11 @@ public class LeaveProtocol extends ProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        Chord.NodeInfo r = chord.getNodeInfo();
+        Chord.NodeInfo n = chord.getNodeInfo();
         Chord.NodeInfo s = chord.getSuccessorInfo();
 
         // If it is not alone, process stuff
-        if(!r.equals(s)) {
+        if(!n.equals(s)) {
             // Update predecessors and fingers tables of other nodes
             // Update predecessor of successor
             SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getPredecessorInfo());
@@ -30,11 +30,11 @@ public class LeaveProtocol extends ProtocolTask<Boolean> {
             if (!fingersRemoveProtocol.invoke()) return false;
             // Update other nodes' successors lists
             Chord.NodeInfo p = chord.getPredecessorInfo();
-            for(int i = 0; i < Chord.SUCCESSOR_LIST_SIZE && !p.equals(r); ++i){
-                UnnotifySuccessorMessage unnotifySuccessorMessage = new UnnotifySuccessorMessage(r);
+            for(int i = 0; i < Chord.SUCCESSOR_LIST_SIZE && !p.equals(n); ++i){
+                UnnotifySuccessorMessage unnotifySuccessorMessage = new UnnotifySuccessorMessage(n);
                 try {
                     if(!unnotifySuccessorMessage.sendTo(chord, p.address))
-                        System.err.println("Node " + r.key + ": Failed to unnotify " + p.key + "; proceeding as usual");
+                        System.err.println("Node " + n.key + ": Failed to unnotify " + p.key + "; proceeding as usual");
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                     return false;

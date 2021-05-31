@@ -18,11 +18,11 @@ public class MoveKeysProtocol extends ProtocolTask<Boolean> {
     @Override
     public Boolean compute() {
         Chord chord = systemStorage.getChord();
-        Chord.NodeInfo r = chord.getNodeInfo();
+        Chord.NodeInfo n = chord.getNodeInfo();
 
         Chord.NodeConn s = chord.getSuccessor();
         try{
-            MoveKeysMessage moveKeysMessage = new MoveKeysMessage(r);
+            MoveKeysMessage moveKeysMessage = new MoveKeysMessage(n);
             return moveKeysMessage.sendTo(s.socket);
         } catch (IOException | InterruptedException e) {
             try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
