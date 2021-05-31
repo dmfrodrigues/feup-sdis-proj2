@@ -113,17 +113,21 @@ public class Peer implements PeerInterface {
     public boolean leave(){
         System.out.println("Peer " + getKey() + " leaving its chord");
 
-        return chord.leave(new ProtocolTask<>() {
+        boolean ret = chord.leave(new ProtocolTask<>() {
             @Override
             public Boolean compute() {
                 // Remove keys
                 RemoveKeysProtocol removeKeysProtocol = new RemoveKeysProtocol(systemStorage);
-                if(!removeKeysProtocol.invoke()) return false;
+                if (!removeKeysProtocol.invoke()) return false;
 
                 // Delete local storage
                 return Utils.deleteRecursive(baseStoragePath.toFile());
             }
         });
+
+        ret &= die();
+
+        return ret;
     }
 
     public boolean die(){

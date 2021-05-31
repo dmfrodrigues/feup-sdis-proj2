@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * Can (and should) throw a ProtocolException when it fails.
  */
 public abstract class ProtocolTask<T> extends RecursiveTask<T> {
-    private static int PARALLELISM_LEVEL = 6;
+    private static final int PARALLELISM_LEVEL = 6;
 
     public static void invokeTasks(List<ProtocolTask<?>> tasks) {
         Queue<ProtocolTask<?>> q = new LinkedList<>();
