@@ -86,64 +86,6 @@ public class Peer implements PeerInterface {
         }));
     }
 
-    public boolean join(){
-        System.out.println("Peer " + getKey() + " creating a new chord");
-
-        return chord.join();
-    }
-
-    public boolean join(InetSocketAddress gateway){
-        System.out.println("Peer " + getKey() + " joining a chord");
-
-        return chord.join(gateway, new ProtocolTask<>() {
-            @Override
-            public Boolean compute() {
-                // Get redirects
-                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(chord);
-                Set<UUID> redirects = getRedirectsProtocol.invoke();
-                for(UUID id : redirects)
-                    dataStorage.registerSuccessorStored(id);
-
-                // Move keys
-                MoveKeysProtocol moveKeysProtocol = new MoveKeysProtocol(systemStorage);
-                return moveKeysProtocol.invoke();
-            }
-        });
-    }
-
-    public boolean leave(){
-        System.out.println("Peer " + getKey() + " leaving its chord");
-
-        boolean ret = chord.leave(new ProtocolTask<>() {
-            @Override
-            public Boolean compute() {
-                // Remove keys
-                RemoveKeysProtocol removeKeysProtocol = new RemoveKeysProtocol(systemStorage);
-                if (!removeKeysProtocol.invoke()) return false;
-
-                // Delete local storage
-                return Utils.deleteRecursive(baseStoragePath.toFile());
-            }
-        });
-
-        ret &= die();
-
-        System.out.println("Peer " + chord.getNodeInfo().key + " done leaving");
-
-        return ret;
-    }
-
-    public boolean die(){
-        try {
-            serverSocket.close();
-            serverSocketHandlerThread.join();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
     public Chord.Key getKey() {
         return id;
     }
@@ -166,6 +108,65 @@ public class Peer implements PeerInterface {
 
     public Main getMain() {
         return main;
+    }
+
+    public boolean join(){
+        System.out.println("Peer " + id + " creating a new chord");
+
+        return chord.join();
+    }
+
+    public boolean join(InetSocketAddress gateway){
+        System.out.println("Peer " + id + " joining a chord");
+
+        return chord.join(gateway, new ProtocolTask<>() {
+            @Override
+            public Boolean compute() {
+                // Get redirects
+                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(chord);
+                Set<UUID> redirects = getRedirectsProtocol.invoke();
+                for(UUID id : redirects)
+                    dataStorage.registerSuccessorStored(id);
+
+                // Move keys
+                MoveKeysProtocol moveKeysProtocol = new MoveKeysProtocol(systemStorage);
+                return moveKeysProtocol.invoke();
+            }
+        });
+    }
+
+    public boolean leave(){
+        System.out.println("Peer " + id + " leaving its chord");
+
+        boolean ret = chord.leave(new ProtocolTask<>() {
+            @Override
+            public Boolean compute() {
+                // Remove keys
+                RemoveKeysProtocol removeKeysProtocol = new RemoveKeysProtocol(systemStorage);
+                if (!removeKeysProtocol.invoke()) return false;
+
+                // Delete local storage
+                return Utils.deleteRecursive(baseStoragePath.toFile());
+            }
+        });
+
+        ret &= kill();
+
+        System.out.println("Peer " + chord.getNodeInfo().key + " done leaving");
+
+        return ret;
+    }
+
+    public boolean kill(){
+        try {
+            serverSocket.close();
+            serverSocketHandlerThread.join();
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 
     public UserMetadata authenticate(Username username, Password password) {
@@ -287,10 +288,10 @@ public class Peer implements PeerInterface {
                     Message.Processor processor = message.getProcessor(peer, socket);
                     executor.execute(processor::invoke);
                 } catch(SocketException e) {
-                    System.out.println("Peer " + peer.getKey() + ": Socket exception, exiting server socket handler");
+                    System.out.println("Peer " + peer.id + ": Socket exception, exiting server socket handler");
                     return;
                 } catch (Exception e) {
-                    System.err.println("Peer " + peer.getKey() + ": Exception in ServerSocketHandler cycle");
+                    System.err.println("Peer " + peer.id + ": Exception in ServerSocketHandler cycle");
                     e.printStackTrace();
                 }
             }

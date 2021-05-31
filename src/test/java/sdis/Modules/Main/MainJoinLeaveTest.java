@@ -118,10 +118,10 @@ public class MainJoinLeaveTest {
 
         assertEquals(100, peer1.getChord().getSuccessorInfo().key.toLong());
 
-        assertTrue(peer2.die());
+        assertTrue(peer2.kill());
         assertEquals(200, peer1.getChord().getSuccessorInfo().key.toLong());
 
-        assertTrue(peer3.die());
+        assertTrue(peer3.kill());
         assertEquals(0, peer1.getChord().getSuccessorInfo().key.toLong());
 
         assertTrue(peer1.leave());
@@ -148,7 +148,7 @@ public class MainJoinLeaveTest {
         assertEquals(800, peer2.getChord().getFingerRaw(8).key.toLong());
         assertEquals(800, peer2.getChord().getFingerRaw(9).key.toLong());
 
-        assertTrue(peer1.die());
+        assertTrue(peer1.kill());
 
         assertEquals(  0, peer2.getChord().getFingerRaw(0).key.toLong());
         assertEquals(  0, peer2.getChord().getFingerRaw(1).key.toLong());
@@ -196,7 +196,7 @@ public class MainJoinLeaveTest {
         Peer peer2 = new Peer(KEY_SIZE, 800, InetAddress.getByName("localhost"), Paths.get("bin"));
         peer2.join(peer1.getSocketAddress());
 
-        assertTrue(peer1.die());
+        assertTrue(peer1.kill());
 
         assertEquals(  0, peer2.getChord().getFingerRaw(0).key.toLong());
         assertEquals(  0, peer2.getChord().getFingerRaw(1).key.toLong());
@@ -245,7 +245,7 @@ public class MainJoinLeaveTest {
         assertArrayEquals(data, peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-0")));
         assertArrayEquals(data, peer2.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-1")));
 
-        assertTrue(peer2.die());
+        assertTrue(peer2.kill());
         assertArrayEquals(data, peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-0")));
         assertNull(peer1.getDataStorage().getLocalDataStorage().get(new UUID("user1/mydata-0-1")));
 
