@@ -1,5 +1,8 @@
 package sdis.Utils;
 
+import sdis.Sockets.SecureClientSocketChannel;
+
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.io.File;
 import java.io.IOException;
@@ -83,10 +86,8 @@ public class Utils {
         return ret;
     }
 
-    public static SocketChannel createSocket(SSLEngine sslEngine, InetSocketAddress address) throws IOException {
-        SocketChannel socket = SocketChannel.open();
-        socket.connect(address);
-        return socket;
+    public static SocketChannel createSocket(SSLContext sslContext, InetSocketAddress address) throws IOException {
+        return new SecureClientSocketChannel(address, sslContext);
     }
 
     public static String fromByteBufferToString(ByteBuffer byteBuffer) {

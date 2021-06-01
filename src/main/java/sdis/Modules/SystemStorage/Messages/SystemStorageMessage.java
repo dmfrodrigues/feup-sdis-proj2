@@ -36,7 +36,7 @@ public abstract class SystemStorageMessage<T> extends Message {
     protected abstract T parseResponse(ByteBuffer data);
 
     public T sendTo(SystemStorage systemStorage, InetSocketAddress address) throws IOException, InterruptedException {
-        return sendTo(Utils.createSocket(systemStorage.getSSLEngine(), address));
+        return sendTo(Utils.createSocket(systemStorage.getSSLContext(), address));
     }
 
     public T sendTo(SocketChannel socket) throws IOException, InterruptedException {

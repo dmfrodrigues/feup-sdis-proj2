@@ -43,7 +43,7 @@ public abstract class DataStorageMessage<T> extends Message {
     protected abstract T parseResponse(ByteBuffer data);
 
     public T sendTo(DataStorage dataStorage, InetSocketAddress address) throws IOException, InterruptedException {
-        return sendTo(Utils.createSocket(dataStorage.getSSLEngine(), address));
+        return sendTo(Utils.createSocket(dataStorage.getSSLContext(), address));
     }
 
     public T sendTo(SocketChannel socket) throws IOException, InterruptedException {

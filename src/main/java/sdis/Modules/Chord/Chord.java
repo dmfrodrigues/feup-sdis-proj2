@@ -4,6 +4,7 @@ import sdis.Modules.Chord.Messages.HelloMessage;
 import sdis.Modules.ProtocolTask;
 import sdis.Utils.Utils;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -100,7 +101,7 @@ public class Chord {
         }
 
         public SocketChannel createSocket() throws IOException {
-            return Utils.createSocket(key.chord.sslEngine, address);
+            return Utils.createSocket(key.chord.sslContext, address);
         }
 
         @Override
@@ -132,7 +133,7 @@ public class Chord {
 
     private final int keySize;
 
-    private final SSLEngine sslEngine;
+    private final SSLContext sslContext;
     private final InetSocketAddress socketAddress;
     private final Chord.Key key;
     private final NodeInfo[] fingers;
@@ -141,8 +142,8 @@ public class Chord {
 
     private final ScheduledExecutorService executorOfFixes = Executors.newSingleThreadScheduledExecutor();
 
-    public Chord(SSLEngine sslEngine, InetSocketAddress socketAddress, int keySize, long key){
-        this.sslEngine = sslEngine;
+    public Chord(SSLContext sslContext, InetSocketAddress socketAddress, int keySize, long key){
+        this.sslContext = sslContext;
         this.socketAddress = socketAddress;
         this.keySize = keySize;
         this.key = newKey(key);
@@ -154,8 +155,8 @@ public class Chord {
         });
     }
 
-    public SSLEngine getSSLEngine() {
-        return sslEngine;
+    public SSLContext getSSLContext() {
+        return sslContext;
     }
 
     public void scheduleFixes(){

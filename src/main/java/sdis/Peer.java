@@ -11,6 +11,7 @@ import sdis.Modules.SystemStorage.MoveKeysProtocol;
 import sdis.Modules.SystemStorage.ReclaimProtocol;
 import sdis.Modules.SystemStorage.RemoveKeysProtocol;
 import sdis.Modules.SystemStorage.SystemStorage;
+import sdis.Sockets.SecureServerSocketChannel;
 import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.Utils.Utils;
@@ -47,8 +48,8 @@ import static sdis.Modules.Main.Main.MAX_HEADER_SIZE;
 
 public class Peer implements PeerInterface {
 
-    private final SSLEngine serverSSLEngine;
-    private final SSLEngine clientSSLEngine;
+    private final SSLContext serverSSLContext;
+    private final SSLContext clientSSLContext;
     private final ServerSocketChannel serverSocket;
 
     private final Chord.Key id;
@@ -65,15 +66,11 @@ public class Peer implements PeerInterface {
     }
 
     public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
-        serverSocket = ServerSocketChannel.open();
-        serverSocket.configureBlocking(true);
-        serverSocket.socket().bind(null);
+        serverSSLContext = initializeServerSSLContext(id);
+        clientSSLContext = initializeClientSSLContext(id);
+
+        serverSocket = new SecureServerSocketChannel(serverSSLContext);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.socket().getLocalPort());
-
-        serverSSLEngine = initializeServerSSLEngine(id);
-        clientSSLEngine = initializeClientSSLEngine(id);
-
-//        serverSocket.setSSLEngine(serverSSLEngine);
 
         System.out.println(
             "Starting peer " + id +
@@ -81,10 +78,10 @@ public class Peer implements PeerInterface {
         );
 
         this.baseStoragePath = Paths.get(baseStoragePath.toString(), Long.toString(id));
-        chord = new Chord(clientSSLEngine, socketAddress, keySize, id);
-        dataStorage = new DataStorage(clientSSLEngine, Paths.get(this.baseStoragePath.toString(), "storage/data"), getChord());
-        systemStorage = new SystemStorage(clientSSLEngine, chord, dataStorage);
-        main = new Main(clientSSLEngine, systemStorage);
+        chord = new Chord(clientSSLContext, socketAddress, keySize, id);
+        dataStorage = new DataStorage(clientSSLContext, Paths.get(this.baseStoragePath.toString(), "storage/data"), getChord());
+        systemStorage = new SystemStorage(clientSSLContext, chord, dataStorage);
+        main = new Main(clientSSLContext, systemStorage);
 
         this.id = chord.newKey(id);
 
@@ -96,7 +93,7 @@ public class Peer implements PeerInterface {
         serverSocketHandlerThread.start();
     }
 
-    private SSLEngine initializeServerSSLEngine(long id) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
+    private SSLContext initializeServerSSLContext(long id) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
         // Create and initialize the SSLContext with key material
         char[] password = Files.readString(Path.of("keys/password")).toCharArray();
 
@@ -114,17 +111,13 @@ public class Peer implements PeerInterface {
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
         tmf.init(ksTrust);
 
-        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+        SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
-        SSLEngine sslEngine = sslContext.createSSLEngine(Long.toString(id), socketAddress.getPort());
-        sslEngine.setUseClientMode(false);
-
-        sslEngine.beginHandshake();
-        return sslEngine;
+        return sslContext;
     }
 
-    private SSLEngine initializeClientSSLEngine(long id) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
+    private SSLContext initializeClientSSLContext(long id) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
         // Create and initialize the SSLContext with key material
         char[] password = Files.readString(Path.of("keys/password")).toCharArray();
 
@@ -142,14 +135,10 @@ public class Peer implements PeerInterface {
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
         tmf.init(ksTrust);
 
-        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+        SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
-        SSLEngine sslEngine = sslContext.createSSLEngine(Long.toString(id), socketAddress.getPort());
-        sslEngine.setUseClientMode(true);
-
-        sslEngine.beginHandshake();
-        return sslEngine;
+        return sslContext;
     }
 
     public void bindAsRemoteObject(String remoteObjName) throws RemoteException, AlreadyBoundException {

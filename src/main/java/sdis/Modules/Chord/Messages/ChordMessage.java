@@ -36,7 +36,7 @@ public abstract class ChordMessage<T> extends Message {
     protected abstract T parseResponse(Chord chord, ByteBuffer data);
 
     public T sendTo(Chord chord, InetSocketAddress address) throws IOException, InterruptedException {
-        return sendTo(chord, Utils.createSocket(chord.getSSLEngine(), address));
+        return sendTo(chord, Utils.createSocket(chord.getSSLContext(), address));
     }
 
     public T sendTo(Chord chord, SocketChannel socket) throws IOException, InterruptedException {

@@ -5,23 +5,23 @@ import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.Message;
 import sdis.UUID;
 
-import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
 public class SystemStorage {
-    private final SSLEngine sslEngine;
+    private final SSLContext sslContext;
     private final Chord chord;
     private final DataStorage dataStorage;
 
-    public SystemStorage(SSLEngine sslEngine, Chord chord, DataStorage dataStorage){
-        this.sslEngine = sslEngine;
+    public SystemStorage(SSLContext sslContext, Chord chord, DataStorage dataStorage){
+        this.sslContext = sslContext;
         this.chord = chord;
         this.dataStorage = dataStorage;
     }
 
-    public SSLEngine getSSLEngine() {
-        return sslEngine;
+    public SSLContext getSSLContext() {
+        return sslContext;
     }
 
     public Chord getChord() {
