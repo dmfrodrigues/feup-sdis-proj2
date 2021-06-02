@@ -100,46 +100,58 @@ public class LocalDataStorage extends DataStorageAbstract {
      **/
     @Override
     public boolean put(UUID id, byte[] data) {
-            boolean canPut = canPut(data.length);
-            if(!canPut) return false;
-            ByteBuffer buffer = ByteBuffer.wrap(data);
-            try {
-                String pathStr = storagePath + "/" + id;
-                File pathFile = new File(pathStr);
-                if(!pathFile.getParentFile().exists() && !pathFile.getParentFile().mkdirs()) return false;
-                AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(pathStr), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-                os.write(buffer, 0).get();
-                os.close();
-            } catch (InterruptedException | ExecutionException | IOException e) {
-                e.printStackTrace();
-                return false;
+        boolean canPut = canPut(data.length);
+        if(!canPut) return false;
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        try {
+            String pathStr = storagePath + "/" + id;
+            File pathFile = new File(pathStr);
+            if(!pathFile.getParentFile().mkdirs()) {
+                if (!pathFile.getParentFile().exists()) {
+                    return false;
+                }
             }
-            return true;
+            AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(pathStr), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+            os.write(buffer, 0).get();
+            os.force(true);
+            os.close();
+        } catch (InterruptedException | ExecutionException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @Override
     public byte[] get(UUID id) {
-            if (!has(id)) return null;
+        if (!has(id)) return null;
 
-            AsynchronousFileChannel is;
-            try {
-                is = AsynchronousFileChannel.open(Path.of(storagePath + "/" + id), StandardOpenOption.READ);
-            } catch (IOException e) {
-                throw new CompletionException(e);
-            }
-            ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
-            Future<Integer> f = is.read(buffer, 0);
+        AsynchronousFileChannel is;
+        try {
+            is = AsynchronousFileChannel.open(Path.of(storagePath + "/" + id), StandardOpenOption.READ);
+        } catch (IOException e) {
+            throw new CompletionException(e);
+        }
 
-            try {
-                int size = f.get();
-                is.close();
-                byte[] bufferArray = new byte[size];
-                buffer.flip();
-                buffer.get(bufferArray, 0, size);
-                return bufferArray;
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
+        try {
+            if(is.size() == 0) return new byte[0];
+        } catch (IOException e) {
+            throw new CompletionException(e);
+        }
+
+        ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+        Future<Integer> f = is.read(buffer, 0);
+
+        try {
+            int size = f.get();
+            is.close();
+            byte[] bufferArray = new byte[size];
+            buffer.flip();
+            buffer.get(bufferArray, 0, size);
+            return bufferArray;
+        } catch (Exception e) {
+            throw new CompletionException(e);
+        }
     }
 
     /**

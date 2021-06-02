@@ -25,15 +25,20 @@ public class DataBuilderChunkOutput implements ChunkOutput {
     }
 
     @Override
-    public boolean set(long i, byte[] e) {
+    synchronized public boolean set(long i, byte[] e) {
         byte[] eCopy = new byte[e.length];
         System.arraycopy(e, 0, eCopy, 0, e.length);
         if(!buffer.canSet(i)) return false;
         buffer.set(i, eCopy);
-        if(buffer.hasNext()){
+        while(buffer.hasNext()){
             byte[] next = buffer.next();
             builder.append(next);
         }
         return true;
+    }
+
+    @Override
+    synchronized public long getMaxIndex() {
+        return buffer.getMaxIndex();
     }
 }
