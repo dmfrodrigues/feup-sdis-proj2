@@ -2,38 +2,41 @@
 
 Supports the same operations as the data storage module (add, retrieve and delete datapieces) except when called the PutSystem, GetSystem and DeleteSystem protocols do not require to know where the datapieces should be stored according to their keys, and these protocols can be called from any node (while data storage protocols could only be called from the node it was supposed to apply).
 
-<!--
-DeleteSystem also handles the case where a peer that is essential to running the Delete protocol is down, using the Hello protocol to realise a node is online and retry to delete the datapiece.
--->
-
 It additionally supports protocols to:
 
 - Join the system in an orderly fashion
 - Change maximum allowed storage space for the current node
 - Leave the system in an orderly fashion
 
-One assumption we make is that the vast majority of datapieces stored using the DataStorage layer are stored in the node they are meant to, and not in their successors due to widespread memory shortage. It is a pretty big assumption, however it 
+The `PUTSYSTEM`, `DELETESYSTEM`, `GETSYSTEM` and `HEADSYSTEM` messages have the same formats as their corresponding Data Storage messages `PUT`, `DELETE`, `GET` and `HEAD`.
 
 ### PutSystem protocol
 
 - **Arguments:** UUID, data
 - **Returns:** -
 
-Finds the successor $s$ of the key of the given UUID, sends a `PUT` message to $s$ and returns the response to that message.
+Finds the successor $s$ of the key of the given UUID, sends a `PUTSYSTEM` message to $s$ and returns the response to that message.
 
 ### DeleteSystem protocol
 
 - **Arguments:** UUID
 - **Returns:** -
 
-Finds the successor $s$ of the key of the given UUID, sends a `DELETE` message to $s$ and returns the response to that message.
+Finds the successor $s$ of the key of the given UUID, sends a `DELETESYSTEM` message to $s$ and returns the response to that message.
 
 ### GetSystem protocol
 
 - **Arguments:** UUID
 - **Returns:** data
 
-Finds the successor $s$ of the key of the given UUID, sends a `GET` message to $s$ and returns the response to that message.
+Finds the successor $s$ of the key of the given UUID, sends a `GETSYSTEM` message to $s$ and returns the response to that message.
+
+### HeadSystem protocol
+
+- **Arguments:** UUID
+- **Returns:** data
+
+Finds the successor $s$ of the key of the given UUID, sends a `HEADSYSTEM` message to $s$ and returns the response to that message.
 
 ### MoveKeys protocol
 
