@@ -127,7 +127,7 @@ public class MainJoinLeaveTest {
         assertTrue(peer1.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=8000)
     public void die_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -186,7 +186,7 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=4000)
     public void die_2peers_2() throws Exception {
         int KEY_SIZE = 10;
 
@@ -225,7 +225,7 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=8000)
     public void die_2peers_withFiles() throws Exception {
         int KEY_SIZE = 10;
 

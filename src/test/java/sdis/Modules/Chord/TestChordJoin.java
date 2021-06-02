@@ -241,7 +241,7 @@ public class TestChordJoin {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=20000)
+    @Test(timeout=100000)
     public void peer3_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
@@ -289,7 +289,7 @@ public class TestChordJoin {
         assertTrue(peer3.leave());
     }
 
-    @Test(timeout=40000)
+    @Test(timeout=160000)
     public void peer10_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);

@@ -42,7 +42,7 @@ public class MainTest {
         peer.leave();
     }
 
-    @Test(timeout=80000)
+    @Test(timeout=160000)
     public void backupFileProtocol_noEnlist_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -198,7 +198,7 @@ public class MainTest {
         peer.leave();
     }
 
-    @Test(timeout=16000)
+    @Test(timeout=160000)
     public void backupFileProtocol_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -377,7 +377,7 @@ public class MainTest {
         for(Peer p: peers) p.leave();
     }
 
-    @Test(timeout=30000)
+    @Test(timeout=160000)
     public void delete_manyFiles_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -465,7 +465,7 @@ public class MainTest {
         peer.leave();
     }
 
-    @Test(timeout=16000)
+    @Test(timeout=160000)
     public void deleteAccount_10peer() throws Exception {
         int KEY_SIZE = 10;
 

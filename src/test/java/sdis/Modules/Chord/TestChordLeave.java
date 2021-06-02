@@ -98,7 +98,7 @@ public class TestChordLeave {
         }
     }
 
-    @Test(timeout=8000)
+    @Test(timeout=80000)
     public void peer2_larger() throws Exception {
         int keySize = 6;
         long MOD = (1L << keySize);
@@ -191,7 +191,7 @@ public class TestChordLeave {
         peer2.leave();
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=100000)
     public void peer7() throws Exception {
         int keySize = 6;
         long MOD = (1L << keySize);
@@ -239,7 +239,7 @@ public class TestChordLeave {
         }
     }
 
-    @Test(timeout=60000)
+    @Test(timeout=320000)
     public void peer20_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
