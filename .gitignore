@@ -7,6 +7,6 @@ bin/
 !doc/report.pdf
 build/
 
-gradle/
+# gradle/
 .gradle/
 *.code-workspace
