@@ -34,8 +34,6 @@ public class FixChordProtocol extends ProtocolTask<Boolean> {
     static public boolean fixFingers(Chord chord){
         boolean ret = true;
 
-        Chord.NodeInfo n = chord.getNodeInfo();
-
         for(int i = 0; i < chord.getKeySize(); ++i){
             try {
                 chord.getFingerInfo(i);

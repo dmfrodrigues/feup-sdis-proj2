@@ -1,7 +1,6 @@
 package sdis;
 
 import sdis.Modules.Chord.Chord;
-import sdis.Modules.Chord.FixChordProtocol;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
