@@ -22,18 +22,11 @@ To solve this problem, we first assume that, once a peer leaves the system, the 
 
 This means the `SystemStorage` module does not guarantee data is not lost and might fail to retrieve some datapieces that were successfully stored before. This problem is solved by the upper layer (`Main`), which replicates the same chunk several times, and as such can retrieve another replica of the same chunk, and latter re-store the replica it failed to find.
 
-### Periodic consistency checks
+To check if another peer is operating, the current peer simply opens a socket connecting to that peer; this will fail if the peer does not accept the connection, as we are speaking of TCP connections which require a handshake. Ideally, this socket will then be supplied to the protocol that needs it, but if the only goal is to check the peer exists and get its information (without needing a socket), a `HELLO` message will be sent, with the only goal of telling the receiving end to respond with a `1` and ignore (otherwise the receiving end could get confused as to the type of the message, as it would otherwise be empty).
 
-<!-- TODO -->
+### At the chord level
 
-We also implemented periodic consistency checking procedures, which are scheduled to run every $\SI{10}{\second}$ and allow the system to check it is consistent. Consistency must be achieved at two levels:
-
-- **Peer referencing** | The `Chord` module must correctly know its predecessor and all its fingers, and that they are all online.
-- **Data** | The `Main` module must assure all replicas of all chunks of all files are accessible.
-
-#### Chord consistency
-
-We run the chord consistency checks every $\SI{10}{\second}$.
+#### How to achieve chord correctness
 
 ##### Assuring successor correctness
 
@@ -41,14 +34,40 @@ No mather what, each node must aggressively maintain an ordered list of $N$ succ
 
 To assure this, each node keeps a list $L$ of at most $N = 10$ successors. If the number $V$ of nodes in the chord is less than $N$ the list only has $V$ elements, and if $V > N$ the list has $N$ successors. A node $n$ periodically corrects $L$ by finding, in order, the first element of $L$ that is valid; then it considers that node to be the successor and the first element of the list $s_0$, and asks that node about its successor $s_1$ using a `SUCCESSOR` message; then $n$ asks $s_1$ about its successor $s_2$, and so on, until it knows the information about $s_{N-1}$.
 
+When joining the system, after the joining peer $n$ performs all usual steps, it will send `NTFYSUCCESSOR` (*notify successor*) messages to its at most $N$ predecessors, telling them that $n$ joined the system and that they might want to consider the possibility of adding $n$ to their successors lists. When leaving the system in an orderly fashion, the leaving peer sends `UNTFYSUCCESSOR` (*unnotify successor*) messages to its at most $N$ predecessors, telling them to remove $n$ from their successors lists if $n$ is in those lists; currently this message triggers a full re-computation of the successors list.
+
 ##### Assuring fingers correctness
 
-Since we already assured FindSuccessor to be working, we can also recalculate our fingers periodically.
+Since we already assured FindSuccessor to be working, we can also recalculate our fingers when needed.
 
 ##### Assuring predecessor correctness
 
 Predecessor correctness can be trivially assured by calling the FindPredecessor protocol for the current node.
 
-#### Data consistency
+#### Corrections
 
-We run the data consistency checks every $\SI{1}{\minute}$.
+We implemented mid-operation corrections to allow corruptions to be fixed while performing a certain action. For instance, say a peer needs to connect to a finger, but that finger is offline; when the peer opens the connection with another peer it notices the other peer did not accept the connection. Instead of aborting the protocol and having to wait for periodic consistency checks, the peer launches an instance of the FindSuccessor protocol to fix that finger, and only then does it return that finger.
+
+#### Periodic consistency checks: FixChord protocol
+
+We run the chord consistency checks every $\SI{10}{\second}$. This protocol:
+
+1. Recalculates all $N$ successors.
+2. Gets all fingers, which will trigger a finger fix for each finger that is offline.
+3. Update predecessor.
+
+### At the file level
+
+#### Corrections
+
+We have already described on the section about the Main module how we perform corrections of file inconsistencies (i.e., if we fail to find a replica of a certain chunk, we re-store it).
+
+#### Periodic consistency checks: FixMain protocol
+
+We run the data consistency checks every $\SI{1}{\minute}$. This protocol consists of:
+
+1. Identifying all the users for which at least one replica of a chunk of their metadata files is stored locally.
+2. For each user, get its user metadata file using an instance of the `RestoreFile` protocol
+3. For each user, for each file the user has stored, call the FixFile protocol.
+
+The FixFile protocol works similar to the RestoreFile protocol, but instead uses mostly HeadSystem messages to check the replicas exist; if not, it retrieves one of the reachable replicas and uses that to restore all the missing replicas of that chunk.
