@@ -8,7 +8,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 
 public class PeerDriver {
-    public static void main(String[] args) throws IOException, AlreadyBoundException {
+    public static void main(String[] args) throws IOException, AlreadyBoundException, GeneralSecurityException {
         if(args.length != 3 && args.length != 4){
             System.out.println("ERROR: wrong number of arguments");
             System.out.print(getUsage());
