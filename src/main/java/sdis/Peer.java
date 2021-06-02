@@ -286,11 +286,11 @@ public class Peer implements PeerInterface {
     public static class ServerSocketHandler implements Runnable {
         private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(20);
         private final Peer peer;
-        private final SSLServerSocket serverSocket;
+        private final ServerSocket serverSocket;
 
         private final MessageFactory messageFactory;
 
-        public ServerSocketHandler(Peer peer, SSLServerSocket serverSocket) {
+        public ServerSocketHandler(Peer peer, ServerSocket serverSocket) {
             this.peer = peer;
             this.serverSocket = serverSocket;
 
