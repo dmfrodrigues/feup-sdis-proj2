@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
 
 public class MainTest {
 
-    @Test(timeout=1000)
+    @Test(timeout=10000)
     public void backupFileProtocol_noEnlist_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -42,7 +42,7 @@ public class MainTest {
         peer.leave();
     }
 
-    @Test(timeout=2000)
+    @Test(timeout=400000)
     public void backupFileProtocol_noEnlist_10peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -83,7 +83,7 @@ public class MainTest {
         assertEquals(439, data.length);
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=30000)
     public void authenticate_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -145,7 +145,7 @@ public class MainTest {
         for(Peer p: peers) p.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=30000)
     public void backupFileProtocol_simple_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -171,7 +171,7 @@ public class MainTest {
         peer.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=40000)
     public void backupFileProtocol_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -227,7 +227,7 @@ public class MainTest {
         for (Peer p : peers) p.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=30000)
     public void backupMain_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -254,7 +254,7 @@ public class MainTest {
         peer.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=30000)
     public void backup_1peer() throws Exception {
         int KEY_SIZE = 10;
 
@@ -277,7 +277,7 @@ public class MainTest {
         peer.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=80000)
     public void backup_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -307,7 +307,7 @@ public class MainTest {
         peer2.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=80000)
     public void restore_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -419,7 +419,7 @@ public class MainTest {
         for(Peer p: peers) p.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=30000)
     public void deleteAccount_1peer_noBackup() throws Exception {
         int KEY_SIZE = 10;
 
@@ -435,7 +435,7 @@ public class MainTest {
         assertTrue(peer.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=50000)
     public void deleteAccount_1peer() throws Exception {
         int KEY_SIZE = 10;
 

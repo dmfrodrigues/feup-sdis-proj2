@@ -29,7 +29,7 @@ public class TestChordLeave {
         peer1.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=15000)
     public void peer2_small_checkFingers() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
@@ -53,7 +53,7 @@ public class TestChordLeave {
         assertEquals(0, chord1.getFingerInfo(7).key.toLong());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=15000)
     public void peer2_small() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord1 = peer1.getChord();

@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class MainJoinLeaveTest {
 
-    @Test(timeout=1000)
+    @Test(timeout=50000)
     public void join_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -50,7 +50,7 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=70000)
     public void leave_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -99,7 +99,7 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=30000)
     public void die_3peers_simple() throws Exception {
         int KEY_SIZE = 10;
 
@@ -127,7 +127,7 @@ public class MainJoinLeaveTest {
         assertTrue(peer1.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=10000)
     public void die_2peers() throws Exception {
         int KEY_SIZE = 10;
 
@@ -186,7 +186,7 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=10000)
     public void die_2peers_2() throws Exception {
         int KEY_SIZE = 10;
 
@@ -225,7 +225,7 @@ public class MainJoinLeaveTest {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=500000)
     public void die_2peers_withFiles() throws Exception {
         int KEY_SIZE = 10;
 
