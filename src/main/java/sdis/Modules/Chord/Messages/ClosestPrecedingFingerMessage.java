@@ -53,15 +53,15 @@ public class ClosestPrecedingFingerMessage extends ChordMessage<Chord.NodeInfo> 
                             continue;
                         }
                         getSocket().write(message.formatResponse(f));
-                        readAllBytesAndClose(getSocket());
+                        getSocket().close();
                         return;
                     }
                 }
 
                 Chord.NodeInfo s = chord.getSuccessorInfo();
                 getSocket().write(message.formatResponse(s));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 e.printStackTrace();
                 throw new CompletionException(e);
             }

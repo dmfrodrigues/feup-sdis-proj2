@@ -18,7 +18,7 @@ public abstract class Message {
 
     public abstract Message.Processor getProcessor(Peer peer, SocketChannel socket);
 
-    protected static ByteBuffer readAllBytesAndClose(SocketChannel socket) throws InterruptedException {
-        return ProtocolTask.readAllBytesAndClose(socket);
+    protected static ByteBuffer readAllBytes(SocketChannel socket) throws InterruptedException {
+        return ProtocolTask.readAllBytes(socket);
     }
 }

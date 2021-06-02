@@ -107,8 +107,8 @@ public class AuthenticateMessage extends MainMessage<Pair<AuthenticateMessage.St
 
             try {
                 getSocket().write(message.formatResponse(new Pair<>(status, userMetadata)));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

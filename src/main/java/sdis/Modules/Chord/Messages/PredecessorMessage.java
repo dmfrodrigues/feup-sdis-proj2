@@ -31,8 +31,8 @@ public class PredecessorMessage extends ChordMessage<Chord.NodeInfo> {
             try {
                 ByteBuffer response = message.formatResponse(getChord().getPredecessorInfo());
                 getSocket().write(response);
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

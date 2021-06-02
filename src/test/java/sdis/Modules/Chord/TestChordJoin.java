@@ -72,7 +72,10 @@ public class TestChordJoin {
 
     @Test(timeout=1000)
     public void peer1_large() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        int KEY_SIZE = 8;
+        long MOD = 1L << KEY_SIZE;
+
+        Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
 
         Chord chord1 = peer1.getChord();
@@ -81,9 +84,9 @@ public class TestChordJoin {
             add(0L);
         }};
 
-        for(long key = 0; key < peer1.getChord().getMod(); ++key){
+        for(long key = 0; key < MOD; key += 10){
             assertEquals(
-                getExpectedSuccessor(peers, key, 1L<<8),
+                getExpectedSuccessor(peers, key, MOD),
                 chord1.findSuccessor(chord1.newKey(key)).key.toLong()
             );
         }

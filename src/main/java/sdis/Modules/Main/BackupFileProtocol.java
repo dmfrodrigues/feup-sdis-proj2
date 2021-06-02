@@ -42,7 +42,7 @@ public class BackupFileProtocol extends MainProtocolTask<Boolean> {
         Chord.NodeInfo s = chord.findSuccessor(file.getOwner().asFile().getChunk(0).getReplica(0).getUUID().getKey(chord));
         try {
             EnlistFileMessage m = new EnlistFileMessage(file);
-            return m.sendTo(s.address);
+            return m.sendTo(main, s.address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }

@@ -56,8 +56,8 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
 
                 // If the new node to update the fingers table is itself, ignore
                 if(n.equals(s)){
-                    getSocket().getOutputStream().write(message.formatResponse(true));
-                    readAllBytesAndClose(getSocket());
+                    getSocket().write(message.formatResponse(true));
+                    getSocket().close();
                     return;
                 }
 
@@ -84,8 +84,8 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
                     try { new HelloMessage().sendTo(chord, p.socket); } catch (IOException | InterruptedException e) { e.printStackTrace(); ret = false; }
                 }
 
-                getSocket().getOutputStream().write(message.formatResponse(ret));
-                readAllBytesAndClose(getSocket());
+                getSocket().write(message.formatResponse(ret));
+                getSocket().close();
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }

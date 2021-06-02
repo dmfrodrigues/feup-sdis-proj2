@@ -82,15 +82,4 @@ public abstract class ProtocolTask<T> extends RecursiveTask<T> {
             throw new CompletionException(e.getCause());
         }
     }
-
-    protected static ByteBuffer readAllBytesAndClose(SocketChannel socket) throws InterruptedException {
-        try {
-            socket.shutdownOutput();
-            ByteBuffer response = readAllBytes(socket);
-            socket.close();
-            return response;
-        } catch (IOException e) {
-            throw new CompletionException(e);
-        }
-    }
 }

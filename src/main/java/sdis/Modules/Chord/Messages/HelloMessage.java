@@ -29,8 +29,8 @@ public class HelloMessage extends ChordMessage<Boolean> {
         public void compute() {
             try {
                 getSocket().write(message.formatResponse(true));
-                readAllBytesAndClose(getSocket());
-            } catch (InterruptedException | IOException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

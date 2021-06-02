@@ -33,7 +33,7 @@ public class RemoveKeysProtocol extends ProtocolTask<Boolean> {
                 PutSystemMessage putSystemMessage = new PutSystemMessage(id, data);
 
                 try {
-                    return putSystemMessage.sendTo(s.address);
+                    return putSystemMessage.sendTo(systemStorage, s.address);
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                     return false;

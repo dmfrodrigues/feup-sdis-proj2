@@ -45,7 +45,7 @@ public class EnlistFileMessage extends AccountMessage<Boolean> {
 
         private void end(boolean b) throws IOException, InterruptedException {
             getSocket().write(message.formatResponse(b));
-            readAllBytesAndClose(getSocket());
+            getSocket().close();
         }
 
         @Override

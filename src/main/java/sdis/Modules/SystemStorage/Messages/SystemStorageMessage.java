@@ -35,12 +35,14 @@ public abstract class SystemStorageMessage<T> extends Message {
 
     protected abstract T parseResponse(ByteBuffer data);
 
-    public T sendTo(InetSocketAddress address) throws IOException, InterruptedException {
+    public T sendTo(SystemStorage systemStorage, InetSocketAddress address) throws IOException, InterruptedException {
         return sendTo(Utils.createSocket(address));
     }
 
     public T sendTo(SocketChannel socket) throws IOException, InterruptedException {
         socket.write(this.asByteBuffer());
-        return parseResponse(readAllBytesAndClose(socket));
+        ByteBuffer response = readAllBytes(socket);
+        socket.close();
+        return parseResponse(response);
     }
 }

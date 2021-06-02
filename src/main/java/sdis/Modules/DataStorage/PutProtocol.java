@@ -82,7 +82,7 @@ public class PutProtocol extends ProtocolTask<Boolean> {
             }
             return response;
         } catch (IOException | InterruptedException e) {
-            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
+            try { s.socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
             throw new CompletionException(e);
         }
     }

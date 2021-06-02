@@ -298,6 +298,7 @@ public class Peer implements PeerInterface {
                     SocketChannel socket = serverSocket.accept();
                     ByteBuffer buffer = ByteBuffer.allocate(CHUNK_SIZE + MAX_HEADER_SIZE);
                     int size = socket.read(buffer);
+                    buffer.flip();
                     byte[] data = new byte[size];
                     System.arraycopy(buffer.array(), 0, data, 0, size);
                     Message message = messageFactory.factoryMethod(data);

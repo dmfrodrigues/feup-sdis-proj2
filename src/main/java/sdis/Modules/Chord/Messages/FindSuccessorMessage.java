@@ -46,8 +46,8 @@ public class FindSuccessorMessage extends ChordMessage<Chord.NodeInfo> {
             try {
                 ByteBuffer response = message.formatResponse(nodeInfo);
                 getSocket().write(response);
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

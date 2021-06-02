@@ -24,7 +24,7 @@ public class HeadSystemProtocol extends ProtocolTask<Boolean> {
         try{
             Chord.NodeInfo s = chord.findSuccessor(id.getKey(chord));
             HeadSystemMessage headSystemMessage = new HeadSystemMessage(id);
-            return headSystemMessage.sendTo(s.address);
+            return headSystemMessage.sendTo(systemStorage, s.address);
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         } catch (CompletionException e) {

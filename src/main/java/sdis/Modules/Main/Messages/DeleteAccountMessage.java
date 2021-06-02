@@ -70,8 +70,8 @@ public class DeleteAccountMessage extends AccountMessage<Boolean> {
 
             try {
                 getSocket().write(message.formatResponse(success));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

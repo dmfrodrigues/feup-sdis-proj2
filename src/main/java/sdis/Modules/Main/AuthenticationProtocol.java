@@ -27,7 +27,8 @@ public class AuthenticationProtocol extends MainProtocolTask<UserMetadata> {
         try {
             AuthenticateMessage message = new AuthenticateMessage(username, password);
             SocketChannel socket = systemStorage.sendAny(message);
-            ByteBuffer response = readAllBytesAndClose(socket);
+            ByteBuffer response = readAllBytes(socket);
+            socket.close();
             Pair<AuthenticateMessage.Status, UserMetadata> reply = message.parseResponse(response);
             switch(reply.first){
                 case SUCCESS:

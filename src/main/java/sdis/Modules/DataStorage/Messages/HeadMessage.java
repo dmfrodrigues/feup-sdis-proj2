@@ -46,8 +46,8 @@ public class HeadMessage extends DataStorageMessage<Boolean> {
             boolean success = getProtocol.invoke();
             try {
                 getSocket().write(message.formatResponse(success));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

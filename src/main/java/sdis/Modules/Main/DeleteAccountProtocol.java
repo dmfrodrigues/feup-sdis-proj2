@@ -26,7 +26,7 @@ public class DeleteAccountProtocol extends MainProtocolTask<Boolean> {
 
         DeleteAccountMessage deleteAccountMessage = new DeleteAccountMessage(username, password);
         try {
-            return deleteAccountMessage.sendTo(s.address);
+            return deleteAccountMessage.sendTo(main, s.address);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
 

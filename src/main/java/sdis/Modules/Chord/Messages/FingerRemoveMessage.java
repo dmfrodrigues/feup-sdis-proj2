@@ -55,8 +55,8 @@ public class FingerRemoveMessage extends ChordMessage<Boolean> {
 
                 // If the new node to update the fingers table is itself, ignore
                 if(n.equals(sOld)){
-                    getSocket().getOutputStream().write(message.formatResponse(true));
-                    readAllBytesAndClose(getSocket());
+                    getSocket().write(message.formatResponse(true));
+                    getSocket().close();
                     return;
                 }
 
@@ -83,8 +83,8 @@ public class FingerRemoveMessage extends ChordMessage<Boolean> {
                     try { new HelloMessage().sendTo(chord, p.socket); } catch (IOException | InterruptedException e) { e.printStackTrace(); }
                 }
 
-                getSocket().getOutputStream().write(message.formatResponse(ret));
-                readAllBytesAndClose(getSocket());
+                getSocket().write(message.formatResponse(ret));
+                getSocket().close();
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
@@ -97,13 +97,13 @@ public class FingerRemoveMessage extends ChordMessage<Boolean> {
     }
 
     @Override
-    protected ByteBuffer formatResponse(Void unused) {
-        return ByteBuffer.allocate(0);
+    protected ByteBuffer formatResponse(Boolean b) {
+        return ByteBuffer.wrap(new byte[]{(byte) (b ? 1 : 0)});
     }
 
 
     @Override
-    protected Void parseResponse(Chord chord, ByteBuffer data) {
-        return null;
+    protected Boolean parseResponse(Chord chord, ByteBuffer data) {
+        return (data.position() == 1 && data.array()[0] == 1);
     }
 }

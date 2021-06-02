@@ -37,8 +37,8 @@ public class GetRedirectsMessage extends DataStorageMessage<Set<UUID>> {
             Set<UUID> ids = getDataStorage().getRedirects();
             try {
                 getSocket().write(message.formatResponse(ids));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }
