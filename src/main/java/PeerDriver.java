@@ -3,6 +3,7 @@ import sdis.Peer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 import java.rmi.AlreadyBoundException;
 
 public class PeerDriver {
@@ -16,6 +17,7 @@ public class PeerDriver {
         long key = Long.parseLong(args[0]);
         InetAddress ipAddress = InetAddress.getByName(args[2]);
         Peer peer = new Peer(62, key, ipAddress);
+        peer.scheduleFixes();
 
         String serviceAccessPoint = args[1];
         peer.bindAsRemoteObject(serviceAccessPoint);

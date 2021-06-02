@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletionException;
 
-public class FingerRemoveMessage extends ChordMessage<Void> {
+public class FingerRemoveMessage extends ChordMessage<Boolean> {
 
     private final Chord.NodeInfo oldPeer;
     private final Chord.NodeInfo newPeer;
@@ -54,6 +54,7 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
 
                 // If the new node to update the fingers table is itself, ignore
                 if(n.equals(sOld)){
+                    getSocket().getOutputStream().write(message.formatResponse(true));
                     readAllBytesAndClose(getSocket());
                     return;
                 }
@@ -81,6 +82,7 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
                     try { new HelloMessage().sendTo(chord, p.socket); } catch (IOException | InterruptedException e) { e.printStackTrace(); }
                 }
 
+                getSocket().getOutputStream().write(message.formatResponse(true));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
@@ -94,12 +96,12 @@ public class FingerRemoveMessage extends ChordMessage<Void> {
     }
 
     @Override
-    protected byte[] formatResponse(Void unused) {
-        return null;
+    protected byte[] formatResponse(Boolean b) {
+        return new byte[]{(byte) (b ? 1 : 0)};
     }
 
     @Override
-    protected Void parseResponse(Chord chord, byte[] data) {
-        return null;
+    protected Boolean parseResponse(Chord chord, byte[] data) {
+        return (data.length == 1 && data[0] == 1);
     }
 }

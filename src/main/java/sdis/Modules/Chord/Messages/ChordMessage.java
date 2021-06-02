@@ -46,6 +46,7 @@ public abstract class ChordMessage<T> extends Message {
 
     public T sendTo(Chord chord, Socket socket) throws IOException, InterruptedException {
         socket.getOutputStream().write(this.asByteArray());
+        socket.getOutputStream().flush();
         return parseResponse(chord, readAllBytesAndClose(socket));
     }
 }

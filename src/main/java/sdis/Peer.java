@@ -79,9 +79,6 @@ public class Peer implements PeerInterface {
 
         this.id = chord.newKey(id);
 
-        chord.scheduleFixes();
-        main.scheduleFixes();
-
         ServerSocketHandler serverSocketHandler = new ServerSocketHandler(this, serverSocket);
         serverSocketHandlerThread = new Thread(serverSocketHandler);
         serverSocketHandlerThread.start();
@@ -100,6 +97,11 @@ public class Peer implements PeerInterface {
                 e.printStackTrace();
             }
         }));
+    }
+
+    public void scheduleFixes() {
+        chord.scheduleFixes();
+        main.scheduleFixes();
     }
 
     public Chord.Key getKey() {
