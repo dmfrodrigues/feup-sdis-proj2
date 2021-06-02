@@ -46,9 +46,9 @@ public class SetPredecessorMessage extends ChordMessage<Boolean> {
 
         @Override
         public void compute() {
-            getChord().setPredecessor(message.predecessor);
+            boolean ret = getChord().setPredecessor(message.predecessor);
             try {
-                getSocket().getOutputStream().write(message.formatResponse(true));
+                getSocket().getOutputStream().write(message.formatResponse(ret));
                 readAllBytesAndClose(getSocket());
             } catch (InterruptedException | IOException e) {
                 throw new CompletionException(e);
