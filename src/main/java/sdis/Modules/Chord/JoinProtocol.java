@@ -1,5 +1,7 @@
 package sdis.Modules.Chord;
 
+import sdis.Modules.Chord.Exceptions.KeyAlreadyExistsException;
+
 import sdis.Modules.Chord.Messages.FindSuccessorMessage;
 import sdis.Modules.Chord.Messages.NotifySuccessorMessage;
 import sdis.Modules.Chord.Messages.PredecessorMessage;
@@ -63,6 +65,10 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
+        }
+
+        if(this.chord.exists(n.key)) {
+            throw new KeyAlreadyExistsException(n.key);
         }
 
         // Update other nodes
