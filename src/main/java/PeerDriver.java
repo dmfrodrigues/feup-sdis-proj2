@@ -7,7 +7,7 @@ import java.rmi.AlreadyBoundException;
 
 public class PeerDriver {
     public static void main(String[] args) throws IOException, AlreadyBoundException {
-        if(args.length != 5 && args.length != 6){
+        if(args.length != 3 && args.length != 4){
             System.out.println("ERROR: wrong number of arguments");
             System.out.print(getUsage());
             return;
@@ -21,7 +21,7 @@ public class PeerDriver {
         String serviceAccessPoint = args[1];
         peer.bindAsRemoteObject(serviceAccessPoint);
 
-        if(args.length <= 5){
+        if(args.length <= 3){
             peer.join();
         } else {
             String socketAddressString = args[5];
