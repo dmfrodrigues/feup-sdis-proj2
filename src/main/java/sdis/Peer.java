@@ -1,6 +1,7 @@
 package sdis;
 
 import sdis.Modules.Chord.Chord;
+import sdis.Modules.Chord.Exceptions.KeyAlreadyExistsException;
 import sdis.Modules.DataStorage.DataStorage;
 import sdis.Modules.DataStorage.GetRedirectsProtocol;
 import sdis.Modules.DataStorage.LocalDataStorage;
@@ -140,20 +141,25 @@ public class Peer implements PeerInterface {
     public boolean join(InetSocketAddress gateway){
         System.out.println("Peer " + id + " joining a chord");
 
-        return chord.join(gateway, new ProtocolTask<>() {
-            @Override
-            public Boolean compute() {
-                // Get redirects
-                GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(chord);
-                Set<UUID> redirects = getRedirectsProtocol.invoke();
-                for(UUID id : redirects)
-                    dataStorage.registerSuccessorStored(id);
+        try {
+            return chord.join(gateway, new ProtocolTask<>() {
+                @Override
+                public Boolean compute() {
+                    // Get redirects
+                    GetRedirectsProtocol getRedirectsProtocol = new GetRedirectsProtocol(chord);
+                    Set<UUID> redirects = getRedirectsProtocol.invoke();
+                    for (UUID id : redirects)
+                        dataStorage.registerSuccessorStored(id);
 
-                // Move keys
-                MoveKeysProtocol moveKeysProtocol = new MoveKeysProtocol(systemStorage);
-                return moveKeysProtocol.invoke();
-            }
-        });
+                    // Move keys
+                    MoveKeysProtocol moveKeysProtocol = new MoveKeysProtocol(systemStorage);
+                    return moveKeysProtocol.invoke();
+                }
+            });
+        } catch (KeyAlreadyExistsException e) {
+            System.err.println("Peer " + getKey() + ": Key " + e.getKey() + " already exists");
+            return false;
+        }
     }
 
     public boolean leave(){
