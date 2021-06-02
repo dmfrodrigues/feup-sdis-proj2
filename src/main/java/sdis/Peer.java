@@ -127,7 +127,7 @@ public class Peer implements PeerInterface {
         }));
     }
 
-    public void scheduleFixes(){
+    public void scheduleFixes() {
         chord.scheduleFixes();
         main.scheduleFixes();
     }
