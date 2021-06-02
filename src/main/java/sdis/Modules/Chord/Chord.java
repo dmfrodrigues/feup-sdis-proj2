@@ -171,13 +171,6 @@ public class Chord {
         return new Chord.Key(this, k);
     }
 
-    public boolean exists(Key a){
-        for(NodeInfo b: this.fingers) {
-            if (b!=null && b.key.equals(a)) return true;
-        }
-        return false;
-    }
-
     public NodeInfo getFingerRaw(int i){
         synchronized(fingers) {
             return fingers[i];
