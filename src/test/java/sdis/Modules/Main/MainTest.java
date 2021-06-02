@@ -308,14 +308,12 @@ public class MainTest {
     }
 
     @Test(timeout=1000)
-    public void backup_2peers_large_1() throws Exception {
+    public void backup_1peers_large_1() throws Exception {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));
 
         assertTrue(peer1.join());
-        assertTrue(peer2.join(peer1.getSocketAddress()));
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -336,18 +334,15 @@ public class MainTest {
         assertArrayEquals(data1, builder.get());
 
         peer1.leave();
-        peer2.leave();
     }
 
     @Test(timeout=1000)
-    public void backup_2peers_large_2() throws Exception {
+    public void backup_1peers_large_2() throws Exception {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));
 
         assertTrue(peer1.join());
-        assertTrue(peer2.join(peer1.getSocketAddress()));
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -368,19 +363,16 @@ public class MainTest {
         assertArrayEquals(data1, builder.get());
 
         peer1.leave();
-        peer2.leave();
     }
 
 
     @Test(timeout=1000)
-    public void backup_2peers_large_3() throws Exception {
+    public void backup_1peers_large_3() throws Exception {
         int KEY_SIZE = 10;
 
         Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
-        Peer peer2 = new Peer(KEY_SIZE, 500, InetAddress.getByName("localhost"), Paths.get("bin"));
 
         assertTrue(peer1.join());
-        assertTrue(peer2.join(peer1.getSocketAddress()));
 
         Username username = new Username("user");
         Password password = new Password("1234");
@@ -397,7 +389,6 @@ public class MainTest {
         assertArrayEquals(data2, builder.get());
 
         peer1.leave();
-        peer2.leave();
     }
 
     @Test(timeout=1000)
