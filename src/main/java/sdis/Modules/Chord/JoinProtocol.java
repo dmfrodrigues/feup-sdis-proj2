@@ -28,6 +28,20 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
 
         Chord.NodeInfo n = chord.getNodeInfo();
 
+        // Check if
+        {
+            try {
+                FindSuccessorMessage findSuccessorMessage = new FindSuccessorMessage(n.key);
+                Chord.NodeInfo s = findSuccessorMessage.sendTo(chord, g);
+                if (n.key.equals(s.key)) {
+                    throw new KeyAlreadyExistsException(n.key);
+                }
+            } catch (InterruptedException | IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
         // Initialize fingers table and predecessor
         // Get predecessor
         try {
@@ -65,10 +79,6 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
             }
-        }
-
-        if(this.chord.exists(n.key)) {
-            throw new KeyAlreadyExistsException(n.key);
         }
 
         // Update other nodes
