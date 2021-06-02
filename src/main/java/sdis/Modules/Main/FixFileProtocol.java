@@ -53,6 +53,7 @@ public class FixFileProtocol extends MainProtocolTask<Boolean> {
                 boolean b = tasks.get(i).get();
                 if (!b) {
                     UUID id = file.getChunk(chunkIndex).getReplica(i).getUUID();
+                    System.err.println("Peer "+ main.getSystemStorage().getChord().getNodeInfo().key + ": Failed to find replica " + id + ", using another replica to restore it");
                     ret &= systemStorage.put(id, chunk);
                 }
             }

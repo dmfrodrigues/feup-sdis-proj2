@@ -37,7 +37,11 @@ public class FixChordProtocol extends ProtocolTask<Boolean> {
         Chord.NodeInfo n = chord.getNodeInfo();
 
         for(int i = 0; i < chord.getKeySize(); ++i){
-            if(!chord.setFinger(i, chord.findSuccessor(n.key.add(1L << i)))) ret = false;
+            try {
+                chord.getFingerInfo(i);
+            } catch (Exception e) {
+                ret = false;
+            }
         }
 
         return ret;
