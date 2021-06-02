@@ -83,22 +83,6 @@ public class DataStorage extends DataStorageAbstract {
         return storedBySuccessor.contains(id);
     }
 
-    /*
-    public Socket send(Socket socket, DataStorageMessage<?> m) throws IOException {
-        OutputStream os = socket.getOutputStream();
-        os.write(m.asByteArray());
-        os.flush();
-        return socket;
-    }
-     */
-
-    /*
-    public Socket send(InetSocketAddress to, DataStorageMessage<?> m) throws IOException {
-        Socket socket = new Socket(to.getAddress(), to.getPort());
-        return send(socket, m);
-    }
-     */
-
     public Set<UUID> getRedirects() {
         return storedBySuccessor;
     }
