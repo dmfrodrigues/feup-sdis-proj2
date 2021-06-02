@@ -25,7 +25,7 @@
 ### Windows
 
 ```cmd
-.\gradlew.bat assemble
+gradlew.bat assemble
 ```
 
 ## Run
