@@ -81,6 +81,21 @@ Upon calling the Get protocol locally, node $r$ does the following:
 
 Upon receiving a `GET` message, a node starts the Get protocol locally, and responds to the message according to whatever the Get protocol returns: if the protocol fails (by returning `null`), the response has a `<RetCode>` of 0 and the body is empty; if the protocol succeeds, the response has a `<RetCode>` of 1 and the body contains the contents of the datapiece.
 
+### Head protocol
+
+- **Arguments:** key
+- **Returns:** true if found, false otherwise
+
+The Head protocol allows a node to check if a certain datapiece exists; it is basically equivalent to the Get protocol but does not return any data; instead, it returns only a boolean informing if the datapiece is stored or not. If the Get protocol was to answer with a non-null byte array then this protocol answers with true; if the Get protocol was to answer with a null byte array then this protocol answers with false. The advantage is that it does not require expensive data transfers.
+
+#### `HEAD` message
+
+| **Request**   | | **Response** |
+|---------------|-|--------------|
+| `HEAD <UUID>` | | `<RetCode>`  |
+
+Equivalent to `GET` message, but returns only the success status.
+
 ### GetRedirects protocol
 
 - **Arguments:** -

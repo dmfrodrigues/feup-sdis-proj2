@@ -37,12 +37,17 @@ IPs can also be domain names (usually `localhost`).
 ### Linux
 
 ```sh
-./gradlew run PEER_ID SERVICE_ACCESS_POINT PEER_IP [IP:PORT]
-```
+# Start rmiregistry
+cd build/classes/java/main
+rmiregistry
 
-or
-
-```sh
+# Run project
 cd build/classes/java/main
 java PeerDriver PEER_ID SERVICE_ACCESS_POINT PEER_IP [IP:PORT]
+```
+
+Example:
+
+```sh
+java PeerDriver 1 peer1 localhost
 ```
