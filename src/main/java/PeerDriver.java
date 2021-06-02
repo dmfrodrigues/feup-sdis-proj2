@@ -24,7 +24,7 @@ public class PeerDriver {
         if(args.length <= 3){
             peer.join();
         } else {
-            String socketAddressString = args[5];
+            String socketAddressString = args[3];
             String[] socketAddressSplit = socketAddressString.split(":");
             InetSocketAddress gateway = new InetSocketAddress(socketAddressSplit[0], Integer.parseInt(socketAddressSplit[1]));
             peer.join(gateway);
