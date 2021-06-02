@@ -84,10 +84,10 @@ public class BackupFileProtocol extends MainProtocolTask<Boolean> {
         List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
         for (long i = 0; i < numChunks; ++i) {
             long finalI = i;
+            byte[] data = chunkIterator.next();
             tasks.add(new ProtocolTask<>() {
                 @Override
                 protected Boolean compute() {
-                    byte[] data = chunkIterator.next();
                     return putChunk(file.getChunk(finalI), data);
                 }
             });

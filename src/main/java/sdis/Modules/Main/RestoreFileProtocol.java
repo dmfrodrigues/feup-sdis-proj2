@@ -8,6 +8,7 @@ import sdis.UUID;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -69,8 +70,15 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        List<ProtocolTask<Boolean>> tasks = new LinkedList<>();
+        List<ProtocolTask<Boolean>> finishedTasks = new LinkedList<>();
+        Queue<ProtocolTask<Boolean>> tasks = new LinkedList<>();
         for (long i = 0; i < file.getNumberOfChunks(); ++i) {
+            while(i > destination.getMaxIndex()){
+                ProtocolTask<Boolean> task = tasks.remove();
+                task.join();
+                finishedTasks.add(task);
+            }
+
             long finalI = i;
             ProtocolTask<Boolean> task = new ProtocolTask<>() {
                 @Override
@@ -80,8 +88,10 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
                     return destination.set(finalI, data);
                 }
             };
+            task.fork();
             tasks.add(task);
         }
-        return invokeAndReduceTasks(tasks);
+
+        return reduceTasks(finishedTasks) && reduceTasks(tasks);
     }
 }
