@@ -3,7 +3,6 @@ import sdis.Peer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.nio.file.Path;
 import java.rmi.AlreadyBoundException;
 
 public class PeerDriver {
