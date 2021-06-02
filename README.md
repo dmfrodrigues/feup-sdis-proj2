@@ -16,16 +16,38 @@
 
 ## Compile
 
+### Linux
+
 ```sh
-cd bin
-javac ../src/*.java ../src/sdis/*.java ../src/sdis/*/*.java -cp ../src -d .
+./gradlew assemble
+```
+
+### Windows
+
+```cmd
+.\gradlew.bat assemble
 ```
 
 ## Run
 
+Call without arguments for more information on the meaning of each argument.
+
+IPs can also be domain names (usually `localhost`).
+
+### Linux
+
 ```sh
-cd build
-java PeerDriver VERSION PEER_ID SERVICE_ACCESS_POINT MC MC_PORT MDB MDB_PORT MDR MDR_PORT
+# Start rmiregistry
+cd build/classes/java/main
+rmiregistry
+
+# Run project
+cd build/classes/java/main
+java PeerDriver PEER_ID SERVICE_ACCESS_POINT PEER_IP [IP:PORT]
 ```
 
-Call `java PeerDriver` for more information on the meaning of each argument.
+Example:
+
+```sh
+java PeerDriver 1 peer1 localhost
+```
