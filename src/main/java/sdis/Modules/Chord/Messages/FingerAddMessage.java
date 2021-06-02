@@ -55,6 +55,7 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
 
                 // If the new node to update the fingers table is itself, ignore
                 if(n.equals(s)){
+                    getSocket().getOutputStream().write(message.formatResponse(true));
                     readAllBytesAndClose(getSocket());
                     return;
                 }
@@ -71,17 +72,18 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
                 }
 
                 Chord.NodeConn p = chord.getPredecessor();
-
+                boolean ret = true;
                 // If at least one finger was updated, and the predecessor was
                 // not the one that sent the message, redirect to predecessor.
                 // (this is already prevented by the `r.equals(f)` check on
                 // arrival, but we can also check that on departure)
                 if(updatedFingers && !p.nodeInfo.equals(s)){
-                    message.sendTo(chord, p.socket);
+                    ret &= message.sendTo(chord, p.socket);
                 } else {
-                    try { new HelloMessage().sendTo(chord, p.socket); } catch (IOException | InterruptedException e) { e.printStackTrace(); }
+                    try { new HelloMessage().sendTo(chord, p.socket); } catch (IOException | InterruptedException e) { e.printStackTrace(); ret = false; }
                 }
 
+                getSocket().getOutputStream().write(message.formatResponse(true));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);

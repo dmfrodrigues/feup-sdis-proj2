@@ -46,6 +46,7 @@ public abstract class DataStorageMessage<T> extends Message {
 
     public T sendTo(Socket socket) throws IOException, InterruptedException {
         socket.getOutputStream().write(this.asByteArray());
+        socket.getOutputStream().flush();
         return parseResponse(readAllBytesAndClose(socket));
     }
 }
