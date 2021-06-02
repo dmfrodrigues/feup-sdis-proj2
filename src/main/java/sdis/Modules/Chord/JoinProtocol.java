@@ -65,6 +65,11 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
             }
         }
 
+        if(this.chord.exists(n.key)) {
+            System.err.println("This key is already in use");
+            return false;
+        }
+
         // Update other nodes
         // Update predecessor of successor
         SetPredecessorProtocol setPredecessorProtocol = new SetPredecessorProtocol(chord, chord.getNodeInfo());
