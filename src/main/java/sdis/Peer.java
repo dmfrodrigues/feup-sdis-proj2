@@ -65,11 +65,6 @@ public class Peer implements PeerInterface {
 
         this.id = chord.newKey(id);
 
-        if(this.chord.exists(this.id)){
-            System.err.println("This key is already in use");
-            System.exit(1);
-        }
-
         ServerSocketHandler serverSocketHandler = new ServerSocketHandler(this, serverSocket);
         serverSocketHandlerThread = new Thread(serverSocketHandler);
         serverSocketHandlerThread.start();
