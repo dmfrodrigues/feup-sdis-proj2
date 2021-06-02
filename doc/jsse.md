@@ -4,11 +4,12 @@ We implemented two versions, one using the SSLSocket and another with the SSLEng
 
 ## SSLSocket
 
-The SSLSocket is straightforward, we passed the certificate JVM parameters via the system properties and started the handshake before a connection, closing it when it's done.
+Coming from a `Socket`-based implementation, using SSLSocket is straightforward: we passed the certificate JVM parameters via the system properties and started the handshake before a connection, closing it when it's done.
 
 ## SSLEngine
 
-For the SSLEngine implementation, we created two classes, *SecureSocketChannel* and *SecureServerSocketChannel*, which extends *SocketChannel*, that treats all the negotiation process, exchanging the protocol parameters, and writing/reading from a socket channel.
+For the SSLEngine implementation, we created two classes, `SecureSocketChannel` (extending `SocketChannel`) and `SecureServerSocketChannel` (extending `ServerSocketChannel`), that handles the negotiation process, exchanging the protocol parameters, writing/reading from a socket channel and correctly closing the sockets.
 
-Also, in order to check the end of a transmission when reading from a socket channel, we added a flag (**0x7E**) in the end of the sender data buffer.
-However, because this flag could be part of the original buffer, a byte stuffing mechanism was performed. In this strategy, a **ESC** byte (**0x7D**) is stuffed before every flag byte. We then apply the reverse process to get the original data stream.
+In a `Socket`-based implementation, because each side of the TCP connection was only used to send information once, the end of a message could simply be signalled by closing that end of the TCP connection. But with TLS it is more arduous to make it work correctly, so we used a special flag byte (`FLAG`, `0x7E`) to signal the end of a message. This flag would be placed in the app data buffer after the user-provided information. This flag is then decoded at the receiving end and used by the `doRead` function to exit the `doRead` cycle.
+
+Because there is a risk (even if minute) that the message body contains a flag byte, we used a byte stuffing mechanism to unambiguate that situation; in this strategy, an escape byte (`ESC`, `0x7D`) is defined and all data bytes $b$ equal to `FLAG` or `ESC` are encoded into two bytes, the first being `ESC` and the second being $b' = b \xor \texttt{0x20}$; thus, during the unstuffing process, if `ESC` is found, the next character is decoded with $b = b' \xor \texttt{0x20}$, as the relation $x = (x \xor y) \xor y$ is trivial.

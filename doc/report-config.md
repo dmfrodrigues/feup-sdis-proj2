@@ -22,6 +22,7 @@ date: 2nd of June, 2021
 header-includes:
     - \usepackage{newunicodechar}
     - \newunicodechar{≤}{\ensuremath{\leq}}
+    - \newcommand*\xor{\oplus}
     - \usepackage{multicol}
     - \usepackage[binary-units=true]{siunitx}
 

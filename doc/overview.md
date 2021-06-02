@@ -35,3 +35,12 @@ The operation is optional (running the command does nothing, except if the accou
 \end{tabular}
 
 This means a local file can be remotely stored under any name the user wishes, allowing for great flexibility.
+
+## Features
+
+A basic, functioning implementation yields 12/20. To reach the 20/20 mark, we implemented the following features:
+
+- (+2) We use thread-based concurrency as much as possible.
+- (+2) We use SSLEngine in our final project version.
+- (+4) Our project is scalable at the design level (chord) and implementation level (thread pools and asynchronous I/O)
+- (+2) We implemented a fault-tolerant solution, with replication degrees, decentralized data storage and decentralized data indexing (user metadata files).
