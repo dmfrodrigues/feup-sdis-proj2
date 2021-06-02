@@ -39,7 +39,7 @@ public class DelistFileMessage extends AccountMessage<Boolean> {
             this.message = message;
         }
 
-        private void end(boolean b) throws IOException, InterruptedException {
+        private void end(boolean b) throws IOException {
             getSocket().write(message.formatResponse(b));
             getSocket().close();
         }
