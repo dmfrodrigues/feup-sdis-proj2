@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.regex.Pattern;
 
 public class Username implements Serializable {
-    public static final String REGEX = "[a-zA-Z0-9@.+_]{4,28}";
-    private static final Pattern pattern = Pattern.compile(REGEX);
+    public transient static final String REGEX = "[a-zA-Z0-9@.+_]{4,28}";
+    private transient static final Pattern pattern = Pattern.compile(REGEX);
 
     private final String s;
 
@@ -34,5 +34,10 @@ public class Username implements Serializable {
         if(getClass() != obj.getClass()) return false;
         Username username = (Username) obj;
         return s.equals(username.s);
+    }
+
+    @Override
+    public int hashCode() {
+        return s.hashCode();
     }
 }

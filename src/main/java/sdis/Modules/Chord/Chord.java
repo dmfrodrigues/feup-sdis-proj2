@@ -192,29 +192,6 @@ public class Chord {
         }
     }
 
-    /*
-    public NodeConn getFinger(int i){
-        try {
-            synchronized (fingers) {
-                Socket socket = fingers[i].createSocket();
-                return new NodeConn(fingers[i], socket);
-            }
-        } catch(ConnectException e) {
-            System.err.println("Node " + key + ": Failed to find finger " + i + ", recalculating");
-            NodeInfo finger = findSuccessor(key.add(1L << i));
-            if(finger == null) {
-                System.err.println("Node " + key + ": Failed to recalculate finger " + i);
-                throw new CompletionException(e);
-            }
-            setFinger(i, finger);
-            System.err.println("Node " + key + ": Recalculated finger " + i + " and found it is " + finger.key);
-            return getFinger(i);
-        } catch (IOException e) {
-            throw new CompletionException(e);
-        }
-    }
-     */
-
     public boolean setFinger(int i, NodeInfo peer){
         synchronized(fingers) {
             fingers[i] = peer;
@@ -223,26 +200,55 @@ public class Chord {
     }
 
     public NodeInfo getPredecessorInfo(){
-        synchronized(predecessor) {
+        try {
             try {
-                SocketChannel socket = predecessor.createSocket();
-                HelloMessage helloMessage = new HelloMessage();
-                helloMessage.sendTo(this, socket);
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+                synchronized (predecessor) {
+                    SocketChannel socket = predecessor.createSocket();
+                    HelloMessage helloMessage = new HelloMessage();
+                    helloMessage.sendTo(this, socket);
+                    return predecessor;
+                }
+            } catch (ConnectException e) {
+                synchronized (predecessor) {
+                    System.err.println("Node " + key + ": Failed to find predecessor (" + predecessor.key + "), recalculating");
+                }
+                NodeInfo p = findPredecessor(key);
+                if (p == null) {
+                    System.err.println("Node " + key + ": Failed to recalculate predecessor");
+                    throw new CompletionException(e);
+                }
+                setPredecessor(p);
+                System.err.println("Node " + key + ": Recalculated predecessor and found it is " + p.key);
+                return predecessor;
             }
-            return new NodeInfo(predecessor);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            throw new CompletionException(e);
         }
     }
 
     public NodeConn getPredecessor(){
-        synchronized(predecessor) {
+        try {
             try {
+                synchronized (predecessor) {
+                    return new NodeConn(new NodeInfo(predecessor), predecessor.createSocket());
+                }
+            } catch (ConnectException e) {
+                synchronized (predecessor) {
+                    System.err.println("Node " + key + ": Failed to find predecessor (" + predecessor.key + "), recalculating");
+                }
+                NodeInfo p = findPredecessor(key);
+                if (p == null) {
+                    System.err.println("Node " + key + ": Failed to recalculate predecessor");
+                    throw new CompletionException(e);
+                }
+                setPredecessor(p);
+                System.err.println("Node " + key + ": Recalculated predecessor and found it is " + p.key);
                 return new NodeConn(new NodeInfo(predecessor), predecessor.createSocket());
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new CompletionException(e);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new CompletionException(e);
         }
     }
 
