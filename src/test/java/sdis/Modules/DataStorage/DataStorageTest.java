@@ -118,7 +118,7 @@ public class DataStorageTest {
         peer1.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=4000)
     public void put_get_2peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
@@ -169,7 +169,7 @@ public class DataStorageTest {
         peer2.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=4000)
     public void delete_2peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
@@ -222,7 +222,7 @@ public class DataStorageTest {
         peer2.leave();
     }
 
-    @Test(timeout=2000)
+    @Test(timeout=5000)
     public void redirects_2peer() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());

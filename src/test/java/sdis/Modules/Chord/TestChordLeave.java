@@ -29,7 +29,7 @@ public class TestChordLeave {
         peer1.leave();
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=4000)
     public void peer2_small_checkFingers() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
@@ -53,7 +53,7 @@ public class TestChordLeave {
         assertEquals(0, chord1.getFingerInfo(7).key.toLong());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=4000)
     public void peer2_small() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         Chord chord1 = peer1.getChord();
@@ -74,7 +74,7 @@ public class TestChordLeave {
         assertEquals( 0, chord1.findSuccessor(chord1.newKey(255)).key.toLong());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=8000)
     public void peer2_large() throws Exception {
         int keySize = 6;
         long MOD = (1L << keySize);
@@ -98,7 +98,7 @@ public class TestChordLeave {
         }
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=8000)
     public void peer2_larger() throws Exception {
         int keySize = 6;
         long MOD = (1L << keySize);
@@ -135,8 +135,8 @@ public class TestChordLeave {
         peer1.leave();
     }
 
-    @Test(timeout=1000)
-    public void peer3_large() throws Exception {
+    @Test(timeout=60000)
+    public void peer8_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
 
@@ -191,7 +191,7 @@ public class TestChordLeave {
         peer2.leave();
     }
 
-    @Test(timeout=2000)
+    @Test(timeout=10000)
     public void peer7() throws Exception {
         int keySize = 6;
         long MOD = (1L << keySize);
@@ -239,7 +239,7 @@ public class TestChordLeave {
         }
     }
 
-    @Test(timeout=3000)
+    @Test(timeout=60000)
     public void peer20_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);

@@ -4,6 +4,8 @@ import sdis.Modules.Main.Main;
 import sdis.Modules.Message;
 import sdis.Peer;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -34,7 +36,12 @@ public abstract class MainMessage<T> extends Message {
     protected abstract T parseResponse(byte[] data);
 
     public T sendTo(InetSocketAddress address) throws IOException, InterruptedException {
-        return sendTo(new Socket(address.getAddress(), address.getPort()));
+        SSLSocket socket;
+        SSLSocketFactory ssf = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        socket = (SSLSocket) ssf.createSocket(address.getAddress(), address.getPort());
+        socket.setEnabledCipherSuites(ssf.getDefaultCipherSuites());
+        socket.startHandshake();
+        return sendTo(socket);
     }
 
     public T sendTo(Socket socket) throws IOException, InterruptedException {

@@ -3,6 +3,8 @@ package sdis.Modules.Chord;
 import sdis.Modules.Chord.Messages.HelloMessage;
 import sdis.Modules.ProtocolTask;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -98,7 +100,12 @@ public class Chord {
         }
 
         public Socket createSocket() throws IOException {
-            return new Socket(address.getAddress(), address.getPort());
+            SSLSocket socket;
+            SSLSocketFactory ssf = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            socket = (SSLSocket) ssf.createSocket(address.getAddress(), address.getPort());
+            socket.setEnabledCipherSuites(ssf.getDefaultCipherSuites());
+            socket.startHandshake();
+            return socket;
         }
 
         @Override

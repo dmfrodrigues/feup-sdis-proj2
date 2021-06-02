@@ -16,6 +16,8 @@ import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
 import sdis.Utils.Utils;
 
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
@@ -33,7 +35,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class Peer implements PeerInterface {
 
-    private final ServerSocket serverSocket;
+    private final SSLServerSocket serverSocket;
     private final Chord.Key id;
     private final Path baseStoragePath;
     private final InetSocketAddress socketAddress;
@@ -48,7 +50,18 @@ public class Peer implements PeerInterface {
     }
 
     public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException {
-        serverSocket = new ServerSocket();
+
+        System.setProperty("javax.net.ssl.keyStore", "keys/client");
+        System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+        System.setProperty("javax.net.ssl.trustStore", "keys/truststore");
+        System.setProperty("javax.net.ssl.trustStorePassword", "123456");
+
+        SSLServerSocketFactory ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+
+        serverSocket = (SSLServerSocket) ssf.createServerSocket();
+        serverSocket.setNeedClientAuth(true);
+        serverSocket.setEnabledCipherSuites(ssf.getDefaultCipherSuites());
+
         serverSocket.setReuseAddress(true);
         serverSocket.bind(null);
         socketAddress = new InetSocketAddress(ipAddress, serverSocket.getLocalPort());
@@ -272,11 +285,11 @@ public class Peer implements PeerInterface {
     public static class ServerSocketHandler implements Runnable {
         private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(20);
         private final Peer peer;
-        private final ServerSocket serverSocket;
+        private final SSLServerSocket serverSocket;
 
         private final MessageFactory messageFactory;
 
-        public ServerSocketHandler(Peer peer, ServerSocket serverSocket) {
+        public ServerSocketHandler(Peer peer, SSLServerSocket serverSocket) {
             this.peer = peer;
             this.serverSocket = serverSocket;
 
