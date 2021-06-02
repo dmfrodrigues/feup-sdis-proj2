@@ -21,6 +21,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
@@ -29,6 +30,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,10 +53,12 @@ public class Peer implements PeerInterface {
 
     public Peer(int keySize, long id, InetAddress ipAddress, Path baseStoragePath) throws IOException {
 
+        String password = Files.readString(Path.of("keys/password"));
+
         System.setProperty("javax.net.ssl.keyStore", "keys/client");
-        System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+        System.setProperty("javax.net.ssl.keyStorePassword", password);
         System.setProperty("javax.net.ssl.trustStore", "keys/truststore");
-        System.setProperty("javax.net.ssl.trustStorePassword", "123456");
+        System.setProperty("javax.net.ssl.trustStorePassword", password);
 
         SSLServerSocketFactory ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 
