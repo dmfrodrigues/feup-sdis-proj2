@@ -17,4 +17,11 @@ public interface ChunkOutput {
      * @param e     Chunk
      */
     boolean set(long i, byte[] e);
+
+    /**
+     * @brief Get maximum index that can be used in set(long, byte[]).
+     *
+     * @return Maximum index that can be set
+     */
+    long getMaxIndex();
 }
