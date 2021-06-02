@@ -35,16 +35,6 @@ public class Main {
         return systemStorage;
     }
 
-    /*
-    public Socket send(InetSocketAddress to, MainMessage<?> m) throws IOException {
-        Socket socket = new Socket(to.getAddress(), to.getPort());
-        OutputStream os = socket.getOutputStream();
-        os.write(m.asByteArray());
-        os.flush();
-        return socket;
-    }
-     */
-
     public UserMetadata authenticate(Username username, Password password) {
         AuthenticationProtocol authenticationProtocol = new AuthenticationProtocol(this, username, password);
         return authenticationProtocol.invoke();

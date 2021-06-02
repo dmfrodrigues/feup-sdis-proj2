@@ -24,21 +24,7 @@ public class SystemStorage {
     public DataStorage getDataStorage() {
         return dataStorage;
     }
-
-    /*
-    public Socket send(Socket socket, Message m) throws IOException {
-        socket.getOutputStream().write(m.asByteArray());
-        socket.getOutputStream().flush();
-        return socket;
-    }
-     */
-
-    /*
-    public Socket send(InetSocketAddress to, Message m) throws IOException {
-        return send(new Socket(to.getAddress(), to.getPort()), m);
-    }
-     */
-
+    
     public Socket sendAny(Message m) throws IOException {
         Chord.NodeConn to = chord.getSuccessor();
         to.socket.getOutputStream().write(m.asByteArray());
