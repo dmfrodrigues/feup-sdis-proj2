@@ -4,7 +4,7 @@ out/
 *.iml
 bin/
 *.pdf
-# !report.pdf
+!doc/report.pdf
 build/
 
 gradle/
