@@ -83,7 +83,7 @@ public class FingerAddMessage extends ChordMessage<Boolean> {
                     try { new HelloMessage().sendTo(chord, p.socket); } catch (IOException | InterruptedException e) { e.printStackTrace(); ret = false; }
                 }
 
-                getSocket().getOutputStream().write(message.formatResponse(true));
+                getSocket().getOutputStream().write(message.formatResponse(ret));
                 readAllBytesAndClose(getSocket());
             } catch (IOException | InterruptedException e) {
                 throw new CompletionException(e);
