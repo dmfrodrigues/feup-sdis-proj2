@@ -28,6 +28,7 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
 
         Chord.NodeInfo n = chord.getNodeInfo();
 
+        // Check if
         {
             try {
                 FindSuccessorMessage findSuccessorMessage = new FindSuccessorMessage(n.key);
