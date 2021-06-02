@@ -394,7 +394,7 @@ public class TestChordJoin {
     }
 
 
-    @Test(timeout=1000)
+    @Test(timeout=8000)
     public void peer2_checkIfKeyIsInUse() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
