@@ -29,12 +29,10 @@ public class AuthenticationProtocol extends MainProtocolTask<UserMetadata> {
             byte[] response = readAllBytesAndClose(socket);
             Pair<AuthenticateMessage.Status, UserMetadata> reply = message.parseResponse(response);
             switch(reply.first){
-                case SUCCESS:
-                    return reply.second;
-                case BROKEN:
-                    return null;
+                case SUCCESS: return reply.second;
+                case BROKEN : return null;
+                default     : return null;
             }
-            return null;
         } catch (IOException | InterruptedException e) {
             throw new CompletionException(e);
         }
