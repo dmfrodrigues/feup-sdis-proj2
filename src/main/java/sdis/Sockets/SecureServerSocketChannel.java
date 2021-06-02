@@ -12,13 +12,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Set;
 
 public class SecureServerSocketChannel extends ServerSocketChannel {
-
-    private static SSLEngine getSSLEngine(SSLContext sslContext) {
-        SSLEngine sslEngine = sslContext.createSSLEngine();
-        sslEngine.setUseClientMode(false);
-        return sslEngine;
-    }
-
     private final ServerSocketChannel serverSocketChannel;
     private final SSLContext sslContext;
 
@@ -31,20 +24,22 @@ public class SecureServerSocketChannel extends ServerSocketChannel {
         this.serverSocketChannel = serverSocketChannel;
         this.sslContext = sslContext;
 
-        serverSocketChannel.bind(null);
+        this.serverSocketChannel.configureBlocking(true);
+        this.serverSocketChannel.bind(null);
     }
 
     @Override
-    public SocketChannel accept() throws IOException {
-        SocketChannel channel = serverSocketChannel.accept();
-        if (channel == null) return null;
+    public SecureSocketChannel accept() throws IOException {
+        SocketChannel socketChannel = serverSocketChannel.accept();
+        if (socketChannel == null) return null;
 
-        channel.configureBlocking(true);
+        socketChannel.configureBlocking(false);
+        while (!socketChannel.finishConnect()){}
 
         SSLEngine sslEngine = sslContext.createSSLEngine();
         sslEngine.setUseClientMode(false);
 
-        return new SecureSocketChannel(channel, sslEngine);
+        return new SecureSocketChannel(socketChannel, sslEngine);
     }
 
     @Override

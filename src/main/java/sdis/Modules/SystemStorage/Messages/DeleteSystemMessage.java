@@ -43,8 +43,8 @@ public class DeleteSystemMessage extends SystemStorageMessage<Boolean> {
             boolean b = getSystemStorage().getDataStorage().delete(message.id);
             try {
                 getSocket().write(message.formatResponse(b));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

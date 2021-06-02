@@ -41,6 +41,8 @@ public abstract class MainMessage<T> extends Message {
 
     public T sendTo(SocketChannel socket) throws IOException, InterruptedException {
         socket.write(this.asByteBuffer());
-        return parseResponse(readAllBytesAndClose(socket));
+        ByteBuffer response = readAllBytes(socket);
+        socket.close();
+        return parseResponse(response);
     }
 }

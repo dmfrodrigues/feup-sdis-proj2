@@ -33,8 +33,8 @@ public class SuccessorMessage extends ChordMessage<Chord.NodeInfo> {
                 Chord.NodeInfo successor = getChord().getSuccessorInfo();
                 ByteBuffer response = message.formatResponse(successor);
                 getSocket().write(response);
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

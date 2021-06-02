@@ -50,8 +50,8 @@ public class NotifySuccessorMessage extends ChordMessage<Boolean> {
             getChord().addSuccessor(message.nodeInfo);
             try {
                 getSocket().write(message.formatResponse(true));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

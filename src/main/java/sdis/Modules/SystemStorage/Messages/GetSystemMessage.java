@@ -44,8 +44,8 @@ public class GetSystemMessage extends SystemStorageMessage<byte[]> {
 
             try {
                 getSocket().write(message.formatResponse(data));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

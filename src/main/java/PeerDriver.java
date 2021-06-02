@@ -4,14 +4,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.rmi.AlreadyBoundException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.CertificateException;
 
 public class PeerDriver {
-    public static void main(String[] args) throws IOException, AlreadyBoundException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public static void main(String[] args) throws IOException, AlreadyBoundException, GeneralSecurityException {
         if(args.length != 5 && args.length != 6){
             System.out.println("ERROR: wrong number of arguments");
             System.out.print(getUsage());

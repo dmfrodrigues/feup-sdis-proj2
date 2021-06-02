@@ -46,8 +46,8 @@ public class GetMessage extends DataStorageMessage<byte[]> {
             byte[] data = getProtocol.invoke();
             try {
                 getSocket().write(message.formatResponse(data));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

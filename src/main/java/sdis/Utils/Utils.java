@@ -1,14 +1,15 @@
 package sdis.Utils;
 
-import sdis.Sockets.SecureClientSocketChannel;
+import sdis.Sockets.SecureSocketChannel;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
+import javax.net.ssl.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 
 public class Utils {
 
@@ -87,7 +88,13 @@ public class Utils {
     }
 
     public static SocketChannel createSocket(SSLContext sslContext, InetSocketAddress address) throws IOException {
-        return new SecureClientSocketChannel(address, sslContext);
+        SSLEngine sslEngine = sslContext.createSSLEngine();
+        sslEngine.setUseClientMode(true);
+        SocketChannel innerSocketChannel = SocketChannel.open();
+        innerSocketChannel.configureBlocking(false);
+        innerSocketChannel.connect(address);
+        while(!innerSocketChannel.finishConnect()){}
+        return new SecureSocketChannel(innerSocketChannel, sslEngine);
     }
 
     public static String fromByteBufferToString(ByteBuffer byteBuffer) {

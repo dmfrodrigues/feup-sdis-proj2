@@ -53,8 +53,8 @@ public class UnnotifySuccessorMessage extends ChordMessage<Boolean> {
 
             try {
                 getSocket().write(message.formatResponse(ret));
-                readAllBytesAndClose(getSocket());
-            } catch (IOException | InterruptedException e) {
+                getSocket().close();
+            } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }

@@ -21,28 +21,28 @@ public class TestChordJoin {
         return listOfPeers.get(i);
     }
 
-    @Test(timeout=10000)
+    @Test(timeout=1000)
     public void peer1_small_checkFingers() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
 
         Chord chord1 = peer1.getChord();
 
-//        assertEquals(0, chord1.getPredecessorInfo().key.toLong());
-//        assertEquals(0, chord1.getSuccessorInfo().key.toLong());
+        assertEquals(0, chord1.getPredecessorInfo().key.toLong());
+        assertEquals(0, chord1.getSuccessorInfo().key.toLong());
         assertEquals(0, chord1.getFingerInfo(0).key.toLong());
-//        assertEquals(0, chord1.getFingerInfo(1).key.toLong());
-//        assertEquals(0, chord1.getFingerInfo(2).key.toLong());
-//        assertEquals(0, chord1.getFingerInfo(3).key.toLong());
-//        assertEquals(0, chord1.getFingerInfo(4).key.toLong());
-//        assertEquals(0, chord1.getFingerInfo(5).key.toLong());
-//        assertEquals(0, chord1.getFingerInfo(6).key.toLong());
-//        assertEquals(0, chord1.getFingerInfo(7).key.toLong());
-//
-//        assertTrue(peer1.leave());
+        assertEquals(0, chord1.getFingerInfo(1).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(2).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(3).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(4).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(5).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(6).key.toLong());
+        assertEquals(0, chord1.getFingerInfo(7).key.toLong());
+
+        assertTrue(peer1.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=2000)
     public void peer1_small() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
@@ -70,9 +70,12 @@ public class TestChordJoin {
         assertTrue(peer1.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=3000)
     public void peer1_large() throws Exception {
-        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        int KEY_SIZE = 8;
+        long MOD = 1L << KEY_SIZE;
+
+        Peer peer1 = new Peer(KEY_SIZE, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
 
         Chord chord1 = peer1.getChord();
@@ -81,9 +84,9 @@ public class TestChordJoin {
             add(0L);
         }};
 
-        for(long key = 0; key < peer1.getChord().getMod(); ++key){
+        for(long key = 0; key < MOD; key += 10){
             assertEquals(
-                getExpectedSuccessor(peers, key, 1L<<8),
+                getExpectedSuccessor(peers, key, MOD),
                 chord1.findSuccessor(chord1.newKey(key)).key.toLong()
             );
         }
@@ -91,7 +94,7 @@ public class TestChordJoin {
         assertTrue(peer1.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=10000)
     public void peer2_small_checkFingers() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());

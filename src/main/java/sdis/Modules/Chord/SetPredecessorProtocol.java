@@ -23,7 +23,7 @@ public class SetPredecessorProtocol extends ProtocolTask<Boolean> {
             setPredecessorMessage.sendTo(chord, s.socket);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
-            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
+            try { s.socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
             return false;
         }
         return true;

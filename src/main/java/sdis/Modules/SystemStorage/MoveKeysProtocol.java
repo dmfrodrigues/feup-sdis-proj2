@@ -25,7 +25,7 @@ public class MoveKeysProtocol extends ProtocolTask<Boolean> {
             MoveKeysMessage moveKeysMessage = new MoveKeysMessage(n);
             return moveKeysMessage.sendTo(s.socket);
         } catch (IOException | InterruptedException e) {
-            try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
+            try { s.socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
             throw new CompletionException(e);
         }
     }

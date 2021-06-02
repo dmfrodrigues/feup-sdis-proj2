@@ -55,8 +55,8 @@ public class PutSystemMessage extends SystemStorageMessage<Boolean> {
 
                 try {
                     getSocket().write(message.formatResponse(b));
-                    readAllBytesAndClose(getSocket());
-                } catch (IOException | InterruptedException e) {
+                    getSocket().close();
+                } catch (IOException e) {
                     throw new CompletionException(e);
                 }
         }

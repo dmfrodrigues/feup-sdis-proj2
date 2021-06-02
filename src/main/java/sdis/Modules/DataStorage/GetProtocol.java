@@ -36,7 +36,7 @@ public class GetProtocol extends ProtocolTask<byte[]> {
                 GetMessage m = new GetMessage(id);
                 return m.sendTo(s.socket);
             } catch (IOException | InterruptedException e) {
-                try { readAllBytesAndClose(s.socket); } catch (InterruptedException ex) { ex.printStackTrace(); }
+                try { s.socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
                 throw new CompletionException(e);
             }
         }
