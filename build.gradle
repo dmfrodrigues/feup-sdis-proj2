@@ -28,3 +28,10 @@ test {
     useJUnit()
     maxHeapSize = '1G'
 }
+
+task copyKeys(type: Copy) {
+    from('keys'){}
+    into 'build/classes/java/main/keys'
+}
+
+assemble.finalizedBy(copyKeys)
