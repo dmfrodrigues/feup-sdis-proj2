@@ -33,8 +33,17 @@ public class FixedSizeBuffer<T> {
      *
      * @return  Index of first element in queue
      */
-    public long getBegin(){
+    synchronized public long getBegin(){
         return begin;
+    }
+
+    /**
+     * Get maximum index that can be set.
+     * 
+     * @return  Maximum index that can be set
+     */
+    synchronized public long getMaxIndex() {
+        return begin+queue.size()-1;
     }
 
     /**
@@ -43,7 +52,7 @@ public class FixedSizeBuffer<T> {
      * @param i     Index in the queue
      * @return      True if an element can be inserted at that index, false otherwise
      */
-    public boolean canSet(long i){
+    synchronized public boolean canSet(long i){
         return (i < begin+queue.size());
     }
 
@@ -55,7 +64,7 @@ public class FixedSizeBuffer<T> {
      * @param i     Index in the queue
      * @param e     Element to insert
      */
-    public void set(long i, T e) throws ArrayIndexOutOfBoundsException {
+    synchronized public void set(long i, T e) throws ArrayIndexOutOfBoundsException {
         if(i < begin) return;
         if(!canSet(i)) throw new ArrayIndexOutOfBoundsException();
         int idx = (int) (i % queue.size());
@@ -68,7 +77,7 @@ public class FixedSizeBuffer<T> {
      *
      * @return  True if the queue already has the next element to be extracted, false otherwise
      */
-    public boolean hasNext(){
+    synchronized public boolean hasNext(){
         int idx = (int) (begin % queue.size());
         return ready[idx];
     }
@@ -80,7 +89,7 @@ public class FixedSizeBuffer<T> {
      *
      * @return  The next element
      */
-    public T next(){
+    synchronized public T next(){
         if(!hasNext()) throw new IllegalStateException();
         int idx = (int) (begin % queue.size());
         T ret = queue.get(idx);

@@ -1,5 +1,7 @@
 package sdis.Modules.Chord;
 
+import sdis.Modules.Chord.Exceptions.KeyAlreadyExistsException;
+
 import sdis.Modules.Chord.Messages.FindSuccessorMessage;
 import sdis.Modules.Chord.Messages.NotifySuccessorMessage;
 import sdis.Modules.Chord.Messages.PredecessorMessage;
@@ -25,6 +27,20 @@ public class JoinProtocol extends ProtocolTask<Boolean> {
         System.out.println("Node " + chord.getNodeInfo().key + ": Starting to join");
 
         Chord.NodeInfo n = chord.getNodeInfo();
+
+        // Check if key already exists in system
+        {
+            try {
+                FindSuccessorMessage findSuccessorMessage = new FindSuccessorMessage(n.key);
+                Chord.NodeInfo s = findSuccessorMessage.sendTo(chord, g);
+                if (n.key.equals(s.key)) {
+                    throw new KeyAlreadyExistsException(n.key);
+                }
+            } catch (InterruptedException | IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
 
         // Initialize fingers table and predecessor
         // Get predecessor

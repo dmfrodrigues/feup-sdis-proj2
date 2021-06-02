@@ -50,6 +50,11 @@ public class FileChunkOutput implements ChunkOutput {
         return true;
     }
 
+    @Override
+    public long getMaxIndex() {
+        return buffer.getMaxIndex();
+    }
+
     /**
      * Close file.
      *

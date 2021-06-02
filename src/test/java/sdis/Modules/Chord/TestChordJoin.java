@@ -10,6 +10,7 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 public class TestChordJoin {
     public long getExpectedSuccessor(List<Long> listOfPeers, long key, long MOD){
@@ -184,7 +185,7 @@ public class TestChordJoin {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=1500)
     public void peer2_large() throws Exception {
         Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
         assertTrue(peer1.join());
@@ -241,7 +242,7 @@ public class TestChordJoin {
         assertTrue(peer2.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=1500)
     public void peer3_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
@@ -289,7 +290,7 @@ public class TestChordJoin {
         assertTrue(peer3.leave());
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=1500)
     public void peer10_large() throws Exception {
         int keySize = 10;
         long MOD = (1L << keySize);
@@ -391,4 +392,17 @@ public class TestChordJoin {
             assertTrue(peer.leave());
         }
     }
+
+
+    @Test(timeout=1000)
+    public void peer2_checkIfKeyIsInUse() throws Exception {
+        Peer peer1 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        assertTrue(peer1.join());
+        InetSocketAddress addressPeer1 = peer1.getSocketAddress();
+        Peer peer2 = new Peer(8, 0, InetAddress.getByName("localhost"), Paths.get("bin"));
+        assertFalse(peer2.join(addressPeer1));
+
+        assertTrue(peer1.leave());
+    }
+
 }
