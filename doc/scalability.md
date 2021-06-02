@@ -2,7 +2,7 @@
 
 ## Design level
 
-We fully implemented the Chord protocol (`Chord` module), with keys having $\SI{30}{\bit}$, which we chose as it fits in a $\SI{32}{\bit}$ signed integer, and does not use the corner cases where numbers are close to the limits the types can represent.
+We fully implemented the Chord protocol (`Chord` module), with keys having $\SI{62}{\bit}$, which we chose as it fits in a $\SI{64}{\bit}$ signed integer (`long`), and does not use the corner cases where numbers are close to the limits the types can represent.
 
 ## Implementation level
 
