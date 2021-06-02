@@ -109,6 +109,7 @@ public class LocalDataStorage extends DataStorageAbstract {
                 if(!pathFile.getParentFile().exists() && !pathFile.getParentFile().mkdirs()) return false;
                 AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(pathStr), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
                 os.write(buffer, 0).get();
+                os.force(true);
                 os.close();
             } catch (InterruptedException | ExecutionException | IOException e) {
                 e.printStackTrace();

@@ -321,19 +321,23 @@ public class MainTest {
         Main.Path path1 = new Main.Path("data1");
         byte[] data1 = new byte[64000];
         for(int i = 0; i < data1.length; ++i)
-            data1[i] = Integer.toString(i % 9).getBytes()[0];
+            data1[i] = Integer.toString(i % 10).getBytes()[0];
 
         assertTrue(peer1.backup(username, password, path1, 1, new ByteArrayChunkIterator(data1, Main.CHUNK_SIZE)));
 
-        UserMetadata userMetadata = peer1.authenticate(username, password);
-        assertNotNull(userMetadata);
-        assertNotNull(userMetadata.getFile(path1));
-        DataBuilder builder = new DataBuilder();
-        DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
-        assertTrue(peer1.restore(username, password, path1, chunkOutput));
-        assertArrayEquals(data1, builder.get());
-
-        peer1.leave();
+        assertArrayEquals(data1, peer1.getSystemStorage().getDataStorage().getLocalDataStorage().get(new UUID("user/data1-0-0")));
+        System.out.println("L328");
+        assertArrayEquals(new byte[0], peer1.getSystemStorage().get(new UUID("user/data1-1-0")));
+//
+//        UserMetadata userMetadata = peer1.authenticate(username, password);
+//        assertNotNull(userMetadata);
+//        assertNotNull(userMetadata.getFile(path1));
+//        DataBuilder builder = new DataBuilder();
+//        DataBuilderChunkOutput chunkOutput = new DataBuilderChunkOutput(builder, 10);
+//        assertTrue(peer1.restore(username, password, path1, chunkOutput));
+//        assertArrayEquals(data1, builder.get());
+//
+//        peer1.leave();
     }
 
     @Test(timeout=1000)
