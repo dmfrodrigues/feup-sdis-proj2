@@ -106,7 +106,11 @@ public class LocalDataStorage extends DataStorageAbstract {
         try {
             String pathStr = storagePath + "/" + id;
             File pathFile = new File(pathStr);
-            if(!pathFile.getParentFile().exists() && !pathFile.getParentFile().mkdirs()) return false;
+            if(!pathFile.getParentFile().mkdirs()) {
+                if (!pathFile.getParentFile().exists()) {
+                    return false;
+                }
+            }
             AsynchronousFileChannel os = AsynchronousFileChannel.open(Path.of(pathStr), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
             os.write(buffer, 0).get();
             os.force(true);
