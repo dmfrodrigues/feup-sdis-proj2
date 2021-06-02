@@ -70,8 +70,6 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
 
     @Override
     public Boolean compute() {
-        System.err.println("Was told to restore file " + file + " (nChunks=" + file.getNumberOfChunks() + ", repDeg=" + file.getReplicationDegree() + ")");
-
         List<ProtocolTask<Boolean>> finishedTasks = new LinkedList<>();
         Queue<ProtocolTask<Boolean>> tasks = new LinkedList<>();
         for (long i = 0; i < file.getNumberOfChunks(); ++i) {
@@ -87,7 +85,6 @@ public class RestoreFileProtocol extends MainProtocolTask<Boolean> {
                 protected Boolean compute() {
                     byte[] data = getChunk(finalI);
                     if (data == null) return false;
-                    System.err.println("About to set " + finalI);
                     return destination.set(finalI, data);
                 }
             };
