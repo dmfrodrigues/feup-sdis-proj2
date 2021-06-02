@@ -59,14 +59,14 @@ public class DelistFileMessage extends AccountMessage<Boolean> {
 
                 try {
                     end(true);
-                } catch (IOException | InterruptedException ex) {
+                } catch (IOException ex) {
                     throw new CompletionException(ex);
                 }
 
-            } catch (IOException | ClassNotFoundException | InterruptedException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 try {
                     end(false);
-                } catch (IOException | InterruptedException ex) {
+                } catch (IOException ex) {
                     throw new CompletionException(ex);
                 }
             }
