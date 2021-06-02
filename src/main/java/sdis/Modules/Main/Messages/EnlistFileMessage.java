@@ -63,15 +63,15 @@ public class EnlistFileMessage extends AccountMessage<Boolean> {
 
                 try {
                     end(true);
-                } catch (IOException | InterruptedException ex) {
+                } catch (IOException ex) {
                     throw new CompletionException(ex);
                 }
 
-            } catch (IOException | ClassNotFoundException | InterruptedException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 try {
                     e.printStackTrace();
                     end(false);
-                } catch (IOException | InterruptedException ex) {
+                } catch (IOException ex) {
                     throw new CompletionException(ex);
                 }
             }
