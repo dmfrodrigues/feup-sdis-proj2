@@ -18,11 +18,8 @@ import java.util.concurrent.ExecutionException;
  * Buffers chunks saved using FileChunkOutput#set(int, byte[]), and writes them to the file whenever possible.
  */
 public class FileChunkOutput implements ChunkOutput {
-    private final static int BUFFER_SIZE = 10;
-
     private final AsynchronousFileChannel fileOutputStream;
-    private int filePosition = 0;
-    private final FixedSizeBuffer<ByteBuffer> buffer;
+    private final int chunkSize;
 
     /**
      * Create FileChunkOutput.
@@ -30,29 +27,29 @@ public class FileChunkOutput implements ChunkOutput {
      * @param file  File to sync with/write to
      * @throws FileNotFoundException If file is not found (never thrown, as file needs not exist)
      */
-    public FileChunkOutput(File file) throws IOException {
+    public FileChunkOutput(File file, int chunkSize) throws IOException {
         fileOutputStream = AsynchronousFileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-        buffer = new FixedSizeBuffer<>(BUFFER_SIZE);
+        this.chunkSize = chunkSize;
     }
 
     @Override
     public boolean set(long i, byte[] e) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(e);
-        buffer.set(i, byteBuffer);
-        if(buffer.hasNext()){
-            ByteBuffer next = buffer.next();
-            try {
-                filePosition += fileOutputStream.write(next, filePosition).get();
-            } catch (InterruptedException | ExecutionException ex) {
-                return false;
-            }
+        byte[] eCopy = new byte[e.length];
+        System.arraycopy(e, 0, eCopy, 0, e.length);
+        ByteBuffer byteBuffer = ByteBuffer.wrap(eCopy);
+        long filePosition = i * chunkSize;
+        try {
+            fileOutputStream.write(byteBuffer, filePosition).get();
+        } catch (InterruptedException | ExecutionException ex) {
+            ex.printStackTrace();
+            return false;
         }
         return true;
     }
 
     @Override
     public long getMaxIndex() {
-        return buffer.getMaxIndex();
+        return 1000000000;
     }
 
     /**
