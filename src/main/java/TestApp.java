@@ -2,7 +2,6 @@ import sdis.Modules.Main.Main;
 import sdis.Modules.Main.Password;
 import sdis.Modules.Main.Username;
 import sdis.PeerInterface;
-import sdis.Storage.FileChunkIterator;
 import sdis.Storage.FileChunkOutput;
 
 import java.nio.file.Path;
@@ -18,26 +17,24 @@ public class TestApp {
             Registry registry = LocateRegistry.getRegistry();
             PeerInterface stub = (PeerInterface) registry.lookup(peerAccessPoint);
 
+            if(args[1].equals("LEAVE")){ stub.leave(); return; }
+
             Username username = new Username(args[1]);
             Password password = new Password(args[2]);
             String operation = args[3];
 
             switch (operation) {
                 case "BACKUP": {
-                    Path origin = Paths.get(args[4]);
-                    FileChunkIterator chunkIterator = new FileChunkIterator(origin.toFile(), Main.CHUNK_SIZE);
+                    String origin = args[4];
                     Main.Path destination = new Main.Path(args[5]);
-                    int replicationDegree = Integer.parseInt(args[5]);
-                    stub.backup(username, password, destination, replicationDegree, chunkIterator);
-                    chunkIterator.close();
+                    int replicationDegree = Integer.parseInt(args[6]);
+                    stub.backup(username, password, destination, replicationDegree, origin);
                     break;
                 }
                 case "RESTORE": {
                     Main.Path origin = new Main.Path(args[4]);
-                    Path destination = Paths.get(args[5]);
-                    FileChunkOutput chunkOutput = new FileChunkOutput(destination.toFile());
-                    stub.restore(username, password, origin, chunkOutput);
-                    chunkOutput.close();
+                    String destination = args[5];
+                    stub.restore(username, password, origin, destination);
                     break;
                 }
                 case "DELETE": {
@@ -56,6 +53,7 @@ public class TestApp {
                 }
             }
         } catch(Throwable e){
+            e.printStackTrace();
             System.out.println(getUsage());
         }
     }
