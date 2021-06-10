@@ -15,12 +15,15 @@ import sdis.Modules.SystemStorage.SystemStorage;
 import sdis.Sockets.SecureServerSocketChannel;
 import sdis.Storage.ChunkIterator;
 import sdis.Storage.ChunkOutput;
+import sdis.Storage.FileChunkIterator;
+import sdis.Storage.FileChunkOutput;
 import sdis.Utils.Utils;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -87,6 +90,8 @@ public class Peer implements PeerInterface {
         ServerSocketHandler serverSocketHandler = new ServerSocketHandler(this, serverSocket);
         serverSocketHandlerThread = new Thread(serverSocketHandler);
         serverSocketHandlerThread.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(this::kill));
     }
 
     private SSLContext getSSLContext() throws GeneralSecurityException, IOException {
@@ -253,6 +258,22 @@ public class Peer implements PeerInterface {
     }
 
     /**
+     * Backup file.
+     */
+    public boolean backup(Username username, Password password, Main.Path path, int replicationDegree, String origin) {
+        try {
+            File originFile = new File(origin);
+            FileChunkIterator chunkIterator = new FileChunkIterator(originFile, Main.CHUNK_SIZE);
+            boolean ret = backup(username, password, path, replicationDegree, chunkIterator);
+            chunkIterator.close();
+            return ret;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Restore file.
      */
     public boolean restore(Username username, Password password, Main.Path path, ChunkOutput chunkOutput) {
@@ -260,6 +281,21 @@ public class Peer implements PeerInterface {
         if (file == null) return false;
 
         return main.restoreFile(file, chunkOutput);
+    }
+
+    /**
+     * Restore file.
+     */
+    public boolean restore(Username username, Password password, Main.Path path, String dest) {
+        try {
+            FileChunkOutput chunkOutput = new FileChunkOutput(new File(dest), Main.CHUNK_SIZE);
+            boolean ret = restore(username, password, path, chunkOutput);
+            chunkOutput.close();
+            return ret;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
