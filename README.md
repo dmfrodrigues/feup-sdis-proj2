@@ -6,7 +6,7 @@
 - **Tools:** Java, RMI
 - **Institution:** [FEUP](https://sigarra.up.pt/feup/en/web_page.Inicial)
 - **Course:** [SDIS](https://sigarra.up.pt/feup/en/UCURR_GERAL.FICHA_UC_VIEW?pv_ocorrencia_id=459489) (Distributed Systems)
-<!-- - **Project grade:** ??/20.0 -->
+- **Project grade:** 16.64/20.00
 - **Group:** g21
 - **Group members:**
     - [Breno Accioly de Barros Pimentel](https://github.com/BrenoAccioly) (up201800170@edu.fe.up.pt)
